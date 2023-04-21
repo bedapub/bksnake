@@ -1,0 +1,130 @@
+# TO DO:s The followoing parameters need to be removed:
+CBIOS_IMAGE: 'https://ross.science.roche.com/singularity-cbs/coderoche/packages/cbios_master.sif'         # is still in GCT rules file
+RIBIOS_IMAGE: 'https://ross.science.roche.com/singularity-cbs/coderoche/packages/ribios-image_master.sif' # is still in GCT rules file
+    
+
+#####################################
+# REFERENCE GENOMES AND ANNOTATIONS #
+#####################################
+genomes:
+    hg38: { species: 'hg38', species_name: 'human', organism: 'Homo sapiens', genome_dir: '/projects/site/pred/ngs/genomes/hg38', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
+    chm13: { species: 'chm13', species_name: 'human', organism: 'Homo sapiens', genome_dir: '/projects/site/pred/ngs/genomes/chm13', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
+    mfa5: { species: 'mfa5', species_name: 'cyno', organism: 'Macaca fascicularis', genome_dir: '/projects/site/pred/ngs/genomes/mfa5', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
+    mfa6: { species: 'mfa6', species_name: 'cyno', organism: 'Macaca fascicularis', genome_dir: '/projects/site/pred/ngs/genomes/mfa6', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
+    mm10: { species: 'mm10', species_name: 'mouse', organism: 'Mus musculus', genome_dir: '/projects/site/pred/ngs/genomes_2021-08-20/mouse/mm10', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'] }
+    mm39: { species: 'mm39', species_name: 'mouse', organism: 'Mus musculus', genome_dir: '/projects/site/pred/ngs/genomes/mm39', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'] }
+    rn6: { species: 'rn6', species_name: 'rat', organism: 'Rattus norvegicus', genome_dir: '/projects/site/pred/ngs/genomes/rn6', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'] }
+    rn7: { species: 'rn7', species_name: 'rat', organism: 'Rattus norvegicus', genome_dir: '/projects/site/pred/ngs/genomes/rn7', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'] }
+    ss11: { species: 'ss11', species_name: 'pig', organism: 'Sus scrofa', genome_dir: '/projects/site/pred/ngs/genomes/ss11', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
+    oc2: { species: 'oc2', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_dir: '/projects/site/pred/ngs/genomes/oc2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
+
+
+#########################################
+# REFERENCE GENOMES RELATIVE FILE PATHS #
+#########################################
+# stable file names
+gtf_ref: 'gtf/refseq/refseq.exons.gtf'
+gtf_ens: 'gtf/ensembl/ensembl.exons.gtf'
+qsplice_exons: 'gtf/refseq/refseq.exons.qsplice.txt.gz'
+qsplice_junctions: 'gtf/refseq/refseq.junctions.qsplice.txt.gz'
+ref_fasta: 'fasta/genome.fa'
+ref_fasta_gz: 'fasta/genome.fa.gz'
+ref_fasta_fai: 'fasta/genome.fa.gz.fai'
+ref_fasta_gzi: 'fasta/genome.fa.gz.gzi'
+annot_ref: 'gtf/refseq/refseq.exons.annot'
+annot_ens: 'gtf/ensembl/ensembl.exons.annot'
+loci_ref: 'gtf/refseq/refseq.loci.txt'
+loci_ens: 'gtf/ensembl/ensembl.loci.txt'
+gene_length_ref: 'gtf/refseq/refseq.exons.geneLength'
+gene_length_ens: 'gtf/ensembl/ensembl.exons.geneLength'
+genome_size: 'fasta/genome.chrom.sizes'
+refflat_ref: 'gtf/refseq/refseq.refFlat'   # changed 06.06.2022 with correct CDS coords
+refflat_ens: 'gtf/ensembl/ensembl.refFlat' # chnaged 06.06.2022 with correct CDS coords
+ribo_intervals: 'fasta/genome.rRNA_intervals'
+chip_file_ref: 'resources/geneids.chip'
+chip_file_ens: 'resources/ENSEMBLGENES.chip'
+
+
+####################################
+# LESS COMMONLY CHANGED PARAMETERS #
+####################################
+results: 'results'   # output folder name, no need to change, default: results
+pipeline: 'bksnake'  # type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline
+snakemake: 'ml purge && ml snakemake && snakemake' # path to snakemake program
+singularity_prefix: '/projects/site/pred/ngs/Singularity/images'
+
+
+# featureCounts parameters
+#
+# stranded quantification
+# 0 for unstranded quantification
+# 1 for forward (e.g. for Lexogen's QuantSeq)
+# 2 for reverse (e.g. for Illumina's TruSeq Stranded mRNA)
+# see: https://rochewiki.roche.com/confluence/display/SLSSA/2.6+RNA-Seq+FAQs"
+#      https://rochewiki.roche.com/confluence/pages/viewpage.action?pageId=435599305"
+# strand: 0 see above fc_strand
+fc_min_overlap: 10
+fc_frac_overlap: 0.2
+
+# STAR read mapping parameters
+star_sam_mapq_unique: 60
+star_threads: 12
+star_version: 'star_2.7.10a' # align with image below
+
+
+####################################
+# PUBLIC DOMAIN SINGULARITY IMAGES #
+####################################
+ARV_CLI_IMAGE: 'docker://docker-cache.repository.intranet.roche.com/matmu/arvados-cli:RocheCert'
+AWS_CLI_IMAGE: 'docker://docker-cache.repository.intranet.roche.com/amazon/aws-cli:2.4.7'
+BAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bamtools:2.5.1--he513fc3_6'
+BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.13--h3a49de5_0'
+BEDSORT_IMAGE: 'https://depot.galaxyproject.org/singularity/ucsc-bedsort:377--h446ed27_2'
+BEDTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0'
+BWA_IMAGE: 'https://depot.galaxyproject.org/singularity/bwa%3A0.7.17--h7132678_9'
+CUTADAPT_IMAGE: 'https://depot.galaxyproject.org/singularity/cutadapt%3A3.5--py39h38f01e4_0'
+DEEPTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/deeptools%3A3.5.0--py_0'
+FASTQC_IMAGE: 'https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0'
+GATK_IMAGE: 'https://depot.galaxyproject.org/singularity/gatk4%3A4.0.0.0--py36_0'
+JAVA_IMAGE: 'https://depot.galaxyproject.org/singularity/java-jdk:8.0.112--0'
+JBROWSE2_IMAGE: 'https://depot.galaxyproject.org/singularity/jbrowse2%3A2.1.0--hd6180af_0'
+JQ_IMAGE: 'https://depot.galaxyproject.org/singularity/jq%3A1.6'
+MULTIQC_IMAGE: 'https://depot.galaxyproject.org/singularity/multiqc%3A1.13a--pyhdfd78af_1'
+PICARD_IMAGE: 'https://depot.galaxyproject.org/singularity/picard-slim:2.25.1--0'
+RSEQC_IMAGE: 'https://depot.galaxyproject.org/singularity/rseqc:4.0.0--py38h0213d0e_0'
+SAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/samtools%3A1.15.1--h1170115_0'
+STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.10a--h9ee0642_0'
+SUBREAD_IMAGE: 'https://depot.galaxyproject.org/singularity/subread:2.0.1--hed695b0_0'
+TABIX_IMAGE: 'https://depot.galaxyproject.org/singularity/tabix:0.2.6--ha92aebf_0'
+VEP_IMAGE: 'https://depot.galaxyproject.org/singularity/ensembl-vep%3A107.0--pl5321h4a94de4_0'
+
+
+###############################
+# Tool version and references #  Used for QC report
+###############################
+bcl_tool_name: 'bcl2fastq2'
+bcl_tool_version: '2.20.0'
+bcl_tool_reference: 'Illumina'
+fastqc_name: 'FastQC'
+fastqc_reference: 'Andrews 2010'
+multiqc_name: 'MultiQC'
+multiqc_reference: 'Ewels 2016'
+align_tool_name: 'STAR'
+align_tool_reference: 'Dobin 2013'
+count_tool_name: 'featureCounts'
+count_tool_reference: 'Liao 2014'
+
+
+###############################
+# OUTPUT FILE NAMES           #  Do not change !
+###############################
+tpm_gct_ref: 'refseq_tpm.gct'
+tpm_gct_ens: 'ensembl_tpm.gct'
+log2tpm_gct_ref: 'refseq_log2tpm.gct'
+log2tpm_gct_ens: 'ensembl_log2tpm.gct'
+count_gct_ref: 'refseq_count.gct'
+count_gct_ens: 'ensembl_count.gct'
+collapsed_gct_ref: 'refseq_count_collapsed.gct'
+collapsed_gct_ens: 'ensembl_count_collapsed.gct'
+tpm_collapsed_gct_ref: 'refseq_tpm_collapsed.gct'
+tpm_collapsed_gct_ens: 'ensembl_tpm_collapsed.gct'

@@ -1,0 +1,225 @@
+# Public version of the Snakemake workflow for biokit rnaseq pipeline #
+"""
+No archive
+No JBrowse
+No database/metadata
+No biokitr and other report
+"""
+import sys
+import pandas as pd
+import subprocess # to get git hash
+from os.path import dirname, join
+
+from scripts.funcs import *
+import scripts.sample_anno as sample_anno
+import scripts.options as options 
+import scripts.metadata as metadata
+
+
+# ------------------------------------------------------------------------------
+# Specify multiple config files which contains many pipeline parameters
+# This will be merged if the option --configfile=<filepath> is specified
+configfile: 'config/common.yaml'
+
+
+# ------------------------------------------------------------------------------
+# Declare variables
+OD = config['results']
+OD_TMP = os.path.join(OD, 'tmp')
+OD_BAM = os.path.join(OD, 'bam')
+OD_UBAM = os.path.join(OD, 'bam_unsorted')
+OD_CRAM = os.path.join(OD, 'cram')
+OD_GCT = os.path.join(OD, 'gct')
+OD_GCT_ENS = os.path.join(OD, 'gct-ens')
+OD_ANNO = os.path.join(OD, 'annot')
+OD_LOG = os.path.join(OD, 'log')
+OD_STATS = os.path.join(OD, 'stats')
+OD_FASTQ = os.path.join(OD, 'fastq')
+OD_FASTQC = os.path.join(OD, 'fastqc')
+OD_MULTIQC = os.path.join(OD, 'multiqc_data')
+OD_MULTIQC_ENS = os.path.join(OD, 'multiqc_data_ensembl')
+OD_QC = os.path.join(OD, 'qc')
+OD_FC = os.path.join(OD, 'fc')
+OD_METRICS = os.path.join(OD, 'metrics')
+OD_BW = os.path.join(OD, 'bw')
+OD_CUTADAPT = os.path.join(OD, 'cutadapt')
+
+SAMPLES = os.path.join(OD, 'samples.txt')
+PHENODATA = os.path.join(OD_ANNO, 'phenoData.meta')
+METADATA = os.path.join(OD, 'metadata.txt')
+MAPSTATS = os.path.join(OD_STATS, 'mapping_stats.txt')
+
+# chip files (in gct rule file)
+CHIP_FILE_REF = config['chip_file_ref']
+CHIP_FILE_ENS = config['chip_file_ens']
+
+# output files refseq (in gct rule file)
+TPM_GCT_REF = os.path.join(OD_GCT, config['tpm_gct_ref'])
+COUNT_GCT_REF = os.path.join(OD_GCT, config['count_gct_ref'])
+LOG2TPM_GCT_REF = os.path.join(OD_GCT, config['log2tpm_gct_ref'])
+COLLAPSED_GCT_REF = os.path.join(OD_GCT, config['collapsed_gct_ref'])
+TPM_COLLAPSED_GCT_REF = os.path.join(OD_GCT, config['tpm_collapsed_gct_ref'])
+
+# output files ensembl (in gct rule file)
+TPM_GCT_ENS = os.path.join(OD_GCT_ENS, config['tpm_gct_ens'])
+COUNT_GCT_ENS = os.path.join(OD_GCT_ENS, config['count_gct_ens'])
+LOG2TPM_GCT_ENS = os.path.join(OD_GCT_ENS, config['log2tpm_gct_ens'])
+COLLAPSED_GCT_ENS = os.path.join(OD_GCT_ENS, config['collapsed_gct_ens'])
+TPM_COLLAPSED_GCT_ENS = os.path.join(OD_GCT_ENS, config['tpm_collapsed_gct_ens'])
+
+
+# ------------------------------------------------------------------------------
+# Make dataframe with metadata from moose
+if os.path.exists(config['metadata_file']):
+    meta = metadata.get_metadata(None,
+                                 None,
+                                 config['metadata_group_name'],
+                                 None,
+                                 None,
+                                 None,
+                                 config['metadata_file'])
+else:
+    raise Exception('Metadata file is missing. Abort! '+config['metadata_file'])
+ 
+ 
+# Make dataframe with arvados locators for all fastq files
+# --> give to fastq files new name, from #ID column !
+# Here, use path/url/location from column 'Source Folder' if existing, otherwise from column 'Raw'
+if 'Source Folder' in meta:
+    if 'Raw' in meta:
+        meta.drop(columns='Raw', inplace=True)
+    meta['Raw'] = meta['Source Folder']
+else:
+    if len(set(meta['Raw'])) != 1:
+        sys.stderr.write(set(meta['Raw']))
+        raise SystemExit('Ambigious raw data storage URIs/paths, use "Source Folder" to specify multiple locations')
+
+
+"""
+Determine/update library type: paired-end or single-end
+in the past this was given in the input config file
+here, we overwrite the value in the config if present
+by the value obtained from the metadata (via Fastq files)
+"""
+config = metadata.update_library_type(config, meta)
+
+
+"""
+Determine organism and update config dictionary
+"""
+config = metadata.update_organism(config, meta)
+
+
+"""
+Determine strand orientation of the sequencing library
+
+Normally this value should come from the Moose metadata as True or False
+
+However, the strand may have 3 options:
+ 1. SECOND_READ_TRANSCRIPTION_STRAND (default, most common) 
+ 2. FIRST_READ_TRANSCRIPTION_STRAND 
+ 3. NONE
+ 
+Strategy:
+ 1. if present and valid in config then use it from config
+ 2. if present and valid from moose/metadata then it from moose
+ 3. raise error
+"""
+PICARD_STRAND, BIOKIT_STRAND, FC_STRAND = metadata.strandedness(meta, config)
+
+
+
+"""
+Determine fastq file locators from metadata
+This depends whether paired- or single-end reads
+
+Parses meta dataframe into list of dictionaries for every sample.
+Then, add fastq dir to FASTQ1 and/or FASTQ2 columns
+"""
+locators = metadata.fastq_locators(meta, config)
+sample_ids = meta['#ID']
+sample_groups = meta['GROUP']
+fastq_names = list(locators['name'])
+fastq_names_noext = locators['name'].str.replace('.fastq.gz', '', regex=True)
+
+
+
+
+# ------------------------------------------------------------------------------
+# genome reference data and annotations
+GENOME_DIR = config['genome_dir']
+GTF_REF = os.path.join(GENOME_DIR, config['gtf_ref'])
+GTF_ENS = os.path.join(GENOME_DIR, config['gtf_ens'])
+ANNOT_REF = os.path.join(GENOME_DIR, config['annot_ref'])
+ANNOT_ENS = os.path.join(GENOME_DIR, config['annot_ens'])
+LOCI_REF = os.path.join(GENOME_DIR, config['loci_ref'])
+LOCI_ENS = os.path.join(GENOME_DIR, config['loci_ens'])
+LEN_REF = os.path.join(GENOME_DIR, config['gene_length_ref'])
+LEN_ENS = os.path.join(GENOME_DIR, config['gene_length_ens'])
+GENOME_FASTA_GZ = os.path.join(GENOME_DIR, config['ref_fasta_gz'])
+GENOME_FAI = os.path.join(GENOME_DIR, config['ref_fasta_fai'])
+GENOME_GZI = os.path.join(GENOME_DIR, config['ref_fasta_gzi'])
+GENOME_SIZE = os.path.join(GENOME_DIR, config['genome_size'] )
+REFFLAT_REF = os.path.join(GENOME_DIR, config['refflat_ref'])
+REFFLAT_ENS = os.path.join(GENOME_DIR, config['refflat_ens'])
+RIBO_INTERVALS = os.path.join(GENOME_DIR, config['ribo_intervals'])
+STAR_DIR = os.path.join(GENOME_DIR, config['star_version'])
+
+
+# ------------------------------------------------------------------------------
+# rules
+include: 'rules/fastq.smk'
+include: 'rules/fastqc.smk'
+include: 'rules/star.smk'
+include: 'rules/fc.smk'
+include: 'rules/qc.smk'
+include: 'rules/gct.smk'
+include: 'rules/bam.smk'
+include: 'rules/picard.smk'
+include: 'rules/reference.smk'
+include: 'rules/delete.smk'
+
+
+# ------------------------------------------------------------------------------
+# Declare local rules, ie not submitted to the cluster
+localrules: all, \
+            metadata, \
+            touch_bw, \
+            delete_fastq, \
+            delete_bam, \
+            no_cutadapt
+            
+            
+# ------------------------------------------------------------------------------
+rule all:
+    input:
+        {TPM_GCT_REF},
+        {LOG2TPM_GCT_REF},
+        {COUNT_GCT_REF},
+        {TPM_GCT_ENS},
+        {LOG2TPM_GCT_ENS},
+        {COUNT_GCT_ENS},
+        os.path.join(OD_STATS, 'mapping_stats.txt'),
+        os.path.join(OD, 'multiqc_report.html'),
+        os.path.join(OD, 'multiqc_report_ensembl.html'),
+
+        # Other optional output files (unmapped, bw, etc)
+        expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids),
+        options.get_optional_output_files(sample_ids, config)
+
+# ----------------------------------------------------------------------------
+rule metadata:
+    output:
+        {SAMPLES},
+        {PHENODATA},
+        temp(expand(os.path.join(OD_TMP, '{name}.input'), name=locators.name)),
+    log:
+        os.path.join(OD_LOG, 'metadata.log')
+    threads: 1
+    resources:
+        mem_mb=1000
+    run:
+        meta.to_csv(output[0], sep='\t', index=False) # Make {SAMPLES} file
+        sample_anno.translate_biokit_to_phenoData_meta(output[0], output[1]) # Make {PHENODATA} file
+        for name in locators.name:
+            Path(os.path.join(OD_TMP, name+'.input')).touch()
