@@ -14,14 +14,15 @@ from pathlib import Path
 Declare global variables
 """
 GRAPHFILE = 'rulegraph.pdf' # name of the output graph file
-CONFIGFILE = 'config.yaml' # name of the output config file
-COMMON_CONFIG = None # global variable for input common config file
+CONFIGFILE = 'config.yaml'  # name of the output config file
+CONFIG = None # global variable for input config dictionary
 
 
 """
 Read common configuration file
+Normally, this is file 'config/common.yaml'
 """
-def read_common_config(file):
+def read_config(file):
     yaml.preserve_quotes = True
 
     if not os.path.isfile(file):
@@ -34,68 +35,64 @@ def read_common_config(file):
 """
 Create the config file for the Snakemake run
 
-Use template and add parameters from user to the output config.yaml
+Use the input config file (default: config/common.yaml) and 
+add parameters from the user input. CONFIG is a global variable.
+Then, output the as a new file 'config.yaml' into the
+output directory
 
-template: config/config_template.yaml
 """
 def create_run_config(args):
 
-    yaml.preserve_quotes = True
-
-    # read input config file (template)
-    conf = yaml.safe_load(Path(args.config).read_text())
-
     # update config dictionary
     if args.outdir:
-        conf['results'] = args.outdir
+        CONFIG['results'] = args.outdir
         
     if args.species:
-        conf['species'] = COMMON_CONFIG['genomes'][args.species]['species']
-        conf['species_name'] = COMMON_CONFIG['genomes'][args.species]['species_name']
-        conf['organism'] = COMMON_CONFIG['genomes'][args.species]['organism']
-        conf['genome_dir'] = COMMON_CONFIG['genomes'][args.species]['genome_dir']
+        CONFIG['species'] = CONFIG['genomes'][args.species]['species']
+        CONFIG['species_name'] = CONFIG['genomes'][args.species]['species_name']
+        CONFIG['organism'] = CONFIG['genomes'][args.species]['organism']
+        CONFIG['genome_dir'] = CONFIG['genomes'][args.species]['genome_dir']
     
     if args.keep_fastq:
-        conf['keep_fastq_files'] = True
+        CONFIG['keep_fastq_files'] = True
     else:
-        conf['keep_fastq_files'] = False
+        CONFIG['keep_fastq_files'] = False
 
     if args.keep_bam:
-        conf['keep_bam_files'] = True
+        CONFIG['keep_bam_files'] = True
     else:
-        conf['keep_bam_files'] = False
+        CONFIG['keep_bam_files'] = False
 
     if args.not_generate_cram:
-        conf['generate_cram_files'] = False
+        CONFIG['generate_cram_files'] = False
     else:
-        conf['generate_cram_files'] = True
+        CONFIG['generate_cram_files'] = True
 
     if args.generate_bw:
-        conf['generate_bw_files'] = True
+        CONFIG['generate_bw_files'] = True
     else:
-        conf['generate_bw_files'] = False
+        CONFIG['generate_bw_files'] = False
 
     if args.generate_unmapped:
-        conf['generate_unmapped'] = True
+        CONFIG['generate_unmapped'] = True
     else:
-        conf['generate_unmapped'] = False
+        CONFIG['generate_unmapped'] = False
         
     if args.cutadapt:
-        conf['cutadapt']['run'] = True
+        CONFIG['cutadapt']['run'] = True
         if args.cutadapt_params:
-            conf['cutadapt']['parameters'] = args.cutadapt_params
+            CONFIG['cutadapt']['parameters'] = args.cutadapt_params
     else:
-        conf['cutadapt']['run'] = False
+        CONFIG['cutadapt']['run'] = False
 
     # check output config file
     configfile = os.path.join(args.outdir, CONFIGFILE)
     if os.path.isfile(configfile):
-        #raise Exception('Configuration file exists already. Abort! '+configfile)
         sys.stderr.write('Configuration file exists already: '+configfile)
 
     # write dictionary tp new output yaml file
     f = open(configfile, 'w')
-    yaml.dump(conf, f)
+    yaml.dump(CONFIG, f)
     f.close()
    
     
@@ -107,7 +104,7 @@ def graph(args):
     outfile = os.path.join(args.outdir, GRAPHFILE)
     configfile = os.path.join(args.outdir, CONFIGFILE)
                         
-    cmd = COMMON_CONFIG['snakemake']+' '\
+    cmd = CONFIG['snakemake']+' '\
           +' --rulegraph all'\
           +' --snakefile '+snakefile\
           +' --configfile '+configfile\
@@ -123,9 +120,11 @@ def graph(args):
     
 """
 Run Snakemake workflow
-  --notemp, --nt   Ignore temp() declarations. This is useful when running only a part of the workflow, since temp() would lead to deletion of probably needed files by other parts of the workflow.
+  --notemp, --nt   Ignore temp() declarations. This is useful when running only a part of the workflow, 
+                   since temp() would lead to deletion of probably needed files by other parts of the workflow.
     
-  --jobs [N], -j [N]    Use at most N CPU cluster/cloud jobs in parallel. For local execution this is an alias for --cores. (default: None)
+  --jobs [N], -j [N]    Use at most N CPU cluster/cloud jobs in parallel. For local execution this 
+                        is an alias for --cores. (default: None)
 """
 def workflow(args):
     snakefile = os.path.abspath(args.snakefile)
@@ -133,7 +132,7 @@ def workflow(args):
     
     homeDir = str(Path.home())
 
-    cmd = COMMON_CONFIG['snakemake']+' '\
+    cmd = CONFIG['snakemake']+' '\
           +' --snakefile '+snakefile\
           +' --configfile '+configfile\
           +' --latency-wait 6'\
@@ -142,9 +141,9 @@ def workflow(args):
           +' --verbose'\
           +' '+args.snake_params\
           +' --use-singularity'\
-          +' --singularity-prefix '+COMMON_CONFIG['singularity_prefix']\
+          +' --singularity-prefix '+CONFIG['singularity_prefix']\
           +' --singularity-args "--contain --cleanenv'\
-          +' --bind '+COMMON_CONFIG['genomes'][args.species]['genome_dir']\
+          +' --bind '+CONFIG['genomes'][args.species]['genome_dir']\
           +' --bind /tmp"'
     
     if args.jobs:
@@ -183,10 +182,7 @@ if __name__ == '__main__':
     parser.add_argument('--config', '-f', 
                         help='Path to input yaml config file for Snakemake. All parameters of the config file are \
                         overwritten if they are specified by optional arguments to this wrapper script', 
-                        required=False, default='config/config_template.yaml')
-    parser.add_argument('--common-config', dest='common',
-                        help='Path to common yaml config file for Snakemake.', 
-                        required=False, default='config/common.yaml')
+                        required=False, default='config/config.yaml')
     parser.add_argument('--keep-fastq',
                         help='Keep a copy of the input fastq files in the output directory.', 
                         required=False, action='store_true')
@@ -237,14 +233,14 @@ if __name__ == '__main__':
     # Check input or (default:template) config file
     if not os.path.isfile(args.config):
         raise Exception('Configuration (template) file does not exist. Abort! '+args.config)
-
-    # Read common config file (global variable COMMON_CONFIG)
-    COMMON_CONFIG = read_common_config(args.common)
-    
+   
     # Create output directory
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
     
+    # Read input config file and return as global variable CONFIG
+    CONFIG = read_config(args.config)
+
     # Create config.yaml file
     create_run_config(args)
   
