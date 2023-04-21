@@ -1,0 +1,16 @@
+*~
+.snakemake
+.cache
+.java
+.fontconfig
+.ipynb_checkpoints
+__pycache__
+*.err
+*.out
+*.html
+*.swp
+*.fastq.gz
+*.pdf
+logs*
+*output*
+results*
