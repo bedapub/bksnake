@@ -87,8 +87,8 @@ def create_run_config(args):
 
     # check output config file
     configfile = os.path.join(args.outdir, CONFIGFILE)
-    if os.path.isfile(configfile):
-        sys.stderr.write('Configuration file exists already: '+configfile)
+#    if os.path.isfile(configfile):
+#        sys.stderr.write('Configuration file exists already: '+configfile)
 
     # write dictionary tp new output yaml file
     f = open(configfile, 'w')
@@ -143,7 +143,7 @@ def workflow(args):
           +' --use-singularity'\
           +' --singularity-prefix '+CONFIG['singularity_prefix']\
           +' --singularity-args "--contain --cleanenv'\
-          +' --bind '+CONFIG['genomes'][args.species]['genome_dir']\
+          +' --bind '+CONFIG['genome_dir']\
           +' --bind /tmp"'
     
     if args.jobs:
@@ -174,11 +174,10 @@ if __name__ == '__main__':
     parser.add_argument('--outdir', '-o', dest='outdir', 
                         help='Path to output directory', 
                         required=True, default=None)
-    
-    # Optional arguments
     parser.add_argument('--species', '-s', dest='species',
                         help='Reference genome species for mapping, e.g. hg38, mm39, mfa5, rn7, ss11, oc2', 
-                        required=False, default=None)
+                        required=True, default=None)
+    # Optional arguments
     parser.add_argument('--config', '-f', 
                         help='Path to input yaml config file for Snakemake. All parameters of the config file are \
                         overwritten if they are specified by optional arguments to this wrapper script', 
@@ -241,6 +240,12 @@ if __name__ == '__main__':
     # Read input config file and return as global variable CONFIG
     CONFIG = read_config(args.config)
 
+    
+    # Get species: 
+    # from command line -> now required.
+    # from config file
+    # from metadata file
+    
     # Create config.yaml file
     create_run_config(args)
   

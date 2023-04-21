@@ -36,6 +36,7 @@ if config['library']['type'] == 'paired-end':
 # check if first from both mate files have same name
             import gzip
             import re
+            from scripts.funcs import count_gzip_lines
 
             with gzip.open(input[0],'r') as fin: 
                 first_line1 = fin.readline().strip()

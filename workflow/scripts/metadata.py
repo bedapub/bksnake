@@ -10,6 +10,8 @@ from pathlib import Path
 import requests
 import configparser
 
+from .funcs import *
+
 
 # Column names in metadata panda dataframe
 ORGANISM_PROPERTY = 'Organism'
@@ -18,57 +20,11 @@ FIRST_READ_PROPERTY = 'FASTQ1'   # originally: FASTQ Forward (RDT)
 SECOND_READ_PROPERTY = 'FASTQ2'  # originally: FASTQ Reverse (RDT)
 
 
-def clean_string(s):
-    return s.strip()
 
-def isBlank (s):
-    if s and s.strip():
-        return False
-    return True
-
-def isNotBlank (s):
-    if s and s.strip():
-        return True
-    return False
 
 """
-does not work for my uuid from Moose...
+Login to MOOSE sample metadata database
 """
-def is_valid_uuid(uuid_to_test, version=4):
-    """
-    Check if uuid_to_test is a valid UUID.
-    
-     Parameters
-    ----------
-    uuid_to_test : str
-    version : {1, 2, 3, 4}
-    
-     Returns
-    -------
-    `True` if uuid_to_test is a valid UUID, otherwise `False`.
-    
-     Examples
-    --------
-    >>> is_valid_uuid('c9bf9e57-1685-4c89-bafb-ff5af830be8a')
-    True
-    >>> is_valid_uuid('c9bf9e58')
-    False
-    """
-    
-    try:
-        uuid_obj = UUID(uuid_to_test, version=version)
-    except ValueError:
-        return False
-    return str(uuid_obj) == uuid_to_test
-
-
-def move_columns_left(df, columns):
-    df_left = df[columns]
-    df_right = df[[col for col in df.columns if col not in df_left.columns]]
-    df = pd.concat([df_left, df_right], axis='columns')
-    return df
-
-
 def login_and_get_headers_api(login_url, email, password, verify=True):
     login_data = {'email': email, 'password': password}
     login_res = requests.post(url=login_url, json=login_data, verify=verify)
@@ -80,20 +36,18 @@ def login_and_get_headers_api(login_url, email, password, verify=True):
     return header
 
 
+
+"""
+Get sample metadata from MOOSE database via API call
+"""
 def request_samples(api_login, api_password, dataset_id, study_id, api_url,
                     etl_api_url, verify=True, debug=False):
     
-    #if not is_valid_uuid(dataset_id):
-    #    raise Exception('Moose \"dataset_uuid\" '+dataset_id+' is not a valid UUID')
-
     if study_id is None or isBlank(study_id):
         endpoint = f'{etl_api_url}/api/studies/datasets/{dataset_id}/rdt/export'
     else:
-    #elif is_valid_uuid(study_id):
         endpoint = f'{etl_api_url}/api/studies/id/{study_id}/datasets/id/{dataset_id}/rdt/export'
-    #else:
-    #    raise Exception('Moose \"study_uuid\" '+study_id+' is not a valid UUID')
-
+ 
     params = {'format': 'tsv', 'use_cv_labels': 'true', 'prettify_headers': 'true'}
     if debug:
         print(f'Using endpoint {endpoint} and params {params}', file=sys.stdout)
@@ -105,6 +59,9 @@ def request_samples(api_login, api_password, dataset_id, study_id, api_url,
     return response
 
 
+"""
+Read a configuration file for the MOOSE database
+"""
 def read_config(filename=None, debug=False):
     if filename is None:
         filename = Path.home() / CONFIG_PATH
@@ -126,6 +83,7 @@ def read_config(filename=None, debug=False):
             print(f'Error loading config file {filename}: {e}', file=sys.stderr)
 
     return {}
+
 
 """
 Updates:
@@ -154,11 +112,13 @@ def get_metadata(dataset_id, study_id, group, credentials_file, api_url, etl_api
         #df = pd.read_csv(request.raw, sep='\t')
         df = pd.read_csv(request.raw, sep='\t', dtype={'Readout ID (RDT)': 'object'})
  
+
     # check for duplicated columns
     if df.columns.duplicated().any():
         print( 'Warning: Got duplicated columns:',
                 df.columns[df.columns.duplicated()].unique(),
-                file=sys.stderr )
+  
+              file=sys.stderr )
         
     # remove all NaN columns but keep 'Is Stranded (DAT)' column = STRANDED_PROPERTY
     col_names = df.columns
@@ -168,12 +128,14 @@ def get_metadata(dataset_id, study_id, group, credentials_file, api_url, etl_api
         df[STRANDED_PROPERTY] = df_copy[STRANDED_PROPERTY]
     del df_copy
 
+    
     # determine whether single- or paired-end reads
     if 'FASTQ Reverse (RDT)' in df:
         single_end = False
     else:
         single_end = True
 
+        
     # rename some columns
     if single_end == True:
             df.rename(
@@ -191,6 +153,7 @@ def get_metadata(dataset_id, study_id, group, credentials_file, api_url, etl_api
                     },
                 inplace=True)
 
+        
     # remove '/' if it is first character in fastq files names
     if 'FASTQ1' in df.columns:
         df['FASTQ1'] = df['FASTQ1'].str.replace('^/', '', regex=True)
@@ -201,6 +164,8 @@ def get_metadata(dataset_id, study_id, group, credentials_file, api_url, etl_api
     # find columns which are unique without parenthesis
     dup_cols = df.columns.str.replace(r' \([^(]+\)$', '', regex=True)
     dup_cols = dup_cols.duplicated(keep=False)
+    
+    
     # remove parenthesis suffixes among unique columns
     cols_to_rename = df.columns[~dup_cols]
     rename_dict = dict(
@@ -208,6 +173,7 @@ def get_metadata(dataset_id, study_id, group, credentials_file, api_url, etl_api
             )
     df.rename(columns=rename_dict, inplace=True)
 
+    
     # Determine the "group" name, may combine several columns
     if group == 'NA' or group == 'na' or group == 'n/a':
         assert 'GROUP' not in df.columns
@@ -240,6 +206,7 @@ def get_metadata(dataset_id, study_id, group, credentials_file, api_url, etl_api
     # thus we convert the whole column to string
     df['#ID'] = df['#ID'].astype(str)
 
+    
     # escape spaces in #ID
     df['#ID'] = df['#ID'].str.replace(' ', '_', regex=True)
 

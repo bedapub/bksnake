@@ -6,15 +6,14 @@ RIBIOS_IMAGE: 'https://ross.science.roche.com/singularity-cbs/coderoche/packages
 #####################################
 # GENERAL PARAMETERS                #
 #####################################    
-pipeline: 'bksnake'  # type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline
 snakemake: 'ml purge && ml snakemake && snakemake' # path to snakemake program
-singularity_prefix: '/projects/site/pred/ngs/Singularity/images'
+singularity_prefix: '/projects/site/pred/ngs/Singularity/images' # the location where images should be stored for re-use later
 
 
 ###############################
 # COMMONLY CHANGED PARAMETERS #
 ###############################
-
+pipeline: 'bksnake'  # type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline
 results: 'output'
 metadata_file: 'resources/test-data/metadata.txt'
 metadata_group_name: 'GROUP'
@@ -41,6 +40,7 @@ cutadapt:
 #####################################
 # REFERENCE GENOMES AND ANNOTATIONS #
 #####################################
+genome_dir: '/projects/site/pred/ngs/genomes' # used only to bind singularity container
 genomes:
     hg38: { species: 'hg38', species_name: 'human', organism: 'Homo sapiens', genome_dir: '/projects/site/pred/ngs/genomes/hg38', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
     chm13: { species: 'chm13', species_name: 'human', organism: 'Homo sapiens', genome_dir: '/projects/site/pred/ngs/genomes/chm13', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }

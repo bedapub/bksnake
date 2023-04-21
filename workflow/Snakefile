@@ -2,7 +2,7 @@
 """
 No archive
 No JBrowse
-No database/metadata
+No meatada database
 No biokitr and other report
 """
 import sys
@@ -10,8 +10,7 @@ import pandas as pd
 import subprocess # to get git hash
 from os.path import dirname, join
 
-from scripts.funcs import *
-import scripts.sample_anno as sample_anno
+import scripts.funcs as funcs
 import scripts.options as options 
 import scripts.metadata as metadata
 
@@ -219,7 +218,7 @@ rule metadata:
     resources:
         mem_mb=1000
     run:
-        meta.to_csv(output[0], sep='\t', index=False) # Make {SAMPLES} file
-        sample_anno.translate_biokit_to_phenoData_meta(output[0], output[1]) # Make {PHENODATA} file
+        meta.to_csv(output[0], sep='\t', index=False)                 # Make {SAMPLES} file
+        funcs.translate_biokit_to_phenoData_meta(output[0], output[1]) # Make {PHENODATA} file
         for name in locators.name:
             Path(os.path.join(OD_TMP, name+'.input')).touch()
