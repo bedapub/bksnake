@@ -7,6 +7,7 @@
 # Remove generation of file with unmapped reads.
 # TO DO: split rule into several rules, gzip etc.
 
+
 if config['generate_unmapped'] == True:
     unmapped = '--outReadsUnmapped Fastx'
 else:
@@ -25,6 +26,8 @@ def get_mem_mb(wildcards, threads):
     #return 120 * 1024 / threads # 120G / threads -->FAILS
 
 
+# ------------------------------------------------------------------------------
+# paired-end read mapping with STAR
 if config['library']['type'] == 'paired-end':
     rule star:
         input:
@@ -74,6 +77,8 @@ if config['library']['type'] == 'paired-end':
             mv --force {params.prefix}Log.final.out {output[2]}
             """
 else:
+# ------------------------------------------------------------------------------
+# single-end read mapping with STAR
     rule star:
         input:
             fq1 = os.path.join(star_input_dir, '{sample}.fastq.gz'),
@@ -118,7 +123,7 @@ else:
             mv --force {params.prefix}Log.final.out {output[2]}
             """
 
-
+# ------------------------------------------------------------------------------
 if config['generate_unmapped'] == True:
     rule gzip_unmapped_mate1:
         input:
@@ -131,6 +136,7 @@ if config['generate_unmapped'] == True:
             gzip -c {input} > {output}
             """
 
+# ------------------------------------------------------------------------------
 if config['generate_unmapped'] == True and config['library']['type'] == 'paired-end':
     rule gzip_unmapped_mate2:
         input:
@@ -143,6 +149,7 @@ if config['generate_unmapped'] == True and config['library']['type'] == 'paired-
             gzip -c {input} > {output}
             """
 
+# ------------------------------------------------------------------------------
 """
 this sort rule is specific for STAR mapping (bulk rnaseq pipeline)
 because of the bam file name: _Aligned.out.bam
@@ -165,6 +172,7 @@ rule sortbam_star:
           samtools sort -m 10G -@ {threads} -T {input}_sort -o {output} {input}'
 
 
+# ------------------------------------------------------------------------------
 # stats from STAR mapping, old version
 rule star_stats_old:
     input:
@@ -180,6 +188,7 @@ rule star_stats_old:
         workflow/scripts/mapping_stats_star.sh {OD_LOG} {input[0]} > {output}
         """
 
+# ------------------------------------------------------------------------------
 # stats from STAR mapping, new version
 rule star_stats:
     input:

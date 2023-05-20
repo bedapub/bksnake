@@ -1,6 +1,11 @@
-RIBIOS_IMAGE = config['RIBIOS_IMAGE']
-CBIOS_IMAGE = config['CBIOS_IMAGE']
+RIBIOSSCRIPTS_IMAGE = config['RIBIOSSCRIPTS_IMAGE']
+NGSTOOLS_IMAGE = config['NGSTOOLS_IMAGE']
 
+
+# ------------------------------------------------------------------------------
+"""
+Create GCT file with count for RefSeq gene annotations
+"""
 rule gct_ref:
     input:
         expand(os.path.join(OD_FC,'{sample}.refseq.cnt.gz'), sample=sample_ids)
@@ -24,6 +29,10 @@ rule gct_ref:
             {input} {output} 2> {log}
         """
 
+# ------------------------------------------------------------------------------
+"""
+Create GCT file with count for Ensembl gene annotations
+"""
 rule gct_ens:
     input:
         expand(os.path.join(OD_FC,'{sample}.ensembl.cnt.gz'), sample=sample_ids)
@@ -47,6 +56,10 @@ rule gct_ens:
             {input} {output} 2> {log}
         """
 
+# ------------------------------------------------------------------------------
+"""
+Calculate normalized counts, TPM from RefSeq counts GCT file
+"""
 rule tpm_ref:
     input:
         {COUNT_GCT_REF}
@@ -62,7 +75,7 @@ rule tpm_ref:
     resources:
         mem_mb = 10000
     singularity:
-        CBIOS_IMAGE
+        NGSTOOLS_IMAGE
     shell:
         """
         count2tpm \
@@ -78,6 +91,10 @@ rule tpm_ref:
             -col {params.col} > {output[1]} 2>> {log}
         """
 
+# ------------------------------------------------------------------------------
+"""
+Calculate normalized counts, TPM from Ensembl counts GCT file
+"""
 rule tpm_ens:
     input:
         {COUNT_GCT_ENS}
@@ -93,7 +110,7 @@ rule tpm_ens:
     resources:
         mem_mb = 10000
     singularity:
-        CBIOS_IMAGE
+        NGSTOOLS_IMAGE
     shell:
         """
         count2tpm \
@@ -109,7 +126,11 @@ rule tpm_ens:
             -col {params.col} > {output[1]} 2>> {log}
          """
 
-# Convert species genes to human genes for gct matrix: count
+# ------------------------------------------------------------------------------
+"""
+Convert species genes to human genes for gct matrix: count
+Uses Chip definition files
+"""
 rule collapse:
     input:
         ref = {COUNT_GCT_REF},
@@ -123,7 +144,7 @@ rule collapse:
     resources:
         mem_mb = 10000
     singularity:
-        RIBIOS_IMAGE
+        RIBIOSSCRIPTS_IMAGE
     shell:
         """
         collapseExprsMatByChip.Rscript -useChipfileAnno \
@@ -132,7 +153,11 @@ rule collapse:
             -infile {input.ens} -outfile {output.ens} -chipfile {params.chipFile_ens}
         """
 
-# Convert species genes to human genes for gct matrix: tpm
+# ------------------------------------------------------------------------------
+"""
+Convert species genes to human genes for gct matrix: tpm
+Uses Chip definition files
+"""
 rule collapse_tpm:
     input:
         ref = {TPM_GCT_REF},
@@ -146,7 +171,7 @@ rule collapse_tpm:
     resources:
         mem_mb = 10000
     singularity:
-        RIBIOS_IMAGE
+        RIBIOSSCRIPTS_IMAGE
     shell:
         """
         collapseExprsMatByChip.Rscript -useChipfileAnno \
@@ -155,7 +180,10 @@ rule collapse_tpm:
             -infile {input.ens} -outfile {output.ens} -chipfile {params.chipFile_ens}
         """
 
-# Traditional QC files (bioQC, PCA)
+# ------------------------------------------------------------------------------
+"""
+Create traditional QC files (bioQC, PCA plots)
+"""
 rule qc:
     input:
         pheno = {PHENODATA},
@@ -174,18 +202,17 @@ rule qc:
     log:
         os.path.join(OD_LOG,'qc.log')
     params:
-        gmt = 'resources/exp.tissuemark.bioqc.roche.symbols.gmt'
     resources:
         mem_mb = 10000
     singularity:
-        RIBIOS_IMAGE
+        RIBIOSSCRIPTS_IMAGE
     shell:
         """
         R -e \"df=ribiosIO::readTable(\'{input.pheno}\'); ribiosIO::write_cls(factor(df\$GROUP),\'{output.cls}\')\" > {log} 
         (plotPCA.Rscript -infile {input.log2_ref} -outfile {output.pca} -outTable {output.tab} -cls {output.cls}) >> {log}
-        (bioqc.Rscript -gmt {params.gmt} -featuretype GeneSymbol -infile {input.collapsed} -outfile {output.txt}) >> {log}
+        (bioqc.Rscript -featuretype GeneSymbol -infile {input.collapsed} -outfile {output.txt}) >> {log}
         (biosHeatmap.Rscript -infile {output.txt} -outfile {output.pdf} -scale none -colors blackred \
             -naColor lightgray -symbreaks auto -dendrogram both -dist euclidean -hclust ward.D2 \
             -xlab -ylab -cexRow -cexCol -colorKeyTitle -width -height -margins -zlimLo -zlimHi -main \'BioQC\') >> {log}
-        (bioqc.Rscript -threshold 2.0 -gmt {params.gmt} -featuretype GeneSymbol -infile {input.collapsed} -outfile {output.txt2}) >> {log}
+        (bioqc.Rscript -threshold 2.0 -featuretype GeneSymbol -infile {input.collapsed} -outfile {output.txt2}) >> {log}
         """

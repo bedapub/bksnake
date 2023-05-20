@@ -1,3 +1,4 @@
+# ------------------------------------------------------------------------------
 # copy reference genome data from source to results directory
 rule refdata:
     input:

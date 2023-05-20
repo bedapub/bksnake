@@ -1,6 +1,5 @@
 # TO DO: modularize better, merge ref and ens
 
-
 MIN_OVERLAP = config['fc_min_overlap']
 FRAC_OVERLAP = config['fc_frac_overlap']
 if config['library']['type'] == 'paired-end':
@@ -8,6 +7,8 @@ if config['library']['type'] == 'paired-end':
 else:
     P_PARAM = ''
 
+
+# ------------------------------------------------------------------------------
 rule fc_ref:
     input:
         os.path.join(OD_UBAM,'{sample}_Aligned.out.bam')
@@ -33,7 +34,7 @@ rule fc_ref:
         'gzip {params.cnt}'
 
 
-
+# ------------------------------------------------------------------------------
 rule fc_ens:
     input:
         os.path.join(OD_UBAM,'{sample}_Aligned.out.bam')

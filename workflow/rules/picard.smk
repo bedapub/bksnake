@@ -1,5 +1,5 @@
+# ------------------------------------------------------------------------------
 # Picard mRNA metrics only for paired-end reads
-
 rule picard_ensembl:
     input:
         os.path.join(OD_BAM,'{sample}.bam'),
@@ -26,6 +26,7 @@ rule picard_ensembl:
             -O {output} 2> {log}
         """
 
+# ------------------------------------------------------------------------------
 rule picard_refseq:
     input:
         os.path.join(OD_BAM,'{sample}.bam'),

@@ -2,6 +2,7 @@
 rules for getting raw fastq files from arvados, ross or local path
 """
 
+# ------------------------------------------------------------------------------
 # Variables
 if 'ross' in config:
     ross_profile = config['ross']['aws_profile']  # 'RSIROSS-BIM'
@@ -14,6 +15,7 @@ else:
 location_raw = 'local'
 
 
+# ------------------------------------------------------------------------------
 # Process the metadata dataframe 'meta'
 
 if 'ross' in config and ross_url+'/'+ross_bucket in list(set(meta['Raw']))[0]:
