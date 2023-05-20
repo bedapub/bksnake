@@ -358,7 +358,7 @@ Determine organism and update config dictionary
 1. species: 'hg38'
 2. species_name: 'human'
 3. organism: 'Homo sapiens'
-4. genome_dir: '/projects/site/pred/ngs/genomes/human/hg38'
+4. genome_dir: '/path/to/genome/directory/hg38'
 5. biokitr genes
 
 What if the user wants a specific assembly, mm10 instead of mm39 ?

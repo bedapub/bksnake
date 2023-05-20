@@ -14,6 +14,7 @@ from pathlib import Path
 Declare global variables
 """
 GRAPHFILE = 'rulegraph.pdf' # name of the output graph file
+GRAPHFILE_PNG = 'rulegraph.png'
 CONFIGFILE = 'config.yaml'  # name of the output config file
 CONFIG = None # global variable for input config dictionary
 
@@ -102,14 +103,16 @@ Create Snakemake Graph file
 def graph(args):
     snakefile = os.path.abspath(args.snakefile)
     outfile = os.path.join(args.outdir, GRAPHFILE)
+    outfile2 = os.path.join(args.outdir, GRAPHFILE_PNG)
     configfile = os.path.join(args.outdir, CONFIGFILE)
                         
     cmd = CONFIG['snakemake']+' '\
           +' --rulegraph all'\
           +' --snakefile '+snakefile\
           +' --configfile '+configfile\
-          +' | dot -Tpdf > '+outfile
-    
+          +' | dot -Tpdf > '+outfile\
+          +' && pdftoppm -png '+outfile+' > '+outfile2
+
     print('\n=======================================\n'+
           'Command to re-run the pipeline-graph:\n'+cmd+
           '\n=======================================\n\n')
@@ -177,6 +180,7 @@ if __name__ == '__main__':
     parser.add_argument('--species', '-s', dest='species',
                         help='Reference genome species for mapping, e.g. hg38, mm39, mfa5, rn7, ss11, oc2', 
                         required=True, default=None)
+
     # Optional arguments
     parser.add_argument('--config', '-f', 
                         help='Path to input yaml config file for Snakemake. All parameters of the config file are \

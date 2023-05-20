@@ -1,8 +1,3 @@
-# TO DO:s The followoing parameters need to be removed:
-CBIOS_IMAGE: 'https://ross.science.roche.com/singularity-cbs/coderoche/packages/cbios_master.sif'         # is still in GCT rules file
-RIBIOS_IMAGE: 'https://ross.science.roche.com/singularity-cbs/coderoche/packages/ribios-image_master.sif' # is still in GCT rules file
-
-
 #####################################
 # GENERAL PARAMETERS                #
 #####################################    
@@ -37,6 +32,21 @@ cutadapt:
         parameters: '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT --minimum-length 10'
 
 
+#################################
+# SEQUENCING LIBRARY PARAMETERS #
+#################################
+# TO DO: this information may come from the metadata catalog moose.
+# Strand information for Picard and featureCount (FC) tools (this could be integrated in the Snakefile)
+# type: choose either 'paired-end' (most common) or 'single-end'
+# strand: choose one of three options:
+#    option 1: 'SECOND_READ_TRANSCRIPTION_STRAND' (most common)
+#    option 2: 'FIRST_READ_TRANSCRIPTION_STRAND'
+#    option 3: 'NONE' (for unstranded paired-end library, for single-end reads library and in case of doubt)
+library:
+        type: 'paired-end' # 'paired-end' (default) or 'single-end'
+        strand: 'SECOND_READ_TRANSCRIPTION_STRAND'
+
+
 #####################################
 # REFERENCE GENOMES AND ANNOTATIONS #
 #####################################
@@ -52,7 +62,6 @@ genomes:
     rn7: { species: 'rn7', species_name: 'rat', organism: 'Rattus norvegicus', genome_dir: '/projects/site/pred/ngs/genomes/rn7', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'] }
     ss11: { species: 'ss11', species_name: 'pig', organism: 'Sus scrofa', genome_dir: '/projects/site/pred/ngs/genomes/ss11', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
     oc2: { species: 'oc2', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_dir: '/projects/site/pred/ngs/genomes/oc2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
-
 
 
 #########################################
@@ -104,8 +113,8 @@ star_threads: 12
 ####################################
 # PUBLIC DOMAIN SINGULARITY IMAGES #
 ####################################
-ARV_CLI_IMAGE: 'docker://docker-cache.repository.intranet.roche.com/matmu/arvados-cli:RocheCert'
-AWS_CLI_IMAGE: 'docker://docker-cache.repository.intranet.roche.com/amazon/aws-cli:2.4.7'
+ARV_CLI_IMAGE: 'docker://matmu/arvados-cli:RocheCert'
+AWS_CLI_IMAGE: 'docker://amazon/aws-cli:2.4.7'
 BAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bamtools:2.5.1--he513fc3_6'
 BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.13--h3a49de5_0'
 BEDSORT_IMAGE: 'https://depot.galaxyproject.org/singularity/ucsc-bedsort:377--h446ed27_2'
@@ -119,7 +128,9 @@ JAVA_IMAGE: 'https://depot.galaxyproject.org/singularity/java-jdk:8.0.112--0'
 JBROWSE2_IMAGE: 'https://depot.galaxyproject.org/singularity/jbrowse2%3A2.1.0--hd6180af_0'
 JQ_IMAGE: 'https://depot.galaxyproject.org/singularity/jq%3A1.6'
 MULTIQC_IMAGE: 'https://depot.galaxyproject.org/singularity/multiqc%3A1.13a--pyhdfd78af_1'
+NGSTOOLS_IMAGE: 'docker://ghcr.io/bedapub/ngs-tools:main'
 PICARD_IMAGE: 'https://depot.galaxyproject.org/singularity/picard-slim:2.25.1--0'
+RIBIOSSCRIPTS_IMAGE: 'docker://ghcr.io/bedapub/ribiosscripts:main'
 RSEQC_IMAGE: 'https://depot.galaxyproject.org/singularity/rseqc:4.0.0--py38h0213d0e_0'
 SAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/samtools%3A1.15.1--h1170115_0'
 STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.10a--h9ee0642_0'

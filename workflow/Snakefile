@@ -18,7 +18,7 @@ import scripts.metadata as metadata
 # ------------------------------------------------------------------------------
 # Specify multiple config files which contains many pipeline parameters
 # This will be merged if the option --configfile=<filepath> is specified
-configfile: 'config/common.yaml'
+configfile: 'config/config.yaml'
 
 
 # ------------------------------------------------------------------------------
@@ -202,9 +202,17 @@ rule all:
         os.path.join(OD, 'multiqc_report.html'),
         os.path.join(OD, 'multiqc_report_ensembl.html'),
 
+        os.path.join(OD_ANNO,'phenoData.cls'),
+        os.path.join(OD_QC,'refseq_log2tpm_pca.pdf'),
+        os.path.join(OD_QC,'refseq_log2tpm_pca.txt'),
+        os.path.join(OD_QC,'bioQC.txt'),
+        os.path.join(OD_QC,'bioQC_thr2.txt'),
+        os.path.join(OD_QC,'bioQC.pdf'),
+
         # Other optional output files (unmapped, bw, etc)
         expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids),
         options.get_optional_output_files(sample_ids, config)
+
 
 # ----------------------------------------------------------------------------
 rule metadata:
@@ -218,7 +226,11 @@ rule metadata:
     resources:
         mem_mb=1000
     run:
-        meta.to_csv(output[0], sep='\t', index=False)                 # Make {SAMPLES} file
+        meta.to_csv(output[0], sep='\t', index=False)                  # Make {SAMPLES} file
         funcs.translate_biokit_to_phenoData_meta(output[0], output[1]) # Make {PHENODATA} file
         for name in locators.name:
             Path(os.path.join(OD_TMP, name+'.input')).touch()
+
+
+# ----------------------------------------------------------------------------
+# rule report:

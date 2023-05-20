@@ -6,7 +6,7 @@ if [[ $# -lt 2 || $# -gt 2 ]]; then
   echo "1. input folder with STAR Log.final.out files"
   echo "2. samples file (2 columns required: 1st col sample name, 2nd col sample group)"
   echo ""
-  echo "Contact roland.schmucki@roche.com / tel 71330"
+  echo "Contact roland.schmucki@roche.com"
   echo ""
   exit 1
 fi
