@@ -96,7 +96,7 @@ def create_run_config(args):
         CONFIG['singularity_prefix'] = args.singularity_prefix
 
     if args.metadata_file:
-        CONFIG['metadata-file'] = args.metadata_file
+        CONFIG['metadata_file'] = args.metadata_file
 
     # check output config file
     configfile = os.path.join(args.outdir, CONFIGFILE)
