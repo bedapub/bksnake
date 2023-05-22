@@ -1,124 +1,40 @@
 """
-Source:
-    https://code.roche.com/PMDA/create_samples_table/-/blob/main/create_samples_table.py
+Functions to process metadata parameters
 """
 import sys
 import pandas as pd
 import os.path
-from uuid import UUID
-from pathlib import Path
-import requests
-import configparser
-
 from .funcs import *
 
 
 # Column names in metadata panda dataframe
 ORGANISM_PROPERTY = 'Organism'
 STRANDED_PROPERTY = 'Is Stranded (DAT)'
-FIRST_READ_PROPERTY = 'FASTQ1'   # originally: FASTQ Forward (RDT)
-SECOND_READ_PROPERTY = 'FASTQ2'  # originally: FASTQ Reverse (RDT)
-
-
-
-
-"""
-Login to MOOSE sample metadata database
-"""
-def login_and_get_headers_api(login_url, email, password, verify=True):
-    login_data = {'email': email, 'password': password}
-    login_res = requests.post(url=login_url, json=login_data, verify=verify)
-
-    if login_res.status_code != 200:
-        raise Exception(f'Login to API failed. {login_res.json()}')
-
-    header = login_res.json()
-    return header
-
+FIRST_READ_PROPERTY = 'FASTQ1'
+SECOND_READ_PROPERTY = 'FASTQ2'
 
 
 """
-Get sample metadata from MOOSE database via API call
-"""
-def request_samples(api_login, api_password, dataset_id, study_id, api_url,
-                    etl_api_url, verify=True, debug=False):
-    
-    if study_id is None or isBlank(study_id):
-        endpoint = f'{etl_api_url}/api/studies/datasets/{dataset_id}/rdt/export'
-    else:
-        endpoint = f'{etl_api_url}/api/studies/id/{study_id}/datasets/id/{dataset_id}/rdt/export'
- 
-    params = {'format': 'tsv', 'use_cv_labels': 'true', 'prettify_headers': 'true'}
-    if debug:
-        print(f'Using endpoint {endpoint} and params {params}', file=sys.stdout)
-    headers = login_and_get_headers_api( f'{api_url}/users/login', api_login, api_password, verify=verify )
-    response = requests.get( endpoint, params=params, stream=True, headers=headers, verify=verify )
-    if not response.ok:
-        print(f'Server response:\n{response.text}', file=sys.stdout)
-    response.raise_for_status()
-    return response
-
-
-"""
-Read a configuration file for the MOOSE database
-"""
-def read_config(filename=None, debug=False):
-    if filename is None:
-        filename = Path.home() / CONFIG_PATH
-    else:
-        filename = Path(filename)
-    if filename.is_file():
-        if debug:
-            print(f'Config file found: {filename}', file=sys.stderr)
-        try:
-            config = configparser.ConfigParser()
-            config.read(filename)
-            if 'default' not in config:
-                print(f'Cannot find default section in the config file', file=sys.stderr)
-            cfg_dict = dict(config['default'])
-            if debug:
-                print(f'Got config: {cfg_dict}', file=sys.stderr)
-            return cfg_dict
-        except Exception as e:
-            print(f'Error loading config file {filename}: {e}', file=sys.stderr)
-
-    return {}
-
-
-"""
+Get metadata from flat file or from study and sample metadata MongoDB database
 Updates:
     - if metadata_file exists, then read from that file.
     - allow combining multiple columns for group
     - remove special characters from group, e.g. greek symbols
     - remove first character from fastq files names if it is a slash '/'
-    
-    api_url: 'https://moose.roche.com/api'                                             
-    etl_api_url: 'https://moose.roche.com/etl-api'      
 """
-def get_metadata(dataset_id, study_id, group, credentials_file, api_url, etl_api_url, metadata_file):
+def get_metadata_from_file(metadata_file, group):
 
     if os.path.exists(metadata_file):
         df = pd.read_csv(metadata_file, sep='\t')
     else:
-        config = read_config(filename = credentials_file)
-        request = request_samples(
-                config.get('api_login'),
-                config.get('api_password'),
-                dataset_id,
-                study_id,
-                api_url,
-                etl_api_url,
-                verify = True)
-        #df = pd.read_csv(request.raw, sep='\t')
-        df = pd.read_csv(request.raw, sep='\t', dtype={'Readout ID (RDT)': 'object'})
- 
+        raise Exception('Metadata file is missing. Abort! '+metadata_file)
 
     # check for duplicated columns
     if df.columns.duplicated().any():
         print( 'Warning: Got duplicated columns:',
-                df.columns[df.columns.duplicated()].unique(),
-  
+                df.columns[df.columns.duplicated()].unique(),  
               file=sys.stderr )
+
         
     # remove all NaN columns but keep 'Is Stranded (DAT)' column = STRANDED_PROPERTY
     col_names = df.columns
@@ -128,31 +44,13 @@ def get_metadata(dataset_id, study_id, group, credentials_file, api_url, etl_api
         df[STRANDED_PROPERTY] = df_copy[STRANDED_PROPERTY]
     del df_copy
 
-    
+
     # determine whether single- or paired-end reads
-    if 'FASTQ Reverse (RDT)' in df:
+    if 'FASTQ2'in df:
         single_end = False
     else:
         single_end = True
-
-        
-    # rename some columns
-    if single_end == True:
-            df.rename(
-                    columns={
-                        'Readout ID (RDT)': '#ID',
-                        'FASTQ Forward (RDT)': 'FASTQ1',
-                        },
-                    inplace=True)
-    else:
-        df.rename(
-                columns={
-                    'Readout ID (RDT)': '#ID',
-                    'FASTQ Forward (RDT)': 'FASTQ1',
-                    'FASTQ Reverse (RDT)': 'FASTQ2',
-                    },
-                inplace=True)
-
+ 
         
     # remove '/' if it is first character in fastq files names
     if 'FASTQ1' in df.columns:
@@ -215,17 +113,13 @@ def get_metadata(dataset_id, study_id, group, credentials_file, api_url, etl_api
     else:
         df = move_columns_left(df, ['#ID', 'GROUP', 'FASTQ1', 'FASTQ2'])
 
-
     # replace tabs and newlines by space
     df.replace('\t|\n|\r', ' ', regex=True, inplace=True)
 
-
     # replace white spaces and slashes in GROUP by underscore
     df['GROUP'] = df['GROUP'].str.replace(' ', '_', regex=False).replace('/', '_', regex=False)
-    #df['GROUP'] = df['GROUP'].str.replace(' ', '_', regex=True).replace('/', '_', regex=True)
 
     return df
-
 
 
 
@@ -241,6 +135,7 @@ def library_type(meta):
         raise Exception('\"'+FIRST_READ_PROPERTY+'\" property not present in metadata, \
                          thus cannot determine whether paired- or single-end sequencing library.')
 
+        
         
 """
 Determine strand orientation of the sequencing library
@@ -297,6 +192,7 @@ def strandedness(meta, config):
     return default_strand
 
 
+
 """
 Determine fastq file locators from metadata
 This depends whether paired- or single-end reads
@@ -333,6 +229,7 @@ def fastq_locators(meta, config):
     return locators
 
 
+
 """
 Determine/update library type: paired-end or single-end
 in the past this was given in the input config file
@@ -348,6 +245,7 @@ def update_library_type(config, meta):
     else:
         config['library'] = ( {'type' : library_type(meta)} )
     return config
+
 
 
 """
@@ -369,14 +267,13 @@ def update_organism(config, meta):
     if ORGANISM_PROPERTY in meta:
         if len(meta[ORGANISM_PROPERTY].unique()) == 1:
             org = map_organism_to_config(meta[ORGANISM_PROPERTY].unique()[0])
+            config['genomes'][org]['genome_dir'] = os.path.normpath(os.path.join(config['genome_dir'], config['genomes'][org]['genome_subdir']))
             if not 'species' in config:
                 config['species'] = config['genomes'][org]['species']
             if not 'species_name' in config:
                 config['species_name'] = config['genomes'][org]['species_name']
             if not 'organism' in config:
                 config['organism'] = config['genomes'][org]['organism']
-            if not 'genome_dir' in config:
-                config['genome_dir'] = config['genomes'][org]['genome_dir']
             if 'biokitr' in config:
                 if not 'genes' in config['biokitr']:
                     config['biokitr']['genes'] = config['genomes'][org]['biokitr_genes']
@@ -390,8 +287,9 @@ def update_organism(config, meta):
     return config
 
 
+
 """
-Map Moose properties to organism/genome names in the common.yaml config file.
+Map species properties to organism/genome names in the common.yaml config file.
 """
 def map_organism_to_config(organism):
     org = organism.lower()

@@ -3,7 +3,7 @@ QC analysis for fastq files
 """
 
 # ---------------------------------------------------------------
-# check integrity of downloaded gzip fastq files
+# check integrity of raw input gzipped fastq files
 rule validate_gzip:
     input:
         os.path.join(OD_FASTQ, '{name}')
@@ -33,7 +33,7 @@ if config['library']['type'] == 'paired-end':
         resources:
             mem_mb=1000
         run:
-# check if first from both mate files have same name
+            # check if first from both mate files have same name
             import gzip
             import re
             from scripts.funcs import count_gzip_lines
@@ -88,7 +88,7 @@ if config['cutadapt']['run'] == True:
         output:
             fq1 = temp(os.path.join(OD_CUTADAPT, '{name}_1.fastq.gz')),
             fq2 = temp(os.path.join(OD_CUTADAPT, '{name}_2.fastq.gz')),
-            report = os.path.join(OD_CUTADAPT, '{name}.report.txt'),
+            report = temp(os.path.join(OD_CUTADAPT, '{name}.report.txt')),
         log:
             os.path.join(OD_LOG, '{name}.cutadapt.log')
         threads: 12
@@ -141,7 +141,7 @@ rule fastqc:
         temp(os.path.join(OD_FASTQC, '{name}_fastqc.zip'))
     log:
         os.path.join(OD_LOG, '{name}.fastqc.log')
-    threads: 2
+    threads: 4
     resources:
         mem_mb=10000
     params:

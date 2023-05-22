@@ -47,12 +47,15 @@ def create_run_config(args):
     # update config dictionary
     if args.outdir:
         CONFIG['results'] = args.outdir
+
+    if args.genome_dir:
+        CONFIG['genome_dir'] = args.genome_dir
         
     if args.species:
         CONFIG['species'] = CONFIG['genomes'][args.species]['species']
         CONFIG['species_name'] = CONFIG['genomes'][args.species]['species_name']
         CONFIG['organism'] = CONFIG['genomes'][args.species]['organism']
-        CONFIG['genome_dir'] = CONFIG['genomes'][args.species]['genome_dir']
+        CONFIG['genome_dir'] = os.path.normpath(os.path.join(CONFIG['genome_dir'], CONFIG['genomes'][args.species]['genome_subdir']))
     
     if args.keep_fastq:
         CONFIG['keep_fastq_files'] = True
@@ -85,7 +88,13 @@ def create_run_config(args):
             CONFIG['cutadapt']['parameters'] = args.cutadapt_params
     else:
         CONFIG['cutadapt']['run'] = False
-
+        
+    if args.snakemake_path:
+        CONFIG['snakemake'] = args.snakemake_path
+        
+    if args.singularity_prefix:
+        CONFIG['singularity_prefix'] = args.singularity_prefix
+        
     # check output config file
     configfile = os.path.join(args.outdir, CONFIGFILE)
 #    if os.path.isfile(configfile):
@@ -186,6 +195,12 @@ if __name__ == '__main__':
                         help='Path to input yaml config file for Snakemake. All parameters of the config file are \
                         overwritten if they are specified by optional arguments to this wrapper script', 
                         required=False, default='config/config.yaml')
+    parser.add_argument('--genome-dir',
+                        help='Path to the genome root directory. Must contain sub-directory for each species genomes.', 
+                        required=False, default='')
+    parser.add_argument('--singularity-prefix',
+                        help='Path to the location where Singularity images should be stored for re-use later.', 
+                        required=False, default='singularity-images')
     parser.add_argument('--keep-fastq',
                         help='Keep a copy of the input fastq files in the output directory.', 
                         required=False, action='store_true')
@@ -219,6 +234,9 @@ if __name__ == '__main__':
     parser.add_argument('--no-dag',
                         help='Do not create \"directed acyclic graph\" of the workflow.', 
                         required=False, action='store_true')
+    parser.add_argument('--snakemake-path',
+                        help='Path to Snakemake', 
+                        required=False, default='snakemake')
     parser.add_argument('--snakemake-parameters', dest='snake_params',
                         help='Additional Snakemake parameters, e.g. --snakemake-parameters=\'--dry-run --notemp\'', 
                         required=False, default='')

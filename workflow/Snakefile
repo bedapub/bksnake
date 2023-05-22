@@ -2,7 +2,7 @@
 """
 No archive
 No JBrowse
-No meatada database
+No metadata MongoDB database
 No biokitr and other report
 """
 import sys
@@ -70,13 +70,9 @@ TPM_COLLAPSED_GCT_ENS = os.path.join(OD_GCT_ENS, config['tpm_collapsed_gct_ens']
 # ------------------------------------------------------------------------------
 # Make dataframe with metadata from moose
 if os.path.exists(config['metadata_file']):
-    meta = metadata.get_metadata(None,
-                                 None,
-                                 config['metadata_group_name'],
-                                 None,
-                                 None,
-                                 None,
-                                 config['metadata_file'])
+    meta = metadata.get_metadata_from_file(
+        config['metadata_file'],
+        config['metadata_group_name'])
 else:
     raise Exception('Metadata file is missing. Abort! '+config['metadata_file'])
  
@@ -167,51 +163,35 @@ STAR_DIR = os.path.join(GENOME_DIR, config['star_version'])
 
 # ------------------------------------------------------------------------------
 # rules
+include: 'rules/bam.smk'
+include: 'rules/delete.smk'
 include: 'rules/fastq.smk'
 include: 'rules/fastqc.smk'
-include: 'rules/star.smk'
 include: 'rules/fc.smk'
-include: 'rules/qc.smk'
 include: 'rules/gct.smk'
-include: 'rules/bam.smk'
 include: 'rules/picard.smk'
+include: 'rules/qc.smk'
 include: 'rules/reference.smk'
-include: 'rules/delete.smk'
+include: 'rules/star.smk'
 
 
 # ------------------------------------------------------------------------------
 # Declare local rules, ie not submitted to the cluster
 localrules: all, \
-            metadata, \
-            touch_bw, \
             delete_fastq, \
             delete_bam, \
-            no_cutadapt
+            mapping_stats, \
+            metadata, \
+            no_cutadapt, \
+            processing_done, \
+            star_stats, \
+            touch_bw            
             
             
 # ------------------------------------------------------------------------------
 rule all:
     input:
-        {TPM_GCT_REF},
-        {LOG2TPM_GCT_REF},
-        {COUNT_GCT_REF},
-        {TPM_GCT_ENS},
-        {LOG2TPM_GCT_ENS},
-        {COUNT_GCT_ENS},
-        os.path.join(OD_STATS, 'mapping_stats.txt'),
-        os.path.join(OD, 'multiqc_report.html'),
-        os.path.join(OD, 'multiqc_report_ensembl.html'),
-
-        os.path.join(OD_ANNO,'phenoData.cls'),
-        os.path.join(OD_QC,'refseq_log2tpm_pca.pdf'),
-        os.path.join(OD_QC,'refseq_log2tpm_pca.txt'),
-        os.path.join(OD_QC,'bioQC.txt'),
-        os.path.join(OD_QC,'bioQC_thr2.txt'),
-        os.path.join(OD_QC,'bioQC.pdf'),
-
-        # Other optional output files (unmapped, bw, etc)
-        expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids),
-        options.get_optional_output_files(sample_ids, config)
+        os.path.join(OD_ANNO, 'processing.done')
 
 
 # ----------------------------------------------------------------------------
@@ -234,3 +214,4 @@ rule metadata:
 
 # ----------------------------------------------------------------------------
 # rule report:
+# TBD

@@ -40,6 +40,26 @@ This workflow requires the following two tools in the system path
 
 Download reference genome annotation files.
 
+### Metadata
+
+- create metadata file with sample and fastq file information
+- required columns are
+- #ID: unique sample label
+- GROUP: name of sample condition
+- FASTQ1: name of forward read fastq file (mate 1, R1)
+- FASTQ2: name of reverse read fastq file (mate 2, R2)
+- Raw: path to the folder containing the input fastq files
+- Organism: Human, Rat, Mouse, or Pig
+- use test data
+
+#### Example
+
+| #ID        | GROUP       | FASTQ1                     | FASTQ2                     | Raw                       | Organism |
+|------------|-------------|----------------------------|----------------------------|---------------------------|----------|
+| GSM5362225 | HOXB9-KO    | 10k_SRR14749833_1.fastq.gz | 10k_SRR14749833_2.fastq.gz | resources/test-data/fastq | Human    |
+| GSM5362224 | HOXB9-T133A | 10k_SRR14749832_1.fastq.gz | 10k_SRR14749832_2.fastq.gz | resources/test-data/fastq | Human    |
+| GSM5362223 | HOXB9       | 10k_SRR14749831_1.fastq.gz | 10k_SRR14749831_2.fastq.gz | resources/test-data/fastq | Human    |
+
 ### Configuration
 
 Edit configuration file `config/config.yaml`
@@ -47,12 +67,7 @@ Edit configuration file `config/config.yaml`
 - genome directory
 - singularity directory
 - snakemake path
-- sequencing library
-
-### Metadata
-
-- create metadata file with sample and fastq file information
-- use test data
+- sequencing library (single-end or paired-end, stranded or unstranded)
 
 ## Usage
 

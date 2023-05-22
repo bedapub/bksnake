@@ -1,5 +1,11 @@
-# TO DO: modularize better, merge ref and ens
+"""
+Calculate gene counts with feature counts from subreads
 
+TO DO: modularize better, merge ref and ens
+"""
+
+# ------------------------------------------------------------------------------
+# Variables
 MIN_OVERLAP = config['fc_min_overlap']
 FRAC_OVERLAP = config['fc_frac_overlap']
 if config['library']['type'] == 'paired-end':
@@ -19,7 +25,7 @@ rule fc_ref:
         os.path.join(OD_LOG,'{sample}.fc_ref.log')
     params:
         cnt = os.path.join(OD_FC,'{sample}.refseq.cnt')
-    threads: 1
+    threads: 4
     resources:
         mem_mb = 30000
     singularity:
@@ -45,7 +51,7 @@ rule fc_ens:
         os.path.join(OD_LOG,'{sample}.fc_ens.log')
     params:
         cnt = os.path.join(OD_FC,'{sample}.ensembl.cnt')
-    threads: 1
+    threads: 4
     resources:
         mem_mb = 30000
     singularity:

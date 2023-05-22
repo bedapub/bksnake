@@ -1,3 +1,5 @@
+# ------------------------------------------------------------------------------
+# Variables 
 RIBIOSSCRIPTS_IMAGE = config['RIBIOSSCRIPTS_IMAGE']
 NGSTOOLS_IMAGE = config['NGSTOOLS_IMAGE']
 
@@ -188,10 +190,10 @@ rule qc:
     input:
         pheno = {PHENODATA},
         tpm_ref = {TPM_GCT_REF},
-        collapsed = {COLLAPSED_GCT_REF}, 
         tpm_ens = {TPM_GCT_ENS},
         log2_ref = {LOG2TPM_GCT_REF},
-        log2_ens = {LOG2TPM_GCT_ENS}
+        log2_ens = {LOG2TPM_GCT_ENS},
+        collapsed = {COLLAPSED_GCT_REF}
     output:
         cls = os.path.join(OD_ANNO,'phenoData.cls'),
         pca = os.path.join(OD_QC,'refseq_log2tpm_pca.pdf'),

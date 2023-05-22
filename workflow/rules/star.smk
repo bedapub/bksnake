@@ -1,13 +1,4 @@
-# TO DO
-# single-end case
-# move _Unmap.out.mate1.gz and _Unmap.out.mate2.gz to unmapped/
-# move _Log.out to log/
-# delete A_Aligned.out.bam
-# NOTE:  --outSAMtype BAM Unsorted : sorted sometimes crashes star (mem problems)
-# Remove generation of file with unmapped reads.
-# TO DO: split rule into several rules, gzip etc.
-
-
+# ------------------------------------------------------------------------------
 if config['generate_unmapped'] == True:
     unmapped = '--outReadsUnmapped Fastx'
 else:
@@ -19,6 +10,7 @@ else:
     star_input_dir = OD_FASTQ
 
 
+# ------------------------------------------------------------------------------
 # Try calculate memory for star per thread: we want in total 120Gb
 # https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html
 def get_mem_mb(wildcards, threads):
@@ -55,8 +47,7 @@ if config['library']['type'] == 'paired-end':
             #mem_mb = 120 * 1024
         params:
             sam_mapq_unique = config['star_sam_mapq_unique'],
-            prefix = join(OD_UBAM, '{sample}_'),
-            #others = unmapped
+            prefix = join(OD_UBAM, '{sample}_')
         singularity:
             config['STAR_IMAGE']
         shell:
@@ -82,7 +73,6 @@ else:
     rule star:
         input:
             fq1 = os.path.join(star_input_dir, '{sample}.fastq.gz'),
-#            cutadapt = os.path.join(OD_CUTADAPT, '{sample}.report.txt'),
             done1 = os.path.join(OD_FASTQ, '{sample}.fastq.gz.done'),
         output:
             temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
@@ -101,8 +91,7 @@ else:
             mem_mb = 120 * 1024
         params:
             sam_mapq_unique = config['star_sam_mapq_unique'],
-            prefix = join(OD_UBAM, '{sample}_'),
-            #others = unmapped
+            prefix = join(OD_UBAM, '{sample}_')
         singularity:
             config['STAR_IMAGE']
         shell:

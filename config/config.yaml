@@ -1,14 +1,14 @@
 #####################################
 # GENERAL PARAMETERS                #
 #####################################    
-snakemake: 'ml purge && ml snakemake && snakemake' # path to snakemake program
-singularity_prefix: '/projects/site/pred/ngs/Singularity/images' # the location where images should be stored for re-use later
+snakemake: '/path/to/snakemake/program'
+singularity_prefix: '/path/to/location/where/images/should/be/stored/for/re-use/later' 
 
 
 ###############################
 # COMMONLY CHANGED PARAMETERS #
 ###############################
-pipeline: 'bksnake'  # type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline
+pipeline: 'bksnake'  # type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline. Currently onlyt  "bksnake" is supported !
 results: 'output'
 metadata_file: 'resources/test-data/metadata.txt'
 metadata_group_name: 'GROUP'
@@ -37,7 +37,7 @@ cutadapt:
 #################################
 # TO DO: this information may come from the metadata catalog moose.
 # Strand information for Picard and featureCount (FC) tools (this could be integrated in the Snakefile)
-# type: choose either 'paired-end' (most common) or 'single-end'
+# type: choose either 'paired-end' (most common) or 'single-end' (will be derived also from input metadata file)
 # strand: choose one of three options:
 #    option 1: 'SECOND_READ_TRANSCRIPTION_STRAND' (most common)
 #    option 2: 'FIRST_READ_TRANSCRIPTION_STRAND'
@@ -50,18 +50,20 @@ library:
 #####################################
 # REFERENCE GENOMES AND ANNOTATIONS #
 #####################################
-genome_dir: '/projects/site/pred/ngs/genomes' # used only to bind singularity container
+# genome_dir: path to "root" directory containing sub-directory for each species
+# genomes: genome_subdir: sub-directory name under the "root" directory
+genome_dir: '/path/to/genomes'
 genomes:
-    hg38: { species: 'hg38', species_name: 'human', organism: 'Homo sapiens', genome_dir: '/projects/site/pred/ngs/genomes/hg38', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
-    chm13: { species: 'chm13', species_name: 'human', organism: 'Homo sapiens', genome_dir: '/projects/site/pred/ngs/genomes/chm13', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
-    mfa5: { species: 'mfa5', species_name: 'cyno', organism: 'Macaca fascicularis', genome_dir: '/projects/site/pred/ngs/genomes/mfa5', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
-    mfa6: { species: 'mfa6', species_name: 'cyno', organism: 'Macaca fascicularis', genome_dir: '/projects/site/pred/ngs/genomes/mfa6', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
-    mm10: { species: 'mm10', species_name: 'mouse', organism: 'Mus musculus', genome_dir: '/projects/site/pred/ngs/genomes_2021-08-20/mouse/mm10', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'] }
-    mm39: { species: 'mm39', species_name: 'mouse', organism: 'Mus musculus', genome_dir: '/projects/site/pred/ngs/genomes/mm39', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'] }
-    rn6: { species: 'rn6', species_name: 'rat', organism: 'Rattus norvegicus', genome_dir: '/projects/site/pred/ngs/genomes/rn6', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'] }
-    rn7: { species: 'rn7', species_name: 'rat', organism: 'Rattus norvegicus', genome_dir: '/projects/site/pred/ngs/genomes/rn7', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'] }
-    ss11: { species: 'ss11', species_name: 'pig', organism: 'Sus scrofa', genome_dir: '/projects/site/pred/ngs/genomes/ss11', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
-    oc2: { species: 'oc2', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_dir: '/projects/site/pred/ngs/genomes/oc2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
+    hg38: { species: 'hg38', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'hg38', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
+    chm13: { species: 'chm13', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'chm13', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
+    mfa5: { species: 'mfa5', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa5', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
+    mfa6: { species: 'mfa6', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa6', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
+    mm10: { species: 'mm10', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: '../genomes_2021-08-20/mouse/mm10', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'] }
+    mm39: { species: 'mm39', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'mm39', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'] }
+    rn6: { species: 'rn6', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn6', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'] }
+    rn7: { species: 'rn7', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn7', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'] }
+    ss11: { species: 'ss11', species_name: 'pig', organism: 'Sus scrofa', genome_subdir: 'ss11', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
+    oc2: { species: 'oc2', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_subdir: 'oc2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
 
 
 #########################################
@@ -99,8 +101,6 @@ chip_file_ens: 'resources/ENSEMBLGENES.chip'
 # 0 for unstranded quantification
 # 1 for forward (e.g. for Lexogen's QuantSeq)
 # 2 for reverse (e.g. for Illumina's TruSeq Stranded mRNA)
-# see: https://rochewiki.roche.com/confluence/display/SLSSA/2.6+RNA-Seq+FAQs"
-#      https://rochewiki.roche.com/confluence/pages/viewpage.action?pageId=435599305"
 # strand: 0 see above fc_strand
 fc_min_overlap: 10
 fc_frac_overlap: 0.2
@@ -108,13 +108,14 @@ fc_frac_overlap: 0.2
 # STAR read mapping parameters
 star_sam_mapq_unique: 60
 star_threads: 12
+star_version: 'star_2.7.10b' # required for STAR_DIR variable
 
 
 ####################################
 # PUBLIC DOMAIN SINGULARITY IMAGES #
 ####################################
-ARV_CLI_IMAGE: 'docker://matmu/arvados-cli:RocheCert'
-AWS_CLI_IMAGE: 'docker://amazon/aws-cli:2.4.7'
+#ARV_CLI_IMAGE: 'docker://matmu/arvados-cli:RocheCert'
+#AWS_CLI_IMAGE: 'docker://amazon/aws-cli:2.4.7'
 BAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bamtools:2.5.1--he513fc3_6'
 BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.13--h3a49de5_0'
 BEDSORT_IMAGE: 'https://depot.galaxyproject.org/singularity/ucsc-bedsort:377--h446ed27_2'
@@ -133,27 +134,10 @@ PICARD_IMAGE: 'https://depot.galaxyproject.org/singularity/picard-slim:2.25.1--0
 RIBIOSSCRIPTS_IMAGE: 'docker://ghcr.io/bedapub/ribiosscripts:main'
 RSEQC_IMAGE: 'https://depot.galaxyproject.org/singularity/rseqc:4.0.0--py38h0213d0e_0'
 SAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/samtools%3A1.15.1--h1170115_0'
-STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.10a--h9ee0642_0'
+STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.10b--h9ee0642_0'
 SUBREAD_IMAGE: 'https://depot.galaxyproject.org/singularity/subread:2.0.1--hed695b0_0'
 TABIX_IMAGE: 'https://depot.galaxyproject.org/singularity/tabix:0.2.6--ha92aebf_0'
 VEP_IMAGE: 'https://depot.galaxyproject.org/singularity/ensembl-vep%3A107.0--pl5321h4a94de4_0'
-
-
-###############################
-# Tool version and references #  Used for QC report, align with Images above !
-###############################
-bcl_tool_name: 'bcl2fastq2'
-bcl_tool_version: '2.20.0'
-bcl_tool_reference: 'Illumina'
-fastqc_name: 'FastQC'
-fastqc_reference: 'Andrews 2010'
-multiqc_name: 'MultiQC'
-multiqc_reference: 'Ewels 2016'
-align_tool_name: 'STAR'
-align_tool_reference: 'Dobin 2013'
-count_tool_name: 'featureCounts'
-count_tool_reference: 'Liao 2014'
-star_version: 'star_2.7.10a'
 
 
 ###############################

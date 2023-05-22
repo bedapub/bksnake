@@ -82,7 +82,7 @@ rule indexrmdup:
     singularity:
         SAMTOOLS_IMAGE
     shell:
-        'samtools index  -@ {threads} {input}'
+        'samtools index -@ {threads} {input}'
 
 # -------------------------------------------------------------
 rule cram:
@@ -96,13 +96,13 @@ rule cram:
         os.path.join(OD_CRAM, '{sample}.cram')
     log:
         os.path.join(OD_LOG, '{sample}.cram.log')
-    threads: 1
+    threads: 4
     resources:
         mem_mb = 20000
     singularity:
          SAMTOOLS_IMAGE
     shell:
-        'samtools view -C -T {input.genome_fa} {input.bam} -O CRAM -o {output} 2> {log}'
+        'samtools view -@ {threads} -C -T {input.genome_fa} {input.bam} -O CRAM -o {output} 2> {log}'
 
 # -------------------------------------------------------------
 rule cramindex:
@@ -112,13 +112,13 @@ rule cramindex:
         os.path.join(OD_CRAM, '{sample}.cram.crai')
     log:
         os.path.join(OD_LOG, '{sample}.cramindex.log')
-    threads: 1
+    threads: 2
     resources:
         mem_mb = 10000
     singularity:
          SAMTOOLS_IMAGE
     shell:
-        'samtools index {input} 2> {log}'
+        'samtools index -@ {threads} {input} 2> {log}'
 
 # -------------------------------------------------------------
 # only data from flagstat
@@ -153,7 +153,6 @@ rule mapping_stats:
                         unmapped_reads,
                         unmapping_rate))
                         
-
 # -------------------------------------------------------------
 # bigwig files for jbrowse
 # Documentation for bamCoverage

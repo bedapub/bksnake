@@ -14,3 +14,4 @@ __pycache__
 logs*
 *output*
 results*
+singularity-images
