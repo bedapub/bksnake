@@ -12,7 +12,7 @@ from snakemake.io import expand
 # For bksnake / bulk rnaseq pipeline
 def get_optional_output_files(sample_ids, config):
 
-    OD = config['results']
+    OD = config['outdir']
     OD_FASTQ = os.path.join(OD, 'fastq')
     OD_BAM = os.path.join(OD, 'bam')
     OD_CRAM = os.path.join(OD, 'cram')
@@ -69,7 +69,7 @@ def get_optional_output_files(sample_ids, config):
 # For vcsnake / variant calling pipeline
 def get_optional_output_files_vc(sample_ids, config):
 
-    OD = config['results']
+    OD = config['outdir']
     OD_FASTQ = os.path.join(OD, 'fastq')
     OD_BAM = os.path.join(OD, 'bam')
     OD_CRAM = os.path.join(OD, 'cram')

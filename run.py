@@ -46,7 +46,7 @@ def create_run_config(args):
 
     # update config dictionary
     if args.outdir:
-        CONFIG['results'] = args.outdir
+        CONFIG['outdir'] = args.outdir
 
     if args.genome_dir:
         CONFIG['genome_dir'] = args.genome_dir
@@ -94,7 +94,10 @@ def create_run_config(args):
         
     if args.singularity_prefix:
         CONFIG['singularity_prefix'] = args.singularity_prefix
-        
+
+    if args.metadata_file:
+        CONFIG['metadata-file'] = args.metadata_file
+
     # check output config file
     configfile = os.path.join(args.outdir, CONFIGFILE)
 #    if os.path.isfile(configfile):
@@ -195,6 +198,9 @@ if __name__ == '__main__':
                         help='Path to input yaml config file for Snakemake. All parameters of the config file are \
                         overwritten if they are specified by optional arguments to this wrapper script', 
                         required=False, default='config/config.yaml')
+    parser.add_argument('--metadata-file',
+                        help='Path to input tab-delimited text file containing metadata information.', 
+                        required=False, default='')
     parser.add_argument('--genome-dir',
                         help='Path to the genome root directory. Must contain sub-directory for each species genomes.', 
                         required=False, default='')

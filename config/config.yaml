@@ -9,7 +9,7 @@ singularity_prefix: '/path/to/location/where/images/should/be/stored/for/re-use/
 # COMMONLY CHANGED PARAMETERS #
 ###############################
 pipeline: 'bksnake'  # type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline. Currently onlyt  "bksnake" is supported !
-results: 'output'
+outdir: 'output'
 metadata_file: 'resources/test-data/metadata.txt'
 metadata_group_name: 'GROUP'
 
