@@ -99,6 +99,11 @@ python run.py --outdir output --species hg38 --cores 12
 Here, an example where several pipeline parameters are specified directly via the command line
 ```bash
 
-python run.py --snakemake-path="ml purge && ml snakemake && snakemake" --genome-dir /data/genomes --outdir output --species hg38 --jobs 100 
+python run.py \
+    --snakemake-path="ml purge && ml snakemake && snakemake" \
+    --genome-dir /data/genomes \
+    --outdir output \
+    --species hg38 \
+    --jobs 100 
 
 ```
