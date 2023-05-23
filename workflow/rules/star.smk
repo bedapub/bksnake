@@ -1,3 +1,58 @@
+"""--------------------------------------------------------------------
+Function to create a data table with mapping statistics from STAR
+"""
+def star_mapping_stats (outfile, phenoFile, indir):
+    """Function to create a data table with mapping statistics from STAR
+    Parameters
+    ----------
+    outfile : str
+        Name of output file.
+    phenoFile : str
+        Name of file containing sample metadata
+    indir : str
+        Name of directory containing STAR _Log.final.out file(s)
+    """
+    pheno = pd.read_csv(phenoFile, header = 0, sep = '\t', usecols=['ID','GROUP'],
+            dtype={'ID':str,'GROUP':str},
+            keep_default_na=False, na_values=[''])
+    # Read in all files with star output
+    i = 0
+    for sample in list(pheno['ID']):
+        f = os.path.join(indir, sample+'_Log.final.out')
+        df = pd.read_csv(f, header = None, sep = '\t')
+        df.columns = ['0', sample]
+        if i == 0:
+            tab = df
+        else:
+            tab = pd.concat([tab,df[sample]], axis = 1)
+        i = 1
+    del df
+
+    # Re-format data table and merge with annotation data table
+    tab['0'] = tab['0'].str.replace(' \|','')
+    tab['0'] = tab['0'].str.strip()
+    df = tab.transpose()
+    df.reset_index(inplace=True)
+    df.columns = df.iloc[0]
+    df.drop(df.index[0], inplace = True)
+    df.rename(columns={"0": "ID"}, inplace = True)
+
+    # Calculated mapping rates
+    tab = pd.merge(df, pheno, on=['ID'])
+    tab['TOTAL_READS'] = pd.to_numeric(tab['Number of input reads'])
+    tab['UNMAPPED_READS'] = pd.to_numeric(tab['Number of reads unmapped: too many mismatches']) + \
+                            pd.to_numeric(tab['Number of reads unmapped: too short']) + \
+                            pd.to_numeric(tab['Number of reads unmapped: other']) + \
+                            pd.to_numeric(tab['Number of chimeric reads'])
+    tab['MAPPED_READS'] = tab['TOTAL_READS'] - tab['UNMAPPED_READS']
+    tab['MAPPED_IN_PERC'] = tab['MAPPED_READS'] / tab['TOTAL_READS']
+    tab['UNMAPPED_IN_PERC'] = tab['UNMAPPED_READS'] / tab['TOTAL_READS']
+    df = tab[['ID','GROUP','TOTAL_READS','MAPPED_READS','MAPPED_IN_PERC','UNMAPPED_READS','UNMAPPED_IN_PERC']]
+
+    # Write table to output file
+    df.to_csv(outfile, sep = '\t', index = False)
+
+
 # ------------------------------------------------------------------------------
 if config['generate_unmapped'] == True:
     unmapped = '--outReadsUnmapped Fastx'
@@ -162,23 +217,7 @@ rule sortbam_star:
 
 
 # ------------------------------------------------------------------------------
-# stats from STAR mapping, old version
-rule star_stats_old:
-    input:
-        {PHENODATA},
-        expand(os.path.join(OD_LOG, '{sample}_Log.final.out'), sample=sample_ids)
-    output:
-         'results/stats/mapping_stats_old.txt'
-    threads: 1
-    resources:
-        mem_mb = 1000
-    shell:
-        """
-        workflow/scripts/mapping_stats_star.sh {OD_LOG} {input[0]} > {output}
-        """
-
-# ------------------------------------------------------------------------------
-# stats from STAR mapping, new version
+# stats from STAR mapping
 rule star_stats:
     input:
         pheno = {PHENODATA},
@@ -189,5 +228,4 @@ rule star_stats:
     resources:
         mem_mb = 1000
     run:
-        from scripts.funcs import star_mapping_stats
         star_mapping_stats (output[0], input[0], OD_LOG)
