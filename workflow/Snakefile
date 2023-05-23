@@ -12,7 +12,6 @@ from os.path import dirname, join
 
 import scripts.funcs as funcs
 import scripts.options as options 
-import scripts.metadata as metadata
 
 
 # ------------------------------------------------------------------------------
@@ -70,7 +69,7 @@ TPM_COLLAPSED_GCT_ENS = os.path.join(OD_GCT_ENS, config['tpm_collapsed_gct_ens']
 # ------------------------------------------------------------------------------
 # Make dataframe with metadata from moose
 if os.path.exists(config['metadata_file']):
-    meta = metadata.get_metadata_from_file(
+    meta = funcs.get_metadata_from_file(
         config['metadata_file'],
         config['metadata_group_name'])
 else:
@@ -96,13 +95,13 @@ in the past this was given in the input config file
 here, we overwrite the value in the config if present
 by the value obtained from the metadata (via Fastq files)
 """
-config = metadata.update_library_type(config, meta)
+config = funcs.update_library_type(config, meta)
 
 
 """
 Determine organism and update config dictionary
 """
-config = metadata.update_organism(config, meta)
+config = funcs.update_organism(config, meta)
 
 
 """
@@ -120,7 +119,7 @@ Strategy:
  2. if present and valid from moose/metadata then it from moose
  3. raise error
 """
-PICARD_STRAND, BIOKIT_STRAND, FC_STRAND = metadata.strandedness(meta, config)
+PICARD_STRAND, BIOKIT_STRAND, FC_STRAND = funcs.strandedness(meta, config)
 
 
 
@@ -131,7 +130,7 @@ This depends whether paired- or single-end reads
 Parses meta dataframe into list of dictionaries for every sample.
 Then, add fastq dir to FASTQ1 and/or FASTQ2 columns
 """
-locators = metadata.fastq_locators(meta, config)
+locators = funcs.fastq_locators(meta, config)
 sample_ids = meta['#ID']
 sample_groups = meta['GROUP']
 fastq_names = list(locators['name'])

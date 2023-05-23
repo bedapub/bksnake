@@ -107,3 +107,28 @@ python run.py \
     --jobs 100 
 
 ```
+
+## Output
+
+Here is the folder structure of a typical workflow run
+
+```bash
+
+├── annot                            genome annotation files
+├── config.yaml                      workflow configuration file
+├── cram                             read mappings in CRAM format
+├── fastqc                           FASTQC output files
+├── fc                               FeatureCounts output files
+├── gct                              gene counts and normalized gene counts in GCT file format for RefSeq annotations
+├── gct-ens                          gene counts and normalized gene counts in GCT file format for Ensembl annotations
+├── log                              log and output files from the tools used
+├── multiqc_data                     MultiQC data files for RefSeq annotations
+├── multiqc_data_ensembl             MultiQC data files for Ensembl annotations
+├── multiqc_report_ensembl.html      MultiQC report for Ensembl annotations
+├── multiqc_report.html              MultiQC report for RefSeq annotations
+├── qc                               some QC plots, e.g. PCA or BioQC
+├── rulegraph.pdf                    workflow DAG in pdf format
+├── rulegraph.png                    workflow DAG in png format
+└── samples.txt                      sample metadata in tab-delimited file
+
+```
