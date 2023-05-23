@@ -205,34 +205,6 @@ def get_git_revision_short_hash() -> str:
 
 
 """------------------------------------------------------------------------------
-Define helper functions
-For counting number of lines in (fastq) file
-"""
-def count_gzip_lines(filename):
-    """Counts the number of lines in an gzipped input file.
-    Parameters
-    ----------
-    filename : str
-        Input file name.
-        
-    Returns
-    -------
-    i : int
-        Number of lines in input file.
-    """
-    if not os.path.isfile(filename):
-        raise Exception('count_gzip_lines: file is not present:'+filename)
-    elif os.path.getsize(filename) == 0:
-        raise Exception('count_gzip_lines: file is empty, i.e. getsize is zero:'+filename)
-    else:
-        with gzip.open(filename, 'rb') as f:
-            for i, l in enumerate(f):
-                pass
-            #    print("File {1} contain {0} lines".format(i + 1, filename))
-        return i+1
-    
-
-"""------------------------------------------------------------------------------
 Check whether the input sample IDs are unique or not    
 """
 def check_unique_sampleids(ids):

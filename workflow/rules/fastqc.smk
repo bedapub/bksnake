@@ -2,6 +2,37 @@
 QC analysis for fastq files
 """
 
+"""------------------------------------------------------------------------------
+Define helper functions
+For counting number of lines in (fastq) file
+"""
+def count_gzip_lines(filename):
+    """Counts the number of lines in an gzipped input file.
+
+    Parameters
+    ----------
+    filename : str
+        Input file name.
+        
+    Returns
+    -------
+    i : int
+        Number of lines in input file.
+    """
+    import gzip
+
+    if not os.path.isfile(filename):
+        raise Exception('count_gzip_lines: file is not present:'+filename)
+    elif os.path.getsize(filename) == 0:
+        raise Exception('count_gzip_lines: file is empty, i.e. getsize is zero:'+filename)
+    else:
+        with gzip.open(filename, 'rb') as f:
+            for i, l in enumerate(f):
+                pass
+        return i+1
+
+
+
 # ---------------------------------------------------------------
 # check integrity of raw input gzipped fastq files
 rule validate_gzip:
@@ -36,7 +67,6 @@ if config['library']['type'] == 'paired-end':
             # check if first from both mate files have same name
             import gzip
             import re
-            from scripts.funcs import count_gzip_lines
 
             with gzip.open(input[0],'r') as fin: 
                 first_line1 = fin.readline().strip()
