@@ -87,9 +87,9 @@ class Submitter:
         mem_in_clusters_units = self.mem_mb.to(self.memory_units)
         mem_value_to_submit = math.ceil(mem_in_clusters_units.value)
         return (
-            "-M {mem} -n {threads} "
+            "-n {threads} "
             "-R 'rusage[mem={rusage_mem}]'"
-        ).format(mem=mem_value_to_submit, threads=self.threads, rusage_mem=int((mem_value_to_submit/self.threads)/2))
+        ).format(threads=self.threads, rusage_mem=int(mem_value_to_submit/self.threads))
 
     @property
     def wildcards(self) -> dict:

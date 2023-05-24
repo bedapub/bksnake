@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import shlex
 import sys
 import time
 from pathlib import Path
@@ -199,10 +200,9 @@ class StatusChecker:
 
 
 if __name__ == "__main__":
-    #jobid = int(sys.argv[1].split(' ')[0])
-    #outlog = sys.argv[1].split(' ')[1]
-    jobid = int(sys.argv[1])
-    outlog = sys.argv[2]
+    split_args = shlex.split(" ".join(sys.argv[1:]))
+    jobid = int(split_args[0])
+    outlog = split_args[1]
     if CookieCutter.get_unknwn_behaviour().lower() == "wait":
         kill_unknown = False
     elif CookieCutter.get_unknwn_behaviour().lower() == "kill":
