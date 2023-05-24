@@ -100,6 +100,12 @@ config = funcs.update_library_type(config, meta)
 
 """
 Determine organism and update config dictionary
+Updates config parameters:
+1. species: 'hg38'
+2. species_name: 'human'
+3. organism: 'Homo sapiens'
+4. genome_dir: '/path/to/genome/directory/hg38'
+5. biokitr gene
 """
 config = funcs.update_organism(config, meta)
 
@@ -141,7 +147,7 @@ fastq_names_noext = locators['name'].str.replace('.fastq.gz', '', regex=True)
 
 # ------------------------------------------------------------------------------
 # genome reference data and annotations
-GENOME_DIR = config['genome_dir']
+GENOME_DIR = os.path.normpath(os.path.join(config['genome_dir'], config['genomes'][config['species']]['genome_subdir']))
 GTF_REF = os.path.join(GENOME_DIR, config['gtf_ref'])
 GTF_ENS = os.path.join(GENOME_DIR, config['gtf_ens'])
 ANNOT_REF = os.path.join(GENOME_DIR, config['annot_ref'])

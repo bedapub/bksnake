@@ -41,6 +41,10 @@ add parameters from the user input. CONFIG is a global variable.
 Then, output the as a new file 'config.yaml' into the
 output directory
 
+Note that these 3 variables are not defined in the default config:
+CONFIG['species']
+CONFIG['species_name']
+CONFIG['organism']
 """
 def create_run_config(args):
 
@@ -55,7 +59,6 @@ def create_run_config(args):
         CONFIG['species'] = CONFIG['genomes'][args.species]['species']
         CONFIG['species_name'] = CONFIG['genomes'][args.species]['species_name']
         CONFIG['organism'] = CONFIG['genomes'][args.species]['organism']
-        CONFIG['genome_dir'] = os.path.normpath(os.path.join(CONFIG['genome_dir'], CONFIG['genomes'][args.species]['genome_subdir']))
     
     if args.keep_fastq:
         CONFIG['keep_fastq_files'] = True
@@ -189,11 +192,11 @@ if __name__ == '__main__':
     parser.add_argument('--outdir', '-o', dest='outdir', 
                         help='Path to output directory', 
                         required=True, default=None)
-    parser.add_argument('--species', '-s', dest='species',
-                        help='Reference genome species for mapping, e.g. hg38, mm39, mfa5, rn7, ss11, oc2', 
-                        required=True, default=None)
 
     # Optional arguments
+    parser.add_argument('--species', '-s', dest='species',
+                        help='Reference genome species for mapping, e.g. hg38, mm39, mfa5, rn7, ss11, oc2',
+                        required=False, default=None)
     parser.add_argument('--config', '-f', 
                         help='Path to input yaml config file for Snakemake. All parameters of the config file are \
                         overwritten if they are specified by optional arguments to this wrapper script', 

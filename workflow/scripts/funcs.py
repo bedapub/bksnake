@@ -602,7 +602,6 @@ def update_organism(config, meta):
         else:
             raise Exception('Multiple values for \"'+
                             ORGANISM_PROPERTY+'\" property in metadata.\n')
-        
     else:
         raise Exception('\"'+ORGANISM_PROPERTY+'\" property not present metadata.\n')
     
