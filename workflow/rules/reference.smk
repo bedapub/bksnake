@@ -42,12 +42,12 @@ rule refdata:
         gzip -c {input.len_ens} > {output.len_ens}
         gzip -c {input.annot_ref} > {output.annot_ref}
         gzip -c {input.annot_ens} > {output.annot_ens}
-        cp -pr {input.loci_ref} {output.loci_ref}
-        cp -pr {input.loci_ens} {output.loci_ens}
-        cp -pr {input.gz} {output.gz}
-        cp -pr {input.fai} {output.fai}
-        cp -pr {input.gzi} {output.gzi}
+        cp -Lpr {input.loci_ref} {output.loci_ref}
+        cp -Lpr {input.loci_ens} {output.loci_ens}
+        cp -Lpr {input.gz} {output.gz}
+        cp -Lpr {input.fai} {output.fai}
+        cp -Lpr {input.gzi} {output.gzi}
         gzip -c {input.flat_ref} > {output.flat_ref}
         gzip -c {input.flat_ens} > {output.flat_ens}
-        cp -pr {input.ribo} {output.ribo}
+        cp -Lpr {input.ribo} {output.ribo}
         """
