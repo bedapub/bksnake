@@ -260,24 +260,24 @@ if __name__ == '__main__':
                         required=False, default=None)
     parser.add_argument('--config', '-f',
                         help='Path to input yaml config file for Snakemake. All parameters of the config file are \
-                        overwritten if they are specified by optional arguments to this wrapper script',
+                        overwritten if they are specified by optional arguments to this wrapper script. Not in config.',
                         required=False, default='config/config.yaml')
     parser.add_argument('--snakefile',  
-                        help='Path to input Snakemake file.', 
+                        help='Path to input Snakemake file. Not in config.', 
                         required=False, default='workflow/Snakefile')
     parser.add_argument('--target', '-t', 
-                        help='Target rule for Snakemake workflow, e.g. all', 
+                        help='Target rule for Snakemake workflow, e.g. all. Not in config.', 
                         required=False, default='all')
     parser.add_argument('--cluster-profile', '-p', 
-                        help='Path to cluster profile, only used with --jobs', 
+                        help='Path to cluster profile, only used with --jobs. Not in config.', 
                         required=False, default='config/lsf')
     parser.add_argument('--no-dag',
-                        help='Do not create \"directed acyclic graph\" of the workflow.', 
+                        help='Do not create \"directed acyclic graph\" of the workflow. Not in config.', 
                         required=False, action='store_true')
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--cores', '-c', help='Number of cores to use for local run, required for local run, e.g. 8')
-    group.add_argument('--jobs', '-j', help='Number of jobs for running on the cluster, required for run on cluster, e.g. 100')
+    group.add_argument('--cores', '-c', help='Number of cores to use for local run, required for local run, e.g. 8. Not in config.')
+    group.add_argument('--jobs', '-j', help='Number of jobs for running on the cluster, required for run on cluster, e.g. 100. Not in config.')
     
     args = parser.parse_args()
 
