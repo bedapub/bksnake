@@ -1,17 +1,22 @@
 #####################################
 # GENERAL PARAMETERS                #
-#####################################    
-snakemake: '/path/to/snakemake/program'
-singularity_prefix: '/path/to/location/where/images/should/be/stored/for/re-use/later' 
+#####################################
+snakemake:
+    path: '/path/to/snakemake/program'
+    parameters: ''                         # Additional Snakemake parameters, e.g. '--dry-run --notemp'
+singularity:
+    prefix: 'singularity-images'           # folder path where images should be stored for re-use
 
 
 ###############################
 # COMMONLY CHANGED PARAMETERS #
 ###############################
 pipeline: 'bksnake'  # type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline. Currently onlyt  "bksnake" is supported !
-outdir: 'output'
-metadata_file: 'resources/test-data/metadata.txt'
-metadata_group_name: 'GROUP'
+outdir: 'output'     # directory name of output files
+metadata:
+    file: 'resources/test-data/metadata.txt'
+    group_name: 'GROUP'
+
 
 # Optional parameters for output files generation and storage:
 # In order to generate and/or keep those files set either 'True' or 'False' (default)
@@ -28,8 +33,8 @@ generate_unmapped: False   # whether to generate and keep unmapped read files, d
 # For optional parameters, see cutadapt manual: https://cutadapt.readthedocs.io/en/stable/guide.html#basic-usage
 # Normally, trimming is not required (see https://academic.oup.com/nargab/article/2/3/lqaa068/5901066 )
 cutadapt:
-        run: False  # switch to perform or not cutadapt trimming, default: 'False'
-        parameters: '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT --minimum-length 10'
+    run: False  # switch to perform or not cutadapt trimming, default: 'False'
+    parameters: '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT --minimum-length 10'
 
 
 #################################
@@ -43,8 +48,8 @@ cutadapt:
 #    option 2: 'FIRST_READ_TRANSCRIPTION_STRAND'
 #    option 3: 'NONE' (for unstranded paired-end library, for single-end reads library and in case of doubt)
 library:
-        type: 'paired-end' # 'paired-end' (default) or 'single-end'
-        strand: 'SECOND_READ_TRANSCRIPTION_STRAND'
+    type: 'paired-end' # 'paired-end' (default) or 'single-end'
+    strand: 'SECOND_READ_TRANSCRIPTION_STRAND'
 
 
 #####################################
@@ -114,8 +119,6 @@ star_version: 'star_2.7.10b' # required for STAR_DIR variable
 ####################################
 # PUBLIC DOMAIN SINGULARITY IMAGES #
 ####################################
-#ARV_CLI_IMAGE: 'docker://matmu/arvados-cli:RocheCert'
-#AWS_CLI_IMAGE: 'docker://amazon/aws-cli:2.4.7'
 BAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bamtools:2.5.1--he513fc3_6'
 BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.13--h3a49de5_0'
 BEDSORT_IMAGE: 'https://depot.galaxyproject.org/singularity/ucsc-bedsort:377--h446ed27_2'

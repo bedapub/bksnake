@@ -20,6 +20,16 @@ CONFIG = None # global variable for input config dictionary
 
 
 """
+Verify whether the provided command/path for Snakemake is working
+"""
+def verify_snakemake(path):
+    cmd = path+' --version'
+    res = subprocess.run(cmd, shell=True, check=False, env=os.environ.copy(), stdout=subprocess.DEVNULL)
+    if res.returncode != 0:
+        raise Exception ('No executable found for Snakemake. Please specify the parameter \'snakemake path\'')
+
+
+"""
 Read common configuration file
 Normally, this is file 'config/common.yaml'
 """
@@ -93,13 +103,18 @@ def create_run_config(args):
         CONFIG['cutadapt']['run'] = False
         
     if args.snakemake_path:
-        CONFIG['snakemake'] = args.snakemake_path
+        CONFIG['snakemake']['path'] = args.snakemake_path
+
+    if args.snakemake_parameters:
+        CONFIG['snakemake']['parameters'] = args.snakemake_parameters
         
     if args.singularity_prefix:
-        CONFIG['singularity_prefix'] = args.singularity_prefix
+        CONFIG['singularity']['prefix'] = args.singularity_prefix
 
     if args.metadata_file:
-        CONFIG['metadata_file'] = args.metadata_file
+        CONFIG['metadata']['file'] = args.metadata_file
+    if args.metadata_group_name:
+        CONFIG['metadata']['group_name'] = args.metadata_group_name
 
     # check output config file
     configfile = os.path.join(args.outdir, CONFIGFILE)
@@ -121,7 +136,7 @@ def graph(args):
     outfile2 = os.path.join(args.outdir, GRAPHFILE_PNG)
     configfile = os.path.join(args.outdir, CONFIGFILE)
                         
-    cmd = CONFIG['snakemake']+' '\
+    cmd = CONFIG['snakemake']['path']+' '\
           +' --rulegraph all'\
           +' --snakefile '+snakefile\
           +' --configfile '+configfile\
@@ -150,22 +165,22 @@ def workflow(args):
     
     homeDir = str(Path.home())
 
-    cmd = CONFIG['snakemake']+' '\
+    cmd = CONFIG['snakemake']['path']+' '\
           +' --snakefile '+snakefile\
           +' --configfile '+configfile\
           +' --latency-wait 6'\
           +' --rerun-incomplete'\
           +' --keep-going'\
           +' --verbose'\
-          +' '+args.snake_params\
+          +' '+CONFIG['snakemake']['parameters']\
           +' --use-singularity'\
-          +' --singularity-prefix '+CONFIG['singularity_prefix']\
+          +' --singularity-prefix '+CONFIG['singularity']['prefix']\
           +' --singularity-args "--contain --cleanenv'\
           +' --bind '+CONFIG['genome_dir']\
           +' --bind /tmp"'
     
     if args.jobs:
-        cmd = cmd+' --jobs '+str(args.jobs)+' --profile '+args.profile
+        cmd = cmd+' --jobs '+str(args.jobs)+' --profile '+args.cluster_profile
         print('Submit workflow to the cluster')
     else:
         cmd = cmd+' --cores '+str(args.cores)
@@ -190,69 +205,79 @@ if __name__ == '__main__':
 
     # Required arguments
     parser.add_argument('--outdir', '-o', dest='outdir', 
-                        help='Path to output directory', 
+                        help='Path to output directory. Name in config: \'outdir\'', 
                         required=True, default=None)
 
     # Optional arguments
-    parser.add_argument('--species', '-s', dest='species',
-                        help='Reference genome species for mapping, e.g. hg38, mm39, mfa5, rn7, ss11, oc2',
-                        required=False, default=None)
-    parser.add_argument('--config', '-f', 
-                        help='Path to input yaml config file for Snakemake. All parameters of the config file are \
-                        overwritten if they are specified by optional arguments to this wrapper script', 
-                        required=False, default='config/config.yaml')
+    # Parameters that are also present in the Snakemake config file
+    # All default values from that config file (template or user given)
     parser.add_argument('--metadata-file',
-                        help='Path to input tab-delimited text file containing metadata information.', 
-                        required=False, default='')
+                        help='Path to input tab-delimited text file containing metadata information. Name in config: \'metadata: file:\'', 
+                        required=False, default=None)
+    parser.add_argument('--metadata-group-name', dest='metadata_group_name',
+                        help='Metadata column name that should be used as condition category for the qc analysis (e.g. pca plot) \
+                        in case of combining multiple columns, then use semi-colon as separator, e.g. \'Tissue;Treatment ID\'. Name in config: \'metadata: group_name\'',
+                        required=False, default=None)
     parser.add_argument('--genome-dir',
-                        help='Path to the genome root directory. Must contain sub-directory for each species genomes.', 
-                        required=False, default='')
+                        help='Path to the genome root directory. Must contain sub-directory for each species genomes. Name in config: \'genome_dir\'', 
+                        required=False, default=None)
     parser.add_argument('--singularity-prefix',
-                        help='Path to the location where Singularity images should be stored for re-use later.', 
-                        required=False, default='singularity-images')
+                        help='Path to the location where Singularity images should be stored for re-use later. Name in config: \'singularity: prefix\'', 
+                        required=False, default=None)
     parser.add_argument('--keep-fastq',
-                        help='Keep a copy of the input fastq files in the output directory.', 
+                        help='Keep a copy of the input fastq files in the output directory. Name in config: \'keep_fastq_files\'', 
                         required=False, action='store_true')
     parser.add_argument('--keep-bam',
-                        help='Keep bam files in the output directory.', 
+                        help='Keep bam files in the output directory. Name in config: \'keep_bam_files\'', 
                         required=False, action='store_true')
     parser.add_argument('--not-generate-cram',
-                        help='Do generate cram files.', 
+                        help='Do generate cram files. Name in config: \'generate_cram_files\'', 
                         required=False, action='store_true')
     parser.add_argument('--generate-bw',
-                        help='Generate bigwig, aligned reads coverage files.', 
+                        help='Generate bigwig, aligned reads coverage files. Name in config: \'generate_bw_files\'', 
                         required=False, action='store_true')
     parser.add_argument('--generate-unmapped',
-                        help='Generate files with unmapped reads.', 
+                        help='Generate files with unmapped reads. Name in config: \'generate_unmapped\'', 
                         required=False, action='store_true')
     parser.add_argument('--cutadapt',
-                        help='Run Cudadapt read trimming prior to read mapping.', 
+                        help='Run Cudadapt read trimming prior to read mapping. Name in config: \'cutadapt: run\'', 
                         required=False, action='store_true')
     parser.add_argument('--cutadapt-parameters', dest='cutadapt_params',
-                        help='Additional Cutadapt parameters, e.g. --cutadapt-parameters=\'--minimum-length 10\'', 
-                        required=False, default='')    
+                        help='Additional Cutadapt parameters, e.g. --cutadapt-parameters=\'--minimum-length 10\'. Name in config: \'cutadapt: parameters\'', 
+                        required=False, default=None)
+    parser.add_argument('--snakemake-path',
+                        help='Path to Snakemake. Name in config: \'snakemake: path\'',
+                        required=False, default=None)
+    parser.add_argument('--snakemake-parameters',
+                        help='Additional Snakemake parameters, e.g. --snakemake-parameters=\'--dry-run --notemp\'. Name in config: \'snakemake: parameters\'',
+                        required=False, default=None)
+
+
+
+    # Parameters not present in Snakemake config file 
+    parser.add_argument('--species', '-s', dest='species',
+                        help='Reference genome species for mapping, e.g. hg38, mm39, mfa5, rn7, ss11, oc2. Not in config.',
+                        required=False, default=None)
+    parser.add_argument('--config', '-f',
+                        help='Path to input yaml config file for Snakemake. All parameters of the config file are \
+                        overwritten if they are specified by optional arguments to this wrapper script',
+                        required=False, default='config/config.yaml')
     parser.add_argument('--snakefile',  
                         help='Path to input Snakemake file.', 
                         required=False, default='workflow/Snakefile')
     parser.add_argument('--target', '-t', 
                         help='Target rule for Snakemake workflow, e.g. all', 
-                        required=False, default='')
-    parser.add_argument('--profile', '-p', 
+                        required=False, default='all')
+    parser.add_argument('--cluster-profile', '-p', 
                         help='Path to cluster profile, only used with --jobs', 
-                        required=False, default='/apps/rocs/etc/apps/snakemake/lsf/v1.4_memfix')
+                        required=False, default='config/lsf')
     parser.add_argument('--no-dag',
                         help='Do not create \"directed acyclic graph\" of the workflow.', 
                         required=False, action='store_true')
-    parser.add_argument('--snakemake-path',
-                        help='Path to Snakemake', 
-                        required=False, default='snakemake')
-    parser.add_argument('--snakemake-parameters', dest='snake_params',
-                        help='Additional Snakemake parameters, e.g. --snakemake-parameters=\'--dry-run --notemp\'', 
-                        required=False, default='')
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--cores', '-c', help='Number of cores to use for local run, required for local run, e.g. 8')#, default=8)
-    group.add_argument('--jobs', '-j', help='Number of jobs for running on the cluster, required for run on cluster, e.g. 100')#, default=100)
+    group.add_argument('--cores', '-c', help='Number of cores to use for local run, required for local run, e.g. 8')
+    group.add_argument('--jobs', '-j', help='Number of jobs for running on the cluster, required for run on cluster, e.g. 100')
     
     args = parser.parse_args()
 
@@ -271,7 +296,6 @@ if __name__ == '__main__':
     # Read input config file and return as global variable CONFIG
     CONFIG = read_config(args.config)
 
-    
     # Get species: 
     # from command line -> now required.
     # from config file
@@ -279,7 +303,10 @@ if __name__ == '__main__':
     
     # Create config.yaml file
     create_run_config(args)
-  
+ 
+    # Verify Snakemake path is executable
+    verify_snakemake(CONFIG['snakemake']['path'])
+
     # Create graph file
     if args.no_dag == False:
         res = graph(args)
