@@ -39,7 +39,24 @@ export SINGULARITY_DOCKER_PASSWORD=<github read package token>
 
 Download reference genome annotation files into a genome "root" and "sub" directories.
 Specify these directories also in the pipeline configuration file (see below).
-TBD
+
+_**TBD** This section is still under construction..._
+
+Structure of the genomes directory
+```
+/path/to/genome/root/directory/hg38/
+├── fasta
+├── gff3
+│   ├── ensembl
+│   └── refseq
+├── gtf
+│   ├── ensembl
+│   └── refseq
+├── star_2.7.10b
+```
+
+In each "sub" directory, named with genome version (e.g. hg38), there are subfolders for `fasta`, `gff3`, `gtf3` and `STAR` index files.
+
 
 ### Metadata
 
@@ -66,10 +83,10 @@ Note that columns `#ID` and `GROUP` may not contain white-spaces and other speci
 ### Configuration
 
 The workflow requires several parameters to be configured.
-Most of these parameters can be configured by a yaml configuration file.
+Most of these parameters can be configured by a "yaml" configuration file.
 A template file is given by `config/config.yaml`.
 Note that many of these parameters can also be specified via the wrapper script `run.py`, see next section.
-Parameters specified on the command line via the wrapper script over write parameters in the configuration file.
+Parameters specified on the command line via the wrapper script will overwrite parameters in the configuration file.
 
 It is important to specify the following parameters
 - genome root and sub- directory
@@ -97,6 +114,7 @@ python run.py --outdir output --species hg38 --cores 12
 ```
  
 Here, an example where several pipeline parameters are specified directly via the command line
+
 ```bash
 
 python run.py \
@@ -132,3 +150,70 @@ Here is the folder structure of a typical workflow run
 └── samples.txt                      sample metadata in tab-delimited file
 
 ```
+
+Explanations of each file and folder.
+
+### "annot" folder
+
+Contains copies of reference genome and annotations files.
+In addition, sample metadata in tab-delimited text file, `phenoData.meta` and in [`cls`](https://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#CLS:_Continuous_.28e.g_time-series_or_gene_profile.29_file_format_.28.2A.cls.29) format `phenoData.cls`.
+
+### "config.yaml" file
+
+All configuration parameters on one `yaml` file.
+
+### "cram" folder
+
+Contains all aligned reads in [`CRAM`](https://en.wikipedia.org/wiki/CRAM_(file_format)) file.
+
+### "fastqc" folder
+
+Contains all output files from the read quality control tool [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/).
+
+### "qc" folder
+
+Contains some plots for quality control purposes.
+
+- `bioQC.pdf`: Heatmap representationg of the BioQC enrichment scores for detecting detecting such tissue heterogeneity ([Zhang et al. 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2))
+- `bioQC_thr2.txt`: BioQC enrichment scores above threshold 2
+- `bioQC.txt`: All BioQC enrichment scores 
+- `refseq_log2tpm_pca.pdf`: Plot of the main components from the principal component analysis on the basis of the log2-transformed normalized RefSeq gene counts (log2tpm).
+- `refseq_log2tpm_pca.txt`: Coordinates of the components from the principal component analysis on the basis of the log2-transformed normalized RefSeq gene counts (log2tpm).
+
+
+### "gct" folder
+
+Contains RefSeq annotated gene counts, normalized counts, log2-transformed counts in [`GCT`](https://software.broadinstitute.org/software/igv/GCT) file format.
+
+- `refseq_count.gct`: RefSeq gene counts
+- `refseq_count_collapsed.gct`: RefSeq gene counts collapsed to human orthologous gene symbols (using `resources/geneids.chip`)
+- `refseq_tpm.gct`: normalized RefSeq transcript per million mapped reads (tpm)
+- `refseq_tpm_collapsed.gct`: human orthologs of normalized counts (tpm)
+- `refseq_log2tpm.gct`: log2-transformed normalized RefSeq transcript per million mapped reads (tpm)
+
+### "gct-ens" folder
+
+Contains Ensembl annotated gene counts, normalized counts, log2-transformed counts in [`GCT`](https://software.broadinstitute.org/software/igv/GCT) file format.
+
+- `ensembl_count.gct`: Ensembl gene counts
+- `ensembl_count_collapsed.gct`: Ensembl counts collapsed to human orthologous gene symbols (using `resources/ENSEMBLGENES.chip`)
+- `ensembl_tpm.gct`: normalized Ensembl transcript per million mapped reads (tpm)
+- `ensembl.gct`: human orthologs of normalized counts (tpm)
+- `ensembl_log2tpm.gct`: log2-transformed normalized RefSeq transcript per million mapped reads (tpm)
+
+### "log" folder
+
+Contains several log file from various tools used by the pipeline. Mainly used for debugging purposes.
+
+### "multiqc_data" folder
+
+Contains
+
+### "multiqc_data_ensembl" folder
+### "multiqc_report_ensembl.html" file
+### "multiqc_report.html" file
+### "qc" folder
+### "rulegraph.pdf" file
+### "rulegraph.png" file
+### "samples.txt" file
+
