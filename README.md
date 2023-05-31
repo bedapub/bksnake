@@ -5,7 +5,8 @@ Public version of bksnake - biokit snakemake - bulk RNASeq Snakemake workflow
 
 ## Introduction
 
-Snakemake ([Moelder et al. 2021](https://f1000research.com/articles/10-33/v1)) implementation of a bulk RNASeq data analysis workflow using STAR aligner for read mapping ([Dobin et al. 2012](https://academic.oup.com/bioinformatics/article/29/1/15/272537)) and FeatureCounts from the Subread package for gene quantification ([Liao et al. 2014](https://pubmed.ncbi.nlm.nih.gov/24227677/)). References genomes with RefSeq and Enembl gene annotations are available for several species (e.g. hg38, mm10, rn7, ...). The generation of these reference genomes and annotation files is documented in a separate repository (under construction). Data quality and RNASeq metrics are determined by FastQC ([Andrews et al.](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)), MultiQC ([Ewels et al. 2015](https://academic.oup.com/bioinformatics/article/32/19/3047/2196507)), and Picard tools ([Broad Institute](http://broadinstitute.github.io/picard/)). In addition, diagnostic plots for data quality assessment such as BioQC tissue hetergeneity ([Zhang et al. 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2)) or Principal Component Analysis are provided in HTML report (_under construction_). Optionally, genome coverage files (BigWig) and read alignment files (BAM/CRAM) can be generated as well. Input read trimming with Cutadapt ([Martin 2010](https://cutadapt.readthedocs.io/en/stable)) and generation of unmapped reads are available as well. The pipeline can be launched via a helper tool, `run.py`, or directly with Snakemake for users familiar with the workflow tool. All parameters for the pipeline are specified within a configuration yaml file or explicitely on the command line in case of using `run.py`. All input data, i.e. input fastq files, a human readable tab-delimited file describing the samples, as well as the reference genome and STAR index files must be available to the pipeline in a local data folder. In order to run the pipeline, Snakemake and [Singularity](https://sylabs.io/docs/) must be installed and pre-configured. All software tools that are used by the pipeline are pulled from public Singularity or Docker image repositories. It is recommended to run the pipeline on a high performance cluster environment.
+Snakemake ([Moelder et al., 2021](https://f1000research.com/articles/10-33/v1)) implements a bulk RNASeq data analysis workflow using STAR aligner ([Dobin et al., 2012](https://academic.oup.com/bioinformatics/article/29/1/15/272537)) for read mapping and FeatureCounts from the Subread package ([Liao et al., 2014](https://pubmed.ncbi.nlm.nih.gov/24227677/)) for gene quantification. Reference genomes with RefSeq and Ensembl gene annotations are available for several species such as hg38, chm13, mm10, mm39, rn6, rn7, mfa5, mfa6, ss11, and oc2. The generation of these reference genomes and annotation files is documented in a separate repository that is currently under construction. Data quality and RNASeq metrics are determined using FastQC [Andrews et al.](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)), MultiQC ([Ewels et al., 2015](https://academic.oup.com/bioinformatics/article/32/19/3047/2196507)), and Picard tools ([Broad Institute](http://broadinstitute.github.io/picard/)). In addition, diagnostic plots for data quality assessment such as BioQC tissue heterogeneity ([Zhang et al., 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2)) or Principal Component Analysis are provided in an HTML report that is also currently under construction. Optionally, genome coverage files (BigWig) and read alignment files (BAM/CRAM) can be generated as well. Input read trimming with Cutadapt ([Martin, 2010](https://cutadapt.readthedocs.io/en/stable)) and generation of unmapped reads are also available. The pipeline can be launched via a helper tool, run.py, or directly with Snakemake for users familiar with the workflow tool. All parameters for the pipeline are specified within a configuration yaml file or explicitly on the command line when using run.py. All input data, i.e. input fastq files, a human-readable tab-delimited file describing the samples, as well as the reference genome and STAR index files, must be available to the pipeline in a local data folder. To run the pipeline, Snakemake and [Singularity](https://sylabs.io/docs/) must be installed and pre-configured. All software tools used by the pipeline are pulled from public Singularity or Docker image repositories. It is recommended to run the pipeline on a high-performance cluster environment.
+
 
 ### Overview of the analysis workflow
 
@@ -87,14 +88,12 @@ It is possible to add more columns, for example, to describe additional experime
 
 ### Configuration
 
-The workflow requires several parameters to be configured.
-Most of these parameters can be configured by a "yaml" configuration file.
-A template file is given by `config/config.yaml`.
-Note that many of these parameters can also be specified via the wrapper script `run.py`, see next section.
-Parameters specified on the command line via the wrapper script will overwrite parameters in the configuration file.
+The workflow requires several parameters to be configured, most of which can be set through a yaml configuration file. 
+A template file named `config.yaml` is provided in the config directory. 
+Note that many of these parameters can also be specified through the wrapper script `run.py`, as explained in the next section. 
+Parameters specified on the command line through the wrapper script will overwrite parameters set in the configuration file.
 
-Parameters specified on the command line via the wrapper script will overwrite parameters in the configuration file.
-In order to learn about all possible parameters, do
+To learn about all possible parameters, execute:
 
 ```bash
 
