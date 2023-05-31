@@ -144,17 +144,17 @@ python run.py \
 
 ## Output
 
-Here is the folder structure of a typical workflow run
+Here is the folder structure of a typical workflow run (* = optional output)
 
 ```
 
 ├── annot                            genome annotation files
-├── bam                              read mappings in BAM format (optional)
-├── bw                               read coverage BigWig files (optional)
+├── bam*                             read mappings in BAM format (optional)
+├── bw*                              read coverage BigWig files (optional)
 ├── config.yaml                      workflow configuration file
-├── cram                             read mappings in CRAM format (optional)
-├── cutadapt                         Cudapapt output (optional)
-├── fastq                            copy of input reads (optional)
+├── cram*                            read mappings in CRAM format (optional)
+├── cutadapt*                        Cudapapt output (optional)
+├── fastq*                           copy of input reads (optional)
 ├── fastqc                           FASTQC output files
 ├── fc                               FeatureCounts output files
 ├── gct                              gene counts and normalized gene counts in GCT file format for RefSeq annotations
@@ -168,9 +168,10 @@ Here is the folder structure of a typical workflow run
 ├── rulegraph.pdf                    workflow DAG in pdf format
 ├── rulegraph.png                    workflow DAG in png format
 ├── samples.txt                      sample metadata in tab-delimited file
-└── unmapped                         unmapped reads in FASTQ file format (optional)
+└── unmapped*                        unmapped reads in FASTQ file format (optional)
 
 ```
+
 
 **Explanations**
 
