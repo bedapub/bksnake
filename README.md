@@ -5,6 +5,8 @@ Public version of bksnake - biokit snakemake - bulk RNASeq Snakemake workflow
 
 ## Introduction
 
+Snakemake ([Moelder et al. 2021](https://f1000research.com/articles/10-33/v1)) implementation of a bulk RNASeq data analysis workflow using STAR aligner for read mapping ([Dobin et al. 2012](https://academic.oup.com/bioinformatics/article/29/1/15/272537)) and FeatureCounts from the Subread package for gene quantification ([Liao et al. 2014](https://pubmed.ncbi.nlm.nih.gov/24227677/)). References genomes with RefSeq and Enembl gene annotations are available for several species (e.g. hg38, mm10, rn7, ...). The generation of these reference genomes and annotation files is documented in a separate repository (under construction). Data quality and RNASeq metrics are determined by FastQC ([Andrews et al.](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)), MultiQC ([Ewels et al. 2015](https://academic.oup.com/bioinformatics/article/32/19/3047/2196507)), and Picard tools ([Broad Institute](http://broadinstitute.github.io/picard/)). In addition, diagnostic plots for data quality assessment such as BioQC tissue hetergeneity ([Zhang et al. 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2)) or Principal Component Analysis are provided in HTML report (_under construction_). Optionally, genome coverage files (BigWig) and read alignment files (BAM/CRAM) can be generated as well. Input read trimming with Cutadapt ([Martin 2010](https://cutadapt.readthedocs.io/en/stable)) and generation of unmapped reads are available as well. The pipeline can be launched via a helper tool, `run.py`, or directly with Snakemake for users familiar with the workflow tool. All parameters for the pipeline are specified within a configuration yaml file or explicitely on the command line in case of using `run.py`. All input data, i.e. input fastq files, a human readable tab-delimited file describing the samples, as well as the reference genome and STAR index files must be available to the pipeline in a local data folder. In order to run the pipeline, Snakemake and [Singularity](https://sylabs.io/docs/) must be installed and pre-configured. All software tools that are used by the pipeline are pulled from public Singularity or Docker image repositories. It is recommended to run the pipeline on a high performance cluster environment.
+
 ### Overview of the analysis workflow
 
 Directed acyclic graph of a representative analysis workflow.
@@ -17,7 +19,7 @@ Directed acyclic graph of a representative analysis workflow.
 </div>
 
 
-## Installation
+## Requirements
 
 This workflow requires the following tools in the system path
 
@@ -35,7 +37,7 @@ export SINGULARITY_DOCKER_PASSWORD=<github read package token>
 
 ## Preparation
 
-### Reference genome
+### Reference genome (TBD)
 
 Download reference genome annotation files into a genome "root" and "sub" directories.
 Specify these directories also in the pipeline configuration file (see below).
@@ -43,6 +45,7 @@ Specify these directories also in the pipeline configuration file (see below).
 _**TBD** This section is still under construction..._
 
 Structure of the genomes directory
+
 ```
 /path/to/genome/root/directory/hg38/
 ├── fasta
@@ -72,6 +75,8 @@ There is a header line and one sample per line, organized by several columns as 
 
 Note that columns `#ID` and `GROUP` may not contain white-spaces and other special characters.
 
+It is possible to add more columns, for example, to describe additional experiment parameters or specimen information. But they are not used by the pipeline further.
+
 #### Example
 
 | #ID        | GROUP       | FASTQ1                     | FASTQ2                     | Raw                       | Organism |
@@ -87,6 +92,15 @@ Most of these parameters can be configured by a "yaml" configuration file.
 A template file is given by `config/config.yaml`.
 Note that many of these parameters can also be specified via the wrapper script `run.py`, see next section.
 Parameters specified on the command line via the wrapper script will overwrite parameters in the configuration file.
+
+Parameters specified on the command line via the wrapper script will overwrite parameters in the configuration file.
+In order to learn about all possible parameters, do
+
+```bash
+
+python run.py --help
+
+```
 
 It is important to specify the following parameters
 - genome root and sub- directory
@@ -126,15 +140,17 @@ python run.py \
 
 ```
 
-## Output
-
 Here is the folder structure of a typical workflow run
 
-```bash
+```
 
 ├── annot                            genome annotation files
+├── bam                              read mappings in BAM format (optional)
+├── bw                               read coverage BigWig files (optional)
 ├── config.yaml                      workflow configuration file
-├── cram                             read mappings in CRAM format
+├── cram                             read mappings in CRAM format (optional)
+├── cutadapt                         Cudapapt output (optional)
+├── fastq                            copy of input reads (optional)
 ├── fastqc                           FASTQC output files
 ├── fc                               FeatureCounts output files
 ├── gct                              gene counts and normalized gene counts in GCT file format for RefSeq annotations
@@ -147,43 +163,53 @@ Here is the folder structure of a typical workflow run
 ├── qc                               some QC plots, e.g. PCA or BioQC
 ├── rulegraph.pdf                    workflow DAG in pdf format
 ├── rulegraph.png                    workflow DAG in png format
-└── samples.txt                      sample metadata in tab-delimited file
+├── samples.txt                      sample metadata in tab-delimited file
+└── unmapped                         unmapped reads in FASTQ file format (optional)
 
 ```
 
-Explanations of each file and folder.
+Explanations
 
 ### "annot" folder
 
-Contains copies of reference genome and annotations files.
+Contains copies of reference genome and annotations files (i.e. `FASTA`, `GTF`, etc)
 In addition, sample metadata in tab-delimited text file, `phenoData.meta` and in [`cls`](https://software.broadinstitute.org/cancer/software/gsea/wiki/index.php/Data_formats#CLS:_Continuous_.28e.g_time-series_or_gene_profile.29_file_format_.28.2A.cls.29) format `phenoData.cls`.
+
+### "bam" folder (optional)
+
+Contains all aligned reads in [`BAM`](https://en.wikipedia.org/wiki/BAM_(file_format)) file. Only generated if the parameter `keep_bam_files` is `True` in the pipeline configuration.
+
+### "bw" folder (optional)
+
+Read coverage files in [BigWig](http://genome.ucsc.edu/goldenPath/help/bigWig.html) format. May be used for graphical visualisation of the genome coverage by external tools such as [JBrowse](https://jbrowse.org/jb2/docs/user_guide/) or [IGV](https://software.broadinstitute.org/software/igv/userguide). Only generated if the parameter `generate_bw_files` is `True` in the pipeline configuration.
+
+### "cutadapt" folder (optional)
+
+Output files from the sequencing read trimming tool [`Cutadapt`](https://cutadapt.readthedocs.io/en/stable/) ([Martin 2010](https://journal.embnet.org/index.php/embnetjournal/article/view/200)). Only generated if the parameter `cutadapt: run` is `True` in the pipeline configuration.
 
 ### "config.yaml" file
 
-All configuration parameters on one `yaml` file.
+All configuration parameters stored in a single [`yaml`](https://en.wikipedia.org/wiki/YAML) file.
 
-### "cram" folder
+### "cram" folder (optional)
 
-Contains all aligned reads in [`CRAM`](https://en.wikipedia.org/wiki/CRAM_(file_format)) file.
+Contains all aligned reads in [`CRAM`](https://en.wikipedia.org/wiki/CRAM_(file_format)) file. Only generated if the parameter `generate_cram_files` is `True` in the pipeline configuration.
+
+### "fastq" folder (optional)
+
+Contains a copy of the input [`FASTQ`](https://en.wikipedia.org/wiki/FASTQ_format) files. Only generated if the parameter `keep_fastq_files` is `True` in the pipeline configuration.
 
 ### "fastqc" folder
 
 Contains all output files from the read quality control tool [`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/).
 
-### "qc" folder
+### "fc" folder
 
-Contains some plots for quality control purposes.
-
-- `bioQC.pdf`: Heatmap representationg of the BioQC enrichment scores for detecting detecting such tissue heterogeneity ([Zhang et al. 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2))
-- `bioQC_thr2.txt`: BioQC enrichment scores above threshold 2
-- `bioQC.txt`: All BioQC enrichment scores 
-- `refseq_log2tpm_pca.pdf`: Plot of the main components from the principal component analysis on the basis of the log2-transformed normalized RefSeq gene counts (log2tpm).
-- `refseq_log2tpm_pca.txt`: Coordinates of the components from the principal component analysis on the basis of the log2-transformed normalized RefSeq gene counts (log2tpm).
-
+Intermediate output files, summary and compressed counts file, from the gene quantification step by using [`FeatureCounts`](https://subread.sourceforge.net/featureCounts.html) tool from the `Subreads` package. Parameters for `FeatureCounts` can be specified via the input configuration file.
 
 ### "gct" folder
 
-Contains RefSeq annotated gene counts, normalized counts, log2-transformed counts in [`GCT`](https://software.broadinstitute.org/software/igv/GCT) file format.
+Contains _RefSeq_ annotated gene counts, normalized counts, _log2_-transformed counts in [`GCT`](https://software.broadinstitute.org/software/igv/GCT) file format.
 
 - `refseq_count.gct`: RefSeq gene counts
 - `refseq_count_collapsed.gct`: RefSeq gene counts collapsed to human orthologous gene symbols (using `resources/geneids.chip`)
@@ -193,7 +219,7 @@ Contains RefSeq annotated gene counts, normalized counts, log2-transformed count
 
 ### "gct-ens" folder
 
-Contains Ensembl annotated gene counts, normalized counts, log2-transformed counts in [`GCT`](https://software.broadinstitute.org/software/igv/GCT) file format.
+Contains _Ensembl_ annotated gene counts, normalized counts, _log2_-transformed counts in [`GCT`](https://software.broadinstitute.org/software/igv/GCT) file format.
 
 - `ensembl_count.gct`: Ensembl gene counts
 - `ensembl_count_collapsed.gct`: Ensembl counts collapsed to human orthologous gene symbols (using `resources/ENSEMBLGENES.chip`)
@@ -203,17 +229,42 @@ Contains Ensembl annotated gene counts, normalized counts, log2-transformed coun
 
 ### "log" folder
 
-Contains several log file from various tools used by the pipeline. Mainly used for debugging purposes.
+Contains several log files from analysis tools used by the pipeline. Mainly used for debugging purposes.
 
 ### "multiqc_data" folder
 
-Contains
+Output files from the [`MultiQC`](https://multiqc.info/docs/) tool with _RefSeq_ gene annotations (e.g. for Picard RNASeq metrics).
 
 ### "multiqc_data_ensembl" folder
+
+Output files from the [`MultiQC`](https://multiqc.info/docs/) tool with _Ensembl_ gene annotations (e.g. for Picard RNASeq metrics).
+
 ### "multiqc_report_ensembl.html" file
+
+HTML summary report from the [`MultiQC`](https://multiqc.info/docs/) tool based on _Ensembl_ genome annotations.
+
 ### "multiqc_report.html" file
+
+HTML summary report from the [`MultiQC`](https://multiqc.info/docs/) tool based on _RefSeq_ genome annotations.
+
 ### "qc" folder
-### "rulegraph.pdf" file
-### "rulegraph.png" file
+
+Plots for quality control purposes.
+
+- `bioQC.pdf`: Heatmap representationg of the _BioQC_ enrichment scores for detecting detecting such tissue heterogeneity ([Zhang et al. 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2))
+- `bioQC_thr2.txt`: _BioQC_ enrichment scores above threshold 2
+- `bioQC.txt`: All _BioQC_ enrichment scores 
+- `refseq_log2tpm_pca.pdf`: Plot of the main components from the principal component analysis on the basis of the _log2_-transformed normalized _RefSeq_ gene counts (log2tpm).
+- `refseq_log2tpm_pca.txt`: Coordinates of the components from the principal component analysis on the basis of the _log2_-transformed normalized _RefSeq_ gene counts (log2tpm).
+
+### "rulegraph.pdf" and "rulegraph.png" files
+
+Graphical representation of the entire workflow. A directed acyclic graph, DAG, generated by [`Snakemake`](https://snakemake.readthedocs.io/en/stable/)
+
 ### "samples.txt" file
 
+Tab-delimited, human readable text file containing study and sample metadata in tabular form (one sample per line).
+
+### "unmapped" folder (optional)
+
+Contains unmapped sequencing reads in [FASTQ](https://en.wikipedia.org/wiki/FASTQ_format) files. Only generated if the parameter `generate_unmapped` is `True` in the pipeline configuration.
