@@ -14,7 +14,7 @@ Directed acyclic graph of a representative analysis workflow.
 
 <div
   <figure>
-    <img src="./resources/dag.png" alt="DAG of the workflow." style="width:50%">
+    <img src="./resources/dag.png" alt="DAG of the workflow." style="width:60%">
     <figcaption>DAG of the workflow.</figcaption>
   </figure>
 </div>
@@ -35,6 +35,7 @@ export SINGULARITY_DOCKER_USERNAME=<username>
 export SINGULARITY_DOCKER_PASSWORD=<github read package token>
 
 ```
+
 
 ## Preparation
 
@@ -102,10 +103,12 @@ python run.py --help
 ```
 
 It is important to specify the following parameters
+
 - genome root and sub- directory
 - singularity images directory
 - snakemake path
 - sequencing library (single-end or paired-end, stranded or unstranded)
+
 
 ## Usage
 
@@ -118,7 +121,6 @@ python run.py --outdir output --species hg38 --jobs 100
 ```
 
 Run locally, using up to 12 cores
-
 
 ```bash
 
@@ -138,6 +140,9 @@ python run.py \
     --jobs 100 
 
 ```
+
+
+## Output
 
 Here is the folder structure of a typical workflow run
 
@@ -167,7 +172,7 @@ Here is the folder structure of a typical workflow run
 
 ```
 
-Explanations
+**Explanations**
 
 ### "annot" folder
 
