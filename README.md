@@ -1,14 +1,28 @@
 # bksnake
+
 Public version of bksnake - biokit snakemake - bulk RNASeq Snakemake workflow
 
 
+# Table of Contents
+- [Introduction](#introduction)
+- [Overview of the analysis workflow](#overview)
+- [Requirements](#requirements)
+- [Preparation](#preparation)
+    - [Reference genome (TBD)](#reference)
+    - [Metadata from file](#metadata_file)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [Output](#output)
+    - [Overview](#output_overview)
+    - [Explanations](#output_explanations)
 
-## Introduction
+
+## Introduction ([top](#top)) <a name="introduction"></a>
 
 _Snakemake_ ([Moelder et al., 2021](https://f1000research.com/articles/10-33/v1)) implements a bulk RNASeq data analysis workflow using _STAR_ aligner ([Dobin et al., 2012](https://academic.oup.com/bioinformatics/article/29/1/15/272537)) for read mapping and _FeatureCounts_ from the _Subread package_ ([Liao et al., 2014](https://pubmed.ncbi.nlm.nih.gov/24227677/)) for gene quantification. Reference genomes with _RefSeq_ and _Ensembl_ gene annotations are available for several species such as _hg38, chm13, mm10, mm39, rn6, rn7, mfa5, mfa6, ss11_, and _oc2_. The generation of these reference genomes and annotation files is documented in a separate repository that is currently under construction. Data quality and RNASeq metrics are determined using _FastQC_ ([Andrews et al.](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)), _MultiQC_ ([Ewels et al., 2015](https://academic.oup.com/bioinformatics/article/32/19/3047/2196507)), and _Picard_ tools ([Broad Institute](http://broadinstitute.github.io/picard/)). In addition, diagnostic plots for data quality assessment such as _BioQC_ tissue heterogeneity ([Zhang et al., 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2)) or _Principal Component Analysis_ are provided in an HTML report that is also currently under construction. Optionally, genome coverage files (_BigWig_) and read alignment files (_BAM/CRAM_) can be generated as well. Input read trimming with _Cutadapt_ ([Martin, 2010](https://cutadapt.readthedocs.io/en/stable)) and generation of _unmapped reads_ are also available. The pipeline can be launched via a helper tool, `run.py`, or directly with Snakemake for users familiar with the workflow tool. All parameters for the pipeline are specified within a configuration _yaml_ file or explicitly on the command line when using `run.py`. All input data, i.e. input fastq files, a human-readable tab-delimited file describing the samples, as well as the reference genome and STAR index files, must be available to the pipeline in a local data folder. To run the pipeline, Snakemake and [_Singularity_](https://sylabs.io/docs/) must be installed and pre-configured. All software tools used by the pipeline are pulled from public _Singularity_ or _Docker_ image repositories. It is recommended to run the pipeline on a high-performance cluster environment.
 
 
-### Overview of the analysis workflow
+### Overview of the analysis workflow ([top](#top)) <a name="overview"></a>
 
 Directed acyclic graph of a representative analysis workflow.
 
@@ -20,7 +34,7 @@ Directed acyclic graph of a representative analysis workflow.
 </div>
 
 
-## Requirements
+## Requirements ([top](#top)) <a name="requirements"></a>
 
 This workflow requires the following tools in the system path
 
@@ -30,16 +44,14 @@ This workflow requires the following tools in the system path
 In order to pull Singularity images from GitHub package registry one needs to specify username and GitHub read package token:
 
 ```bash
-
 export SINGULARITY_DOCKER_USERNAME=<username>
 export SINGULARITY_DOCKER_PASSWORD=<github read package token>
-
 ```
 
 
-## Preparation
+## Preparation ([top](#top)) <a name="preparation"></a>
 
-### Reference genome (TBD)
+### Reference genome (TBD) <a name="reference"></a>
 
 Download reference genome annotation files into a genome "root" and "sub" directories.
 Specify these directories also in the pipeline configuration file (see below).
@@ -63,7 +75,7 @@ Structure of the genomes directory
 In each "sub" directory, named with genome version (e.g. hg38), there are subfolders for `fasta`, `gff3`, `gtf3` and `STAR` index files.
 
 
-### Metadata
+### Metadata <a name="metadata_file"></a>
 
 The main input to the workflow is a tab-delimited text file containing metadata information about all samples. 
 There is a header line and one sample per line, organized by several columns as follows:
@@ -79,7 +91,7 @@ Note that columns `#ID` and `GROUP` may not contain white-spaces and other speci
 
 It is possible to add more columns, for example, to describe additional experiment parameters or specimen information. But they are not used by the pipeline further.
 
-#### Example
+#### Example ([top](#top)) <a name="metadata_file_example"></a>
 
 | #ID        | GROUP       | FASTQ1                     | FASTQ2                     | Raw                       | Organism |
 |------------|-------------|----------------------------|----------------------------|---------------------------|----------|
@@ -87,7 +99,8 @@ It is possible to add more columns, for example, to describe additional experime
 | GSM5362224 | HOXB9-T133A | 10k_SRR14749832_1.fastq.gz | 10k_SRR14749832_2.fastq.gz | resources/test-data/fastq | Human    |
 | GSM5362223 | HOXB9       | 10k_SRR14749831_1.fastq.gz | 10k_SRR14749831_2.fastq.gz | resources/test-data/fastq | Human    |
 
-### Configuration
+
+## Configuration ([top](#top)) <a name="configuration"></a>
 
 The workflow requires several parameters to be configured, most of which can be set through a yaml configuration file. 
 A template file named `config.yaml` is provided in the config directory. 
@@ -97,9 +110,7 @@ Parameters specified on the command line through the wrapper script will overwri
 To learn about all possible parameters, execute:
 
 ```bash
-
 python run.py --help
-
 ```
 
 It is important to specify the following parameters
@@ -110,44 +121,50 @@ It is important to specify the following parameters
 - sequencing library (single-end or paired-end, stranded or unstranded)
 
 
-## Usage
+## Usage ([top](#top)) <a name="usage"></a>
 
 Run on a cluster with LSF scheduler, up to 100 jobs in parallel
 
 ```bash
-
 python run.py --outdir output --species hg38 --jobs 100
-
 ```
 
 Run locally, using up to 12 cores
 
 ```bash
-
 python run.py --outdir output --species hg38 --cores 12
-
 ```
  
 Here, an example where several pipeline parameters are specified directly via the command line
 
 ```bash
-
 python run.py \
     --snakemake-path="ml purge && ml snakemake && snakemake" \
     --genome-dir /data/genomes \
     --outdir output \
     --species hg38 \
     --jobs 100 
-
 ```
 
+Run the pipeline with the **test data set**
+    
+```bash
+python run.py --metadata-file resources/test-data/metadata.txt --jobs 50 --outdir test-data_output
+```
+    
+By this, sample metadata, in particular the path for the raw input data, i.e. "fastq" files, are given by the input metadata file located at `resources/test-data/metadata.txt`.
+The Snakemake jobs will be submitted to the cluster queue, and a maximum of 50 jobs will be processed simultaneously.
+All output will be written to a new folder named `test-data_output`.
+All other pipeline configuration parameters will be used from the default config file, `config/config.yaml`.
 
-## Output
 
-Here is the folder structure of a typical workflow run (* = optional output)
+## Output ([top](#top)) <a name="output"></a>
+
+### Overview <a name="output_overview"></a>
+
+Folder structure of a typical workflow run (* = optional output, + = Roche version only).
 
 ```
-
 ├── annot                            genome annotation files
 ├── bam*                             read mappings in BAM format (optional)
 ├── bw*                              read coverage BigWig files (optional)
@@ -169,11 +186,10 @@ Here is the folder structure of a typical workflow run (* = optional output)
 ├── rulegraph.png                    workflow DAG in png format
 ├── samples.txt                      sample metadata in tab-delimited file
 └── unmapped*                        unmapped reads in FASTQ file format (optional)
-
 ```
 
 
-**Explanations**
+### Explanations ([top](#top)) <a name="output_explanations"></a>
 
 ### "annot" folder
 
