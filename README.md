@@ -149,7 +149,12 @@ python run.py \
 Run the pipeline with the **test data set**
     
 ```bash
-python run.py --metadata-file resources/test-data/metadata.txt --jobs 50 --outdir test-data_output
+python run.py \
+    --metadata-file resources/test-data/metadata.txt \
+    --snakemake-path="ml purge && ml snakemake && snakemake" \
+    --genome-dir /projects/site/pred/ngs/genomes \
+    --outdir test-data_output \
+    --jobs 50
 ```
     
 By this, sample metadata, in particular the path for the raw input data, i.e. "fastq" files, are given by the input metadata file located at `resources/test-data/metadata.txt`.
