@@ -75,7 +75,7 @@ Structure of the genomes directory
 In each "sub" directory, named with genome version (e.g. hg38), there are subfolders for `fasta`, `gff3`, `gtf3` and `STAR` index files.
 
 
-### Metadata <a name="metadata_file"></a>
+### Metadata ([top](#top)) <a name="metadata_file"></a>
 
 The main input to the workflow is a tab-delimited text file containing metadata information about all samples. 
 There is a header line and one sample per line, organized by several columns as follows:
@@ -153,7 +153,8 @@ python run.py --metadata-file resources/test-data/metadata.txt --jobs 50 --outdi
 ```
     
 By this, sample metadata, in particular the path for the raw input data, i.e. "fastq" files, are given by the input metadata file located at `resources/test-data/metadata.txt`.
-The Snakemake jobs will be submitted to the cluster queue, and a maximum of 50 jobs will be processed simultaneously.
+The test data set consists of three sub samples fastq files from A549 cell line samples from GEO study [GSM5362223](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM5362223).
+By the above command, the Snakemake jobs will be submitted to the cluster queue, and a maximum of 50 jobs will be processed simultaneously.
 All output will be written to a new folder named `test-data_output`.
 All other pipeline configuration parameters will be used from the default config file, `config/config.yaml`.
 
@@ -289,3 +290,5 @@ Tab-delimited, human readable text file containing study and sample metadata in 
 ### "unmapped" folder (optional)
 
 Contains unmapped sequencing reads in [FASTQ](https://en.wikipedia.org/wiki/FASTQ_format) files. Only generated if the parameter `generate_unmapped` is `True` in the pipeline configuration.
+
+([To the top of the page](#top))
