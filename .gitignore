@@ -9,7 +9,6 @@ __pycache__
 *.out
 *.html
 *.swp
-*.fastq.gz
 *.pdf
 logs*
 *output*
