@@ -60,7 +60,7 @@ def create_run_config(args):
 
     # update config dictionary
     if args.outdir:
-        CONFIG['outdir'] = args.outdir
+        CONFIG['results'] = args.outdir
 
     if args.genome_dir:
         CONFIG['genome_dir'] = args.genome_dir
