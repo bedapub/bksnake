@@ -5,14 +5,14 @@ snakemake:
     path: '/path/to/snakemake/program'
     parameters: ''                         # Additional Snakemake parameters, e.g. '--dry-run --notemp'
 singularity:
-    prefix: 'singularity-images'           # folder path where images should be stored for re-use
+    prefix: 'singularity-images'           # Folder path where images should be stored for re-use
 
 
 ###############################
 # COMMONLY CHANGED PARAMETERS #
 ###############################
-pipeline: 'bksnake'  # type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline. Currently onlyt  "bksnake" is supported !
-outdir: 'output'     # directory name of output files
+pipeline: 'bksnake'  # type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline. Currently only  "bksnake" is supported !
+results: 'output'     # directory name of output files (results)
 metadata:
     file: 'resources/test-data/metadata.txt'
     group_name: 'GROUP'
