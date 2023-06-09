@@ -22,7 +22,7 @@ configfile: 'config/config.yaml'
 
 # ------------------------------------------------------------------------------
 # Declare variables
-OD = config['outdir']
+OD = config['results']
 OD_TMP = os.path.join(OD, 'tmp')
 OD_BAM = os.path.join(OD, 'bam')
 OD_UBAM = os.path.join(OD, 'bam_unsorted')
