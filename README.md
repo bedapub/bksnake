@@ -60,14 +60,15 @@ Download prepared reference genome annotation files from [Zenodo](https://zenodo
 
 ```
 genome_dir=<genome root directory>
-mkdir -p  $genome_dir
+
+mkdir -p $genome_dir
 cd $genome_dir
 mkdir hg38
 wget https://zenodo.org/record/8017214/files/file.dat
 tar –xvzf file.dat
 ```
 
-In folder `genomes_2022-07-15_hg38` are several subfolders containing `fasta` and `gtf` files for _RefSeq_ and _Ensembl_ annotations as well as index for the _STAR aligner version 2.7.10b_.
+In folder `genomes_2022-07-15_hg38` are several subfolders containing `fasta` and `gtf` files for _RefSeq_ and _Ensembl_ annotations as well as index files for the _STAR aligner version 2.7.10b_.
 
 ```
 genomes_2022-07-15_hg38/fasta
@@ -75,7 +76,7 @@ genomes_2022-07-15_hg38/gtf/ensembl
 genomes_2022-07-15_hg38/gtf/refseq
 genomes_2022-07-15_hg38/star_2.7.10b
 
-/path/to/genome/root/directory/hg38/
+<genome root directory>/hg38
 ├── fasta
 ├── gtf
 │   ├── ensembl
@@ -83,7 +84,7 @@ genomes_2022-07-15_hg38/star_2.7.10b
 ├── star_2.7.10b
 ```
 
-Specify the "root" genome directory also in the pipeline configuration file, parameter `genome_dir` (see below).
+Specify the "root" genome directory in the pipeline configuration file (`config/config.yaml`), parameter `genome_dir` (see below).
 
 #### Other species ([top](#top)) <a name="reference_other"></a>
 
@@ -155,7 +156,7 @@ Here, an example where several pipeline parameters are specified directly via th
 ```bash
 python run.py \
     --snakemake-path="ml purge && ml snakemake && snakemake" \
-    --genome-dir /data/genomes \
+    --genome-dir <genome root directory> \
     --outdir output \
     --species hg38 \
     --jobs 100 
