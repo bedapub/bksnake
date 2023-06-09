@@ -2,13 +2,14 @@
 
 Public version of bksnake - biokit snakemake - bulk RNASeq Snakemake workflow
 
-
 # Table of Contents
 - [Introduction](#introduction)
 - [Overview of the analysis workflow](#overview)
 - [Requirements](#requirements)
 - [Preparation](#preparation)
     - [Reference genome (TBD)](#reference)
+        - [Human hg38](#reference_hg38)
+        - [Other species](#reference_other)
     - [Metadata from file](#metadata_file)
 - [Configuration](#configuration)
 - [Usage](#usage)
@@ -51,28 +52,42 @@ export SINGULARITY_DOCKER_PASSWORD=<github read package token>
 
 ## Preparation ([top](#top)) <a name="preparation"></a>
 
-### Reference genome (TBD) <a name="reference"></a>
+### Reference genome (_TBD_) <a name="reference"></a>
 
-Download reference genome annotation files into a genome "root" and "sub" directories.
-Specify these directories also in the pipeline configuration file (see below).
+#### Human hg38 <a name="reference_hg38"></a>
 
-_**TBD** This section is still under construction..._
-
-Structure of the genomes directory
+Download prepared reference genome annotation files from [Zenodo](https://zenodo.org/record/8017214) into a genome "root" directory, create a subdirectory `hg38` and "untar" the downloaded files there.
 
 ```
+genome_dir=<genome root directory>
+mkdir -p  $genome_dir
+cd $genome_dir
+mkdir hg38
+wget https://zenodo.org/record/8017214/files/file.dat
+tar –xvzf file.dat
+```
+
+In folder `genomes_2022-07-15_hg38` are several subfolders containing `fasta` and `gtf` files for _RefSeq_ and _Ensembl_ annotations as well as index for the _STAR aligner version 2.7.10b_.
+
+```
+genomes_2022-07-15_hg38/fasta
+genomes_2022-07-15_hg38/gtf/ensembl
+genomes_2022-07-15_hg38/gtf/refseq
+genomes_2022-07-15_hg38/star_2.7.10b
+
 /path/to/genome/root/directory/hg38/
 ├── fasta
-├── gff3
-│   ├── ensembl
-│   └── refseq
 ├── gtf
 │   ├── ensembl
 │   └── refseq
 ├── star_2.7.10b
 ```
 
-In each "sub" directory, named with genome version (e.g. hg38), there are subfolders for `fasta`, `gff3`, `gtf3` and `STAR` index files.
+Specify the "root" genome directory also in the pipeline configuration file, parameter `genome_dir` (see below).
+
+#### Other species ([top](#top)) <a name="reference_other"></a>
+
+Reference genomes of other species will be added later.
 
 
 ### Metadata ([top](#top)) <a name="metadata_file"></a>
