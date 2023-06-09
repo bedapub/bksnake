@@ -7,7 +7,7 @@ Public version of bksnake - biokit snakemake - bulk RNASeq Snakemake workflow
 - [Overview of the analysis workflow](#overview)
 - [Requirements](#requirements)
 - [Preparation](#preparation)
-    - [Reference genome (TBD)](#reference)
+    - [Reference genome](#reference)
         - [Human hg38](#reference_hg38)
         - [Other species](#reference_other)
     - [Metadata from file](#metadata_file)
@@ -52,30 +52,27 @@ export SINGULARITY_DOCKER_PASSWORD=<github read package token>
 
 ## Preparation ([top](#top)) <a name="preparation"></a>
 
-### Reference genome (_TBD_) <a name="reference"></a>
+### Reference genome <a name="reference"></a>
 
 #### Human hg38 <a name="reference_hg38"></a>
 
-Download prepared reference genome annotation files from [Zenodo](https://zenodo.org/record/8017214) into a genome "root" directory, create a subdirectory `hg38` and "untar" the downloaded files there.
+Download prepared reference genome annotation files from [Zenodo](https://zenodo.org/record/8017214) into a genome "root" directory and "untar" the downloaded files there.
+At the end, create symbolic link "hg38" pointing to the data folder for the human genome hg38 files.
 
 ```
 genome_dir=<genome root directory>
 
 mkdir -p $genome_dir
 cd $genome_dir
-mkdir hg38
+
 wget https://zenodo.org/record/8017214/files/file.dat
 tar –xvzf file.dat
+ln -s genomes_2022-07-15_hg38 hg38
 ```
 
-In folder `genomes_2022-07-15_hg38` are several subfolders containing `fasta` and `gtf` files for _RefSeq_ and _Ensembl_ annotations as well as index files for the _STAR aligner version 2.7.10b_.
+In folder `genomes_2022-07-15_hg38`, or `hg38`, are several subfolders containing `fasta` and `gtf` files for _RefSeq_ and _Ensembl_ annotations as well as index files for the _STAR aligner version 2.7.10b_.
 
 ```
-genomes_2022-07-15_hg38/fasta
-genomes_2022-07-15_hg38/gtf/ensembl
-genomes_2022-07-15_hg38/gtf/refseq
-genomes_2022-07-15_hg38/star_2.7.10b
-
 <genome root directory>/hg38
 ├── fasta
 ├── gtf
@@ -84,7 +81,7 @@ genomes_2022-07-15_hg38/star_2.7.10b
 ├── star_2.7.10b
 ```
 
-Specify the "root" genome directory in the pipeline configuration file (`config/config.yaml`), parameter `genome_dir` (see below).
+Specify the genome "root" directory in the pipeline configuration file (`config/config.yaml`), parameter `genome_dir` (see below).
 
 #### Other species ([top](#top)) <a name="reference_other"></a>
 
