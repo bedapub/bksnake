@@ -116,8 +116,8 @@ It is possible to add more columns, for example, to describe additional experime
 ## Configuration ([top](#top)) <a name="configuration"></a>
 
 The workflow requires several parameters to be configured, most of which can be set through a yaml configuration file. 
-A template file named `config.yaml` is provided in the config directory. 
-Note that many of these parameters can also be specified through the wrapper script `run.py`, as explained in the next section. 
+A template file named `config.yaml` is provided in the config directory. It's recommended to create a copy of the template config and make modifications there.
+Note that some parameters can also be specified through the wrapper script `run.py`, as explained in the next section. 
 Parameters specified on the command line through the wrapper script will overwrite parameters set in the configuration file.
 
 To learn about all possible parameters, execute:
@@ -126,12 +126,13 @@ To learn about all possible parameters, execute:
 python run.py --help
 ```
 
-It is important to specify the following parameters
+It is important to specify the following parameters in the `config.yaml`
 
-- genome root and sub- directory
-- singularity images directory
-- snakemake path
-- sequencing library (single-end or paired-end, stranded or unstranded)
+- genome root and sub- directory: `genome_dir: VALUE`
+- singularity images directory: `singularity: prefix: VALUE`
+- snakemake path: `snakemake: path: VALUE`
+- sample metadata file: `metadata: file: VALUE` and `metadata: group_name: VALUE`
+- sequencing library: `library: type: VALUE` and `library: strand: VALUE`
 
 
 ## Usage ([top](#top)) <a name="usage"></a>
@@ -139,30 +140,20 @@ It is important to specify the following parameters
 Run on a cluster with LSF scheduler, up to 100 jobs in parallel
 
 ```bash
-python run.py --outdir output --species hg38 --jobs 100
+python run.py --config <path to config.yaml> --jobs 100
 ```
 
 Run locally, using up to 12 cores
 
 ```bash
-python run.py --outdir output --species hg38 --cores 12
+python run.py --config <path to config.yaml> --cores 12
 ```
  
-Here, an example where several pipeline parameters are specified directly via the command line
-
-```bash
-python run.py \
-    --snakemake-path="ml purge && ml snakemake && snakemake" \
-    --genome-dir <genome root directory> \
-    --outdir output \
-    --species hg38 \
-    --jobs 100 
-```
-
-Run the pipeline with the **test data set**
+Run the pipeline with the **test data set** and specify four optional parameters on the command line
     
 ```bash
 python run.py \
+    --config config/config.yaml \
     --metadata-file resources/test-data/metadata.txt \
     --snakemake-path="ml purge && ml snakemake && snakemake" \
     --genome-dir /projects/site/pred/ngs/genomes \
@@ -171,10 +162,10 @@ python run.py \
 ```
     
 By this, sample metadata, in particular the path for the raw input data, i.e. "fastq" files, are given by the input metadata file located at `resources/test-data/metadata.txt`.
-The test data set consists of three sub samples fastq files from A549 cell line samples from GEO study [GSM5362223](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM5362223).
-By the above command, the Snakemake jobs will be submitted to the cluster queue, and a maximum of 50 jobs will be processed simultaneously.
+The test data set consists of three sub samples fastq files from _A549 cell line_ samples from GEO study [GSM5362223](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM5362223).
+By the above command, the Snakemake jobs will be submitted to the cluster queue, and a maximum of _50 jobs_ will be processed simultaneously.
 All output will be written to a new folder named `test-data_output`.
-All other pipeline configuration parameters will be used from the default config file, `config/config.yaml`.
+All other pipeline configuration parameters will be used from the default config template file, `config/config.yaml`.
 
 
 ## Output ([top](#top)) <a name="output"></a>

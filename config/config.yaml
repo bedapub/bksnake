@@ -1,22 +1,22 @@
 #####################################
 # GENERAL PARAMETERS                #
 #####################################
+genome_dir: '/path/to/genomes'             # ENTER VALUE for genome_dir: path to "root" directory containing sub-directory for each species
 snakemake:
-    path: '/path/to/snakemake/program'
+    path: '/path/to/snakemake/program'     # ENTER VALUE for the snakemake command (including path, or modules to load)
     parameters: ''                         # Additional Snakemake parameters, e.g. '--dry-run --notemp'
 singularity:
-    prefix: 'singularity-images'           # Folder path where images should be stored for re-use
+    prefix: 'singularity-images'           # ENTER VALUE for the folder where images should be stored for re-use (typically a central location)
+pipeline: 'bksnake'                        # (do not change) Type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline. Currently only  "bksnake" is supported !
 
 
 ###############################
 # COMMONLY CHANGED PARAMETERS #
 ###############################
-pipeline: 'bksnake'  # type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline. Currently only  "bksnake" is supported !
-results: 'output'     # directory name of output files (results)
+results: 'output'                             # ENTER VALUE for the folder name of output files ("result" files)
 metadata:
-    file: 'resources/test-data/metadata.txt'
-    group_name: 'GROUP'
-
+    file: 'resources/test-data/metadata.txt'  # ENTER VALUE for the metadata file
+    group_name: 'GROUP'                       # ENTER VALUE matching the input metdata file (one of the column names)
 
 # Optional parameters for output files generation and storage:
 # In order to generate and/or keep those files set either 'True' or 'False' (default)
@@ -52,12 +52,30 @@ library:
     strand: 'SECOND_READ_TRANSCRIPTION_STRAND'
 
 
+####################################
+# LESS COMMONLY CHANGED PARAMETERS #
+####################################
+# featureCounts parameters
+#
+# stranded quantification
+# 0 for unstranded quantification
+# 1 for forward (e.g. for Lexogen's QuantSeq)
+# 2 for reverse (e.g. for Illumina's TruSeq Stranded mRNA)
+# strand: 0 see above fc_strand
+fc_min_overlap: 10
+fc_frac_overlap: 0.2
+
+# STAR read mapping parameters
+star_sam_mapq_unique: 60
+star_threads: 12
+star_version: 'star_2.7.10b'  # required for STAR_DIR variable
+
+
 #####################################
 # REFERENCE GENOMES AND ANNOTATIONS #
 #####################################
-# genome_dir: path to "root" directory containing sub-directory for each species
+# genome_dir: path to "root" directory containing sub-directory for each species (is specified above)
 # genomes: genome_subdir: sub-directory name under the "root" directory
-genome_dir: '/path/to/genomes'
 genomes:
     hg38: { species: 'hg38', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'hg38', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
     chm13: { species: 'chm13', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'chm13', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
@@ -72,7 +90,7 @@ genomes:
 
 
 #########################################
-# REFERENCE GENOMES RELATIVE FILE PATHS #
+# REFERENCE GENOMES RELATIVE FILE PATHS # do not change
 #########################################
 # stable file names
 gtf_ref: 'gtf/refseq/refseq.exons.gtf'
@@ -98,26 +116,7 @@ chip_file_ens: 'resources/ENSEMBLGENES.chip'
 
 
 ####################################
-# LESS COMMONLY CHANGED PARAMETERS #
-####################################
-# featureCounts parameters
-#
-# stranded quantification
-# 0 for unstranded quantification
-# 1 for forward (e.g. for Lexogen's QuantSeq)
-# 2 for reverse (e.g. for Illumina's TruSeq Stranded mRNA)
-# strand: 0 see above fc_strand
-fc_min_overlap: 10
-fc_frac_overlap: 0.2
-
-# STAR read mapping parameters
-star_sam_mapq_unique: 60
-star_threads: 12
-star_version: 'star_2.7.10b' # required for STAR_DIR variable
-
-
-####################################
-# PUBLIC DOMAIN SINGULARITY IMAGES #
+# PUBLIC DOMAIN SINGULARITY IMAGES # do not change
 ####################################
 BAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bamtools:2.5.1--he513fc3_6'
 BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.13--h3a49de5_0'
@@ -144,7 +143,7 @@ VEP_IMAGE: 'https://depot.galaxyproject.org/singularity/ensembl-vep%3A107.0--pl5
 
 
 ###############################
-# OUTPUT FILE NAMES           #  Do not change !
+# OUTPUT FILE NAMES           #  do not change
 ###############################
 tpm_gct_ref: 'refseq_tpm.gct'
 tpm_gct_ens: 'ensembl_tpm.gct'

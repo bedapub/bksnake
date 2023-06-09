@@ -13,9 +13,9 @@ from pathlib import Path
 """
 Declare global variables
 """
-GRAPHFILE = 'rulegraph.pdf' # name of the output graph file
+GRAPHFILE_PDF = 'rulegraph.pdf' # name of the output graph file
 GRAPHFILE_PNG = 'rulegraph.png'
-CONFIGFILE = 'config.yaml'  # name of the output config file
+CONFIGFILE = 'config.yaml'  # name of the output config file, not the path
 CONFIG = None # global variable for input config dictionary
 
 
@@ -31,7 +31,7 @@ def verify_snakemake(path):
 
 """
 Read common configuration file
-Normally, this is file 'config/common.yaml'
+Normally, this is file 'config/config.yaml'
 """
 def read_config(file):
     yaml.preserve_quotes = True
@@ -61,7 +61,7 @@ def create_run_config(args):
     # update config dictionary
     if args.outdir:
         CONFIG['results'] = args.outdir
-
+    
     if args.genome_dir:
         CONFIG['genome_dir'] = args.genome_dir
         
@@ -72,35 +72,23 @@ def create_run_config(args):
     
     if args.keep_fastq:
         CONFIG['keep_fastq_files'] = True
-    else:
-        CONFIG['keep_fastq_files'] = False
 
     if args.keep_bam:
         CONFIG['keep_bam_files'] = True
-    else:
-        CONFIG['keep_bam_files'] = False
 
     if args.not_generate_cram:
         CONFIG['generate_cram_files'] = False
-    else:
-        CONFIG['generate_cram_files'] = True
 
     if args.generate_bw:
         CONFIG['generate_bw_files'] = True
-    else:
-        CONFIG['generate_bw_files'] = False
 
     if args.generate_unmapped:
         CONFIG['generate_unmapped'] = True
-    else:
-        CONFIG['generate_unmapped'] = False
         
     if args.cutadapt:
         CONFIG['cutadapt']['run'] = True
         if args.cutadapt_params:
             CONFIG['cutadapt']['parameters'] = args.cutadapt_params
-    else:
-        CONFIG['cutadapt']['run'] = False
         
     if args.snakemake_path:
         CONFIG['snakemake']['path'] = args.snakemake_path
@@ -113,13 +101,16 @@ def create_run_config(args):
 
     if args.metadata_file:
         CONFIG['metadata']['file'] = args.metadata_file
+
     if args.metadata_group_name:
         CONFIG['metadata']['group_name'] = args.metadata_group_name
 
     # check output config file
-    configfile = os.path.join(args.outdir, CONFIGFILE)
-#    if os.path.isfile(configfile):
-#        sys.stderr.write('Configuration file exists already: '+configfile)
+    configfile = os.path.join(CONFIG['results'], CONFIGFILE)
+
+    # create output directory
+    if not os.path.exists(CONFIG['results']):
+        os.makedirs(CONFIG['results'])
 
     # write dictionary tp new output yaml file
     f = open(configfile, 'w')
@@ -132,16 +123,16 @@ Create Snakemake Graph file
 """
 def graph(args):
     snakefile = os.path.abspath(args.snakefile)
-    outfile = os.path.join(args.outdir, GRAPHFILE)
-    outfile2 = os.path.join(args.outdir, GRAPHFILE_PNG)
-    configfile = os.path.join(args.outdir, CONFIGFILE)
+    pdf_file = os.path.join(CONFIG['results'], GRAPHFILE_PDF)
+    png_file = os.path.join(CONFIG['results'], GRAPHFILE_PNG)
+    configfile = os.path.join(CONFIG['results'], CONFIGFILE)
                         
     cmd = CONFIG['snakemake']['path']+' '\
           +' --rulegraph all'\
           +' --snakefile '+snakefile\
           +' --configfile '+configfile\
-          +' | dot -Tpdf > '+outfile\
-          +' && pdftoppm -png '+outfile+' > '+outfile2
+          +' | dot -Tpdf > '+pdf_file\
+          +' && pdftoppm -png '+pdf_file+' > '+png_file
 
     print('\n=======================================\n'+
           'Command to re-run the pipeline-graph:\n'+cmd+
@@ -161,7 +152,7 @@ Run Snakemake workflow
 """
 def workflow(args):
     snakefile = os.path.abspath(args.snakefile)
-    configfile = os.path.join(args.outdir, CONFIGFILE)
+    configfile = os.path.join(CONFIG['results'], CONFIGFILE)
     
     homeDir = str(Path.home())
 
@@ -204,13 +195,17 @@ if __name__ == '__main__':
     )
 
     # Required arguments
-    parser.add_argument('--outdir', '-o', dest='outdir', 
-                        help='Path to output directory. Name in config: \'outdir\'', 
+    parser.add_argument('--config', '-f',
+                        help='Path to input yaml config file for Snakemake. All parameters of the config file are \
+                        overwritten if they are specified by optional arguments to this wrapper script. Not in config.',
                         required=True, default=None)
 
     # Optional arguments
     # Parameters that are also present in the Snakemake config file
     # All default values from that config file (template or user given)
+    parser.add_argument('--outdir', '-o', dest='outdir', 
+                        help='Path to output directory. Name in config: \'results\'',
+                        required=False, default=None)
     parser.add_argument('--metadata-file',
                         help='Path to input tab-delimited text file containing metadata information. Name in config: \'metadata: file:\'', 
                         required=False, default=None)
@@ -253,15 +248,10 @@ if __name__ == '__main__':
                         required=False, default=None)
 
 
-
     # Parameters not present in Snakemake config file 
     parser.add_argument('--species', '-s', dest='species',
                         help='Reference genome species for mapping, e.g. hg38, mm39, mfa5, rn7, ss11, oc2. Not in config.',
                         required=False, default=None)
-    parser.add_argument('--config', '-f',
-                        help='Path to input yaml config file for Snakemake. All parameters of the config file are \
-                        overwritten if they are specified by optional arguments to this wrapper script. Not in config.',
-                        required=False, default='config/config.yaml')
     parser.add_argument('--snakefile',  
                         help='Path to input Snakemake file. Not in config.', 
                         required=False, default='workflow/Snakefile')
@@ -289,19 +279,10 @@ if __name__ == '__main__':
     if not os.path.isfile(args.config):
         raise Exception('Configuration (template) file does not exist. Abort! '+args.config)
    
-    # Create output directory
-    if not os.path.exists(args.outdir):
-        os.makedirs(args.outdir)
-    
     # Read input config file and return as global variable CONFIG
     CONFIG = read_config(args.config)
-
-    # Get species: 
-    # from command line -> now required.
-    # from config file
-    # from metadata file
-    
-    # Create config.yaml file
+ 
+    # Create output directory and config.yaml file
     create_run_config(args)
  
     # Verify Snakemake path is executable
