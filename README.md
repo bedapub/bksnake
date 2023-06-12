@@ -53,7 +53,7 @@ export SINGULARITY_DOCKER_PASSWORD=<github read package token>
 
 ## Preparation ([top](#top)) <a name="preparation"></a>
 
-### Get pipeline <a name="get_pipeline"></a>
+### Get pipeline ([top](#top)) <a name="get_pipeline"></a>
 
 Clone this repository to your local working directory
 
@@ -61,7 +61,7 @@ Clone this repository to your local working directory
 git clone https://github.com/bedapub/bksnake.git
 ```
 
-### Reference genome <a name="reference"></a>
+### Reference genome ([top](#top)) <a name="reference"></a>
 
 #### Human hg38 <a name="reference_hg38"></a>
 
