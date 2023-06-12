@@ -59,7 +59,7 @@ Clone this repository to your local working directory
 
 ```bash
 git clone https://github.com/bedapub/bksnake.git
-````
+```
 
 ### Reference genome <a name="reference"></a>
 
@@ -125,10 +125,10 @@ It is possible to add more columns, for example, to describe additional experime
 
 ## Configuration ([top](#top)) <a name="configuration"></a>
 
-The workflow requires several parameters to be configured, most of which can be set through a yaml configuration file.
-A template file named `config.yaml` is provided in the `config` directory.
+The workflow requires several parameters to be configured, most of which can be set through a [`yaml`](https://en.wikipedia.org/wiki/YAML) configuration file.
+A _template_ file named `config.yaml` is provided in the `config` directory.
 It's recommended to create a local copy of the template and make modifications there.
-Note that some parameters can also be specified through the wrapper script `run.py`, as explained in the next section. 
+Note that many of these parameters can also be specified through the wrapper script `run.py`, as explained in the next section.
 Parameters specified on the command line through the wrapper script `run.py` will overwrite parameters set in the configuration file.
 
 To learn about all possible parameters, execute:
