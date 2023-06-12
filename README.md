@@ -7,6 +7,7 @@ Public version of bksnake - biokit snakemake - bulk RNASeq Snakemake workflow
 - [Overview of the analysis workflow](#overview)
 - [Requirements](#requirements)
 - [Preparation](#preparation)
+    - [Get pipeline](#get_pipeline)
     - [Reference genome](#reference)
         - [Human hg38](#reference_hg38)
         - [Other species](#reference_other)
@@ -52,11 +53,19 @@ export SINGULARITY_DOCKER_PASSWORD=<github read package token>
 
 ## Preparation ([top](#top)) <a name="preparation"></a>
 
+### Get pipeline <a name="get_pipeline"></a>
+
+Clone this repository to your local working directory
+
+```bash
+git clone https://github.com/bedapub/bksnake.git
+````
+
 ### Reference genome <a name="reference"></a>
 
 #### Human hg38 <a name="reference_hg38"></a>
 
-Download prepared reference genome annotation files from [Zenodo](https://zenodo.org/record/8017214) into a genome "root" directory and "untar" the downloaded files there.
+Fownload prepared reference genome annotation files from [Zenodo](https://zenodo.org/record/8017214) into a genome "root" directory and "untar" the downloaded files there.
 At the end, create symbolic link "hg38" pointing to the data folder for the human genome hg38 files.
 
 ```
@@ -91,7 +100,8 @@ Reference genomes of other species will be added later.
 ### Metadata ([top](#top)) <a name="metadata_file"></a>
 
 The main input to the workflow is a tab-delimited text file containing metadata information about all samples. 
-There is a header line and one sample per line, organized by several columns as follows:
+See an example file, `resources/test-data/metadata.txt`,  in the previously cloned pipeline directory.
+The metadata file is composed of one header line and sample information on subsequent lines, one sample per line, organized by several columns as follows:
 
 - `#ID`: unique sample label
 - `GROUP`: name of sample condition
@@ -115,10 +125,11 @@ It is possible to add more columns, for example, to describe additional experime
 
 ## Configuration ([top](#top)) <a name="configuration"></a>
 
-The workflow requires several parameters to be configured, most of which can be set through a yaml configuration file. 
-A template file named `config.yaml` is provided in the config directory. It's recommended to create a copy of the template config and make modifications there.
+The workflow requires several parameters to be configured, most of which can be set through a yaml configuration file.
+A template file named `config.yaml` is provided in the `config` directory.
+It's recommended to create a local copy of the template and make modifications there.
 Note that some parameters can also be specified through the wrapper script `run.py`, as explained in the next section. 
-Parameters specified on the command line through the wrapper script will overwrite parameters set in the configuration file.
+Parameters specified on the command line through the wrapper script `run.py` will overwrite parameters set in the configuration file.
 
 To learn about all possible parameters, execute:
 
