@@ -1,4 +1,5 @@
 # bksnake
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 
 Public version of `bksnake` - biokit snakemake - bulk RNASeq Snakemake workflow
 
@@ -17,6 +18,8 @@ Public version of `bksnake` - biokit snakemake - bulk RNASeq Snakemake workflow
 - [Output](#output)
     - [Overview](#output_overview)
     - [Explanations](#output_explanations)
+- [Contributing](#contributing)
+- [License](#license)
 
 
 ## Introduction ([top](#top)) <a name="introduction"></a>
@@ -310,5 +313,15 @@ Tab-delimited, human readable text file containing study and sample metadata in 
 ### "unmapped" folder (optional)
 
 Contains unmapped sequencing reads in [FASTQ](https://en.wikipedia.org/wiki/FASTQ_format) files. Only generated if the parameter `generate_unmapped` is `True` in the pipeline configuration.
+
+
+## Contributing ([top](#top)) <a name="contributing"></a>
+
+Any contribution, feedback and bug report highly welcome. For major changes, please open an issue first to discuss what you would like to change. Thank you!
+
+
+## License ([top](#top)) <a name="license"></a>
+
+[GNU GPLv3](https://choosealicense.com/licenses/gpl-3.0/)
 
 ([To the top of the page](#top))
