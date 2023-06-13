@@ -1,13 +1,13 @@
 # bksnake
 
-Public version of bksnake - biokit snakemake - bulk RNASeq Snakemake workflow
+Public version of `bksnake` - biokit snakemake - bulk RNASeq Snakemake workflow
 
 # Table of Contents
 - [Introduction](#introduction)
 - [Overview of the analysis workflow](#overview)
 - [Requirements](#requirements)
 - [Preparation](#preparation)
-    - [Get pipeline](#get_pipeline)
+    - [Download workflow](#download_workflow)
     - [Reference genome](#reference)
         - [Human hg38](#reference_hg38)
         - [Other species](#reference_other)
@@ -21,7 +21,7 @@ Public version of bksnake - biokit snakemake - bulk RNASeq Snakemake workflow
 
 ## Introduction ([top](#top)) <a name="introduction"></a>
 
-_Snakemake_ ([Moelder et al., 2021](https://f1000research.com/articles/10-33/v1)) implements a bulk RNASeq data analysis workflow using _STAR_ aligner ([Dobin et al., 2012](https://academic.oup.com/bioinformatics/article/29/1/15/272537)) for read mapping and _FeatureCounts_ from the _Subread package_ ([Liao et al., 2014](https://pubmed.ncbi.nlm.nih.gov/24227677/)) for gene quantification. Reference genomes with _RefSeq_ and _Ensembl_ gene annotations are available for several species such as _hg38, chm13, mm10, mm39, rn6, rn7, mfa5, mfa6, ss11_, and _oc2_. The generation of these reference genomes and annotation files is documented in a separate repository that is currently under construction. Data quality and RNASeq metrics are determined using _FastQC_ ([Andrews et al.](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)), _MultiQC_ ([Ewels et al., 2015](https://academic.oup.com/bioinformatics/article/32/19/3047/2196507)), and _Picard_ tools ([Broad Institute](http://broadinstitute.github.io/picard/)). In addition, diagnostic plots for data quality assessment such as _BioQC_ tissue heterogeneity ([Zhang et al., 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2)) or _Principal Component Analysis_ are provided in an HTML report that is also currently under construction. Optionally, genome coverage files (_BigWig_) and read alignment files (_BAM/CRAM_) can be generated as well. Input read trimming with _Cutadapt_ ([Martin, 2010](https://cutadapt.readthedocs.io/en/stable)) and generation of _unmapped reads_ are also available. The pipeline can be launched via a helper tool, `run.py`, or directly with Snakemake for users familiar with the workflow tool. All parameters for the pipeline are specified within a configuration _yaml_ file or explicitly on the command line when using `run.py`. All input data, i.e. input fastq files, a human-readable tab-delimited file describing the samples, as well as the reference genome and STAR index files, must be available to the pipeline in a local data folder. To run the pipeline, Snakemake and [_Singularity_](https://sylabs.io/docs/) must be installed and pre-configured. All software tools used by the pipeline are pulled from public _Singularity_ or _Docker_ image repositories. It is recommended to run the pipeline on a high-performance cluster environment.
+`bksnake` is a _Snakemake_ ([Moelder et al., 2021](https://f1000research.com/articles/10-33/v1)) workflow for bulk RNASeq data analysis. It uses _STAR_ aligner ([Dobin et al., 2012](https://academic.oup.com/bioinformatics/article/29/1/15/272537)) for read mapping and _FeatureCounts_ from the _Subread package_ ([Liao et al., 2014](https://pubmed.ncbi.nlm.nih.gov/24227677/)) for gene quantification. Reference genomes with _RefSeq_ and _Ensembl_ gene annotations are available for several species such as _hg38, chm13, mm10, mm39, rn6, rn7, mfa5, mfa6, ss11_, and _oc2_. The generation of these reference genomes and annotation files is documented in a separate repository that is currently under construction. Data quality and RNASeq metrics are determined using _FastQC_ ([Andrews et al.](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)), _MultiQC_ ([Ewels et al., 2015](https://academic.oup.com/bioinformatics/article/32/19/3047/2196507)), and _Picard_ tools ([Broad Institute](http://broadinstitute.github.io/picard/)). In addition, diagnostic plots for data quality assessment such as _BioQC_ tissue heterogeneity ([Zhang et al., 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2)) or _Principal Component Analysis_ are provided in an HTML report that is also currently under construction. Optionally, genome coverage files (_BigWig_) and read alignment files (_BAM/CRAM_) can be generated as well. Input read trimming with _Cutadapt_ ([Martin, 2010](https://cutadapt.readthedocs.io/en/stable)) and generation of _unmapped reads_ are also available. The pipeline can be launched via a helper tool, `run.py`, or directly with Snakemake for users familiar with the workflow tool. All parameters for the pipeline are specified within a configuration _yaml_ file or explicitly on the command line when using `run.py`. All input data, i.e. input fastq files, a human-readable tab-delimited file describing the samples, as well as the reference genome and STAR index files, must be available to the pipeline in a local data folder. To run the pipeline, Snakemake and [_Singularity_](https://sylabs.io/docs/) must be installed and pre-configured. All software tools used by the pipeline are pulled from public _Singularity_ or _Docker_ image repositories. It is recommended to run the pipeline on a high-performance cluster environment.
 
 
 ### Overview of the analysis workflow ([top](#top)) <a name="overview"></a>
@@ -53,7 +53,7 @@ export SINGULARITY_DOCKER_PASSWORD=<github read package token>
 
 ## Preparation ([top](#top)) <a name="preparation"></a>
 
-### Get pipeline ([top](#top)) <a name="get_pipeline"></a>
+### Download workflow ([top](#top)) <a name="download_workflow"></a>
 
 Clone this repository to your local working directory
 
@@ -65,7 +65,7 @@ git clone https://github.com/bedapub/bksnake.git
 
 #### Human hg38 <a name="reference_hg38"></a>
 
-Fownload prepared reference genome annotation files from [Zenodo](https://zenodo.org/record/8017214) into a genome "root" directory and "untar" the downloaded files there.
+Download prepared reference genome annotation files from [Zenodo](https://zenodo.org/record/8017214) into a genome "root" directory and "untar" the downloaded files there.
 At the end, create symbolic link "hg38" pointing to the data folder for the human genome hg38 files.
 
 ```
@@ -166,8 +166,8 @@ Run the pipeline with the **test data set** and specify four optional parameters
 python run.py \
     --config config/config.yaml \
     --metadata-file resources/test-data/metadata.txt \
-    --snakemake-path="ml purge && ml snakemake && snakemake" \
-    --genome-dir /projects/site/pred/ngs/genomes \
+    --snakemake-path=<path to snakemake> \
+    --genome-dir <genome root directory> \
     --outdir test-data_output \
     --jobs 50
 ```
