@@ -98,7 +98,7 @@ Specify the genome "root" directory in the pipeline configuration file (`config/
 
 #### Other species ([top](#top)) <a name="reference_other"></a>
 
-Reference genomes of other species will be added later.
+Reference genomes of other species can be generated, for example, with the [refsnake](https://github.com/bedapub/refsnake) Snakemake workflow.
 
 
 ### Metadata ([top](#top)) <a name="metadata_file"></a>
