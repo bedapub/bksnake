@@ -77,39 +77,27 @@ star_version: 'star_2.7.10b'  # required for STAR_DIR variable
 # genome_dir: path to "root" directory containing sub-directory for each species (is specified above)
 # genomes: genome_subdir: sub-directory name under the "root" directory
 genomes:
-    hg38: { species: 'hg38', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'hg38', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
-    chm13: { species: 'chm13', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'chm13', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'] }
-    mfa5: { species: 'mfa5', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa5', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
-    mfa6: { species: 'mfa6', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa6', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
-    mm10: { species: 'mm10', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: '../genomes_2021-08-20/mouse/mm10', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'] }
-    mm39: { species: 'mm39', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'mm39', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'] }
-    rn6: { species: 'rn6', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn6', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'] }
-    rn7: { species: 'rn7', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn7', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'] }
-    ss11: { species: 'ss11', species_name: 'pig', organism: 'Sus scrofa', genome_subdir: 'ss11', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
-    oc2: { species: 'oc2', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_subdir: 'oc2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'] }
+    hg38: { species: 'hg38', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'hg38', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'], db: ['refseq', 'ensembl', 'gencode'] }
+    chm13: { species: 'chm13', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'chm13', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'], db: ['refseq'] }
+    mfa5: { species: 'mfa5', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa5', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
+    mfa6: { species: 'mfa6', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa6', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq'] }
+    mm10: { species: 'mm10', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: '../genomes_2021-08-20/mouse/mm10', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['refseq', 'ensembl', 'gencode'] }
+    mm39: { species: 'mm39', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'mm39', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['refseq', 'ensembl', 'gencode'] }
+    rn6: { species: 'rn6', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn6', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq', 'ensembl'] }
+    rn7: { species: 'rn7', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn7', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq', 'ensembl'] }
+    ss11: { species: 'ss11', species_name: 'pig', organism: 'Sus scrofa', genome_subdir: 'ss11', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
+    oc2: { species: 'oc2', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_subdir: 'oc2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
 
 
 #########################################
 # REFERENCE GENOMES RELATIVE FILE PATHS # do not change
 #########################################
 # stable file names
-gtf_ref: 'gtf/refseq/refseq.exons.gtf'
-gtf_ens: 'gtf/ensembl/ensembl.exons.gtf'
-qsplice_exons: 'gtf/refseq/refseq.exons.qsplice.txt.gz'
-qsplice_junctions: 'gtf/refseq/refseq.junctions.qsplice.txt.gz'
 ref_fasta: 'fasta/genome.fa'
 ref_fasta_gz: 'fasta/genome.fa.gz'
 ref_fasta_fai: 'fasta/genome.fa.gz.fai'
 ref_fasta_gzi: 'fasta/genome.fa.gz.gzi'
-annot_ref: 'gtf/refseq/refseq.exons.annot'
-annot_ens: 'gtf/ensembl/ensembl.exons.annot'
-loci_ref: 'gtf/refseq/refseq.loci.txt'
-loci_ens: 'gtf/ensembl/ensembl.loci.txt'
-gene_length_ref: 'gtf/refseq/refseq.exons.geneLength'
-gene_length_ens: 'gtf/ensembl/ensembl.exons.geneLength'
 genome_size: 'fasta/genome.chrom.sizes'
-refflat_ref: 'gtf/refseq/refseq.refFlat'   # changed 06.06.2022 with correct CDS coords
-refflat_ens: 'gtf/ensembl/ensembl.refFlat' # chnaged 06.06.2022 with correct CDS coords
 ribo_intervals: 'fasta/genome.rRNA_intervals'
 chip_file_ref: 'resources/geneids.chip'
 chip_file_ens: 'resources/ENSEMBLGENES.chip'
@@ -145,13 +133,13 @@ VEP_IMAGE: 'https://depot.galaxyproject.org/singularity/ensembl-vep%3A107.0--pl5
 ###############################
 # OUTPUT FILE NAMES           #  do not change
 ###############################
-tpm_gct_ref: 'refseq_tpm.gct'
-tpm_gct_ens: 'ensembl_tpm.gct'
-log2tpm_gct_ref: 'refseq_log2tpm.gct'
-log2tpm_gct_ens: 'ensembl_log2tpm.gct'
-count_gct_ref: 'refseq_count.gct'
-count_gct_ens: 'ensembl_count.gct'
-collapsed_gct_ref: 'refseq_count_collapsed.gct'
-collapsed_gct_ens: 'ensembl_count_collapsed.gct'
-tpm_collapsed_gct_ref: 'refseq_tpm_collapsed.gct'
-tpm_collapsed_gct_ens: 'ensembl_tpm_collapsed.gct'
+#tpm_gct_ref: 'refseq_tpm.gct'
+#tpm_gct_ens: 'ensembl_tpm.gct'
+#log2tpm_gct_ref: 'refseq_log2tpm.gct'
+#log2tpm_gct_ens: 'ensembl_log2tpm.gct'
+#count_gct_ref: 'refseq_count.gct'
+#count_gct_ens: 'ensembl_count.gct'
+#collapsed_gct_ref: 'refseq_count_collapsed.gct'
+#collapsed_gct_ens: 'ensembl_count_collapsed.gct'
+#tpm_collapsed_gct_ref: 'refseq_tpm_collapsed.gct'
+#tpm_collapsed_gct_ens: 'ensembl_tpm_collapsed.gct'

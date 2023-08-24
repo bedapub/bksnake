@@ -28,7 +28,6 @@ OD_BAM = os.path.join(OD, 'bam')
 OD_UBAM = os.path.join(OD, 'bam_unsorted')
 OD_CRAM = os.path.join(OD, 'cram')
 OD_GCT = os.path.join(OD, 'gct')
-OD_GCT_ENS = os.path.join(OD, 'gct-ens')
 OD_ANNO = os.path.join(OD, 'annot')
 OD_LOG = os.path.join(OD, 'log')
 OD_STATS = os.path.join(OD, 'stats')
@@ -41,6 +40,7 @@ OD_FC = os.path.join(OD, 'fc')
 OD_METRICS = os.path.join(OD, 'metrics')
 OD_BW = os.path.join(OD, 'bw')
 OD_CUTADAPT = os.path.join(OD, 'cutadapt')
+SNAKEMAKE_REPORT = os.path.join(OD, 'snakemake_report.html')
 
 SAMPLES = os.path.join(OD, 'samples.txt')
 PHENODATA = os.path.join(OD_ANNO, 'phenoData.meta')
@@ -51,19 +51,11 @@ MAPSTATS = os.path.join(OD_STATS, 'mapping_stats.txt')
 CHIP_FILE_REF = config['chip_file_ref']
 CHIP_FILE_ENS = config['chip_file_ens']
 
-# output files refseq (in gct rule file)
-TPM_GCT_REF = os.path.join(OD_GCT, config['tpm_gct_ref'])
-COUNT_GCT_REF = os.path.join(OD_GCT, config['count_gct_ref'])
-LOG2TPM_GCT_REF = os.path.join(OD_GCT, config['log2tpm_gct_ref'])
-COLLAPSED_GCT_REF = os.path.join(OD_GCT, config['collapsed_gct_ref'])
-TPM_COLLAPSED_GCT_REF = os.path.join(OD_GCT, config['tpm_collapsed_gct_ref'])
-
-# output files ensembl (in gct rule file)
-TPM_GCT_ENS = os.path.join(OD_GCT_ENS, config['tpm_gct_ens'])
-COUNT_GCT_ENS = os.path.join(OD_GCT_ENS, config['count_gct_ens'])
-LOG2TPM_GCT_ENS = os.path.join(OD_GCT_ENS, config['log2tpm_gct_ens'])
-COLLAPSED_GCT_ENS = os.path.join(OD_GCT_ENS, config['collapsed_gct_ens'])
-TPM_COLLAPSED_GCT_ENS = os.path.join(OD_GCT_ENS, config['tpm_collapsed_gct_ens'])
+# gene length file, columns are:
+# gene    mean    median  longest_isoform merged
+# 1       2       3       4               5
+# used for tpm calculation, 4th column of geneLength file is used for tpm calculation.
+GENE_LENGTH_COLUMN_INDEX = 4 
 
 
 # ------------------------------------------------------------------------------
@@ -144,35 +136,21 @@ fastq_names_noext = locators['name'].str.replace('.fastq.gz', '', regex=True)
 
 
 
-
 # ------------------------------------------------------------------------------
 # genome reference data and annotations
+DBS = config['genomes'][config['species']]['db'] # ['refseq', 'ensembl', 'gencode']
 GENOME_DIR = os.path.normpath(os.path.join(config['genome_dir'], config['genomes'][config['species']]['genome_subdir']))
-GTF_REF = os.path.join(GENOME_DIR, config['gtf_ref'])
-GTF_ENS = os.path.join(GENOME_DIR, config['gtf_ens'])
-ANNOT_REF = os.path.join(GENOME_DIR, config['annot_ref'])
-ANNOT_ENS = os.path.join(GENOME_DIR, config['annot_ens'])
-LOCI_REF = os.path.join(GENOME_DIR, config['loci_ref'])
-LOCI_ENS = os.path.join(GENOME_DIR, config['loci_ens'])
-LEN_REF = os.path.join(GENOME_DIR, config['gene_length_ref'])
-LEN_ENS = os.path.join(GENOME_DIR, config['gene_length_ens'])
 GENOME_FASTA_GZ = os.path.join(GENOME_DIR, config['ref_fasta_gz'])
 GENOME_FAI = os.path.join(GENOME_DIR, config['ref_fasta_fai'])
 GENOME_GZI = os.path.join(GENOME_DIR, config['ref_fasta_gzi'])
 GENOME_SIZE = os.path.join(GENOME_DIR, config['genome_size'] )
-REFFLAT_REF = os.path.join(GENOME_DIR, config['refflat_ref'])
-REFFLAT_ENS = os.path.join(GENOME_DIR, config['refflat_ens'])
 RIBO_INTERVALS = os.path.join(GENOME_DIR, config['ribo_intervals'])
 STAR_DIR = os.path.join(GENOME_DIR, config['star_version'])
-
+GTF_FOR_STAR_MAPPING = os.path.join(GENOME_DIR, 'gtf', DBS[0], DBS[0]+'.exons.gtf') # must not be gzipped
 
 # check some of these paths
 if not os.path.isdir(GENOME_DIR):
     raise Exception('(root) genome directory is not a valid directory. Please check parameter \'genome dir\'.')
-if not os.path.isfile(GTF_REF):
-    raise Exception('RefSeq GTF file is not a valid file. Please check the configuration. File: '+GTF_REF)
-if not os.path.isfile(GTF_ENS):
-    raise Exception('Ensembl GTF file is not a valid file. Please check the configuration. File: '+GTF_ENS)
 
 
 # ------------------------------------------------------------------------------
@@ -205,7 +183,8 @@ localrules: all, \
 # ------------------------------------------------------------------------------
 rule all:
     input:
-        os.path.join(OD_ANNO, 'processing.done')
+        os.path.join(OD_ANNO, 'processing.done'),
+        #SNAKEMAKE_REPORT
 
 
 # ----------------------------------------------------------------------------
@@ -227,12 +206,6 @@ rule metadata:
 
 
 # ----------------------------------------------------------------------------
-# rule report:
-# TBD
-#
-
-
-# ----------------------------------------------------------------------------
 """
 bksnake or vcsnake
 here, we list all files necessary for the pipeline to have generated
@@ -243,14 +216,12 @@ if config['pipeline'] == 'bksnake':
     rule processing_done:
         input:
             # Count data
-            {TPM_COLLAPSED_GCT_REF},
-            {TPM_COLLAPSED_GCT_ENS},
+            expand(os.path.join(OD_GCT, '{db}_tpm_collapsed.gct'), db=DBS),
             #
             # QC reports
-            os.path.join(OD, 'multiqc_report.html'),
-            os.path.join(OD, 'multiqc_report_ensembl.html'),
-            os.path.join(OD_QC, 'refseq_log2tpm_pca.pdf'),
-            os.path.join(OD_QC, 'bioQC.pdf'),
+            expand(os.path.join(OD, '{db}_multiqc_report.html'), db=DBS),
+            expand(os.path.join(OD_QC, '{db}_log2tpm_pca.png'), db=DBS),
+            expand(os.path.join(OD_QC, '{db}_bioQC.png'), db=DBS),
             #
             # Other optional output files (unmapped, bw, etc)
             expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids),
@@ -279,3 +250,26 @@ elif config ['pipeline'] == 'vcsnake':
             """
 else:
     sys.exit('Variable \'pipeline\' not defined in input config yaml file.')
+
+
+
+# ----------------------------------------------------------------------------
+"""
+Snakemake Report
+"""
+report: 'report/description.rst'
+
+# Add some useful Snakemake variables for the "report" to the config dict
+config['TOTAL_NUMBER_OF_SAMPLES'] = len(sample_ids)
+config['TOTAL_NUMBER_OF_GROUPS'] = len(sample_groups)
+
+
+rule generate_report:
+    output:
+        SNAKEMAKE_REPORT
+    run:
+        from snakemake.report import report
+
+        report('report/template.rst', output[0], context=str(sample_ids)) #, context=dict(all_samples=sample_ids, all_groups=sample_groups))
+        
+                                               

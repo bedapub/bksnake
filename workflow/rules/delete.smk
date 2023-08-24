@@ -9,7 +9,7 @@ if config['keep_fastq_files'] != True:
     rule delete_fastq:
         input:
             os.path.join(OD_FASTQ, '{name}.fastq.gz'),
-            os.path.join(OD, 'multiqc_report.html')
+            expand(os.path.join(OD, '{db}_multiqc_report.html'), db=DBS)
         output:
             temp(os.path.join(OD_FASTQ, '{name}.fastq.gz_to_delete'))
         threads: 1
@@ -27,7 +27,7 @@ if config['keep_bam_files'] != True:
             os.path.join(OD_BAM, '{name}.bam'),
             os.path.join(OD_BAM, '{name}.bam.bai'),
             os.path.join(OD_BW, '{name}.bw.done'),
-            os.path.join(OD, 'multiqc_report.html')
+            expand(os.path.join(OD, '{db}_multiqc_report.html'), db=DBS)
         output:
             temp(os.path.join(OD_BAM, '{name}.bam_to_delete')),
             temp(os.path.join(OD_BAM, '{name}.bam.bai_to_delete'))

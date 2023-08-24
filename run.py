@@ -17,7 +17,7 @@ GRAPHFILE_PDF = 'rulegraph.pdf' # name of the output graph file
 GRAPHFILE_PNG = 'rulegraph.png'
 CONFIGFILE = 'config.yaml'  # name of the output config file, not the path
 CONFIG = None # global variable for input config dictionary
-
+latency_wait = 10 # snakemake parameter latency wait time in seconds
 
 """
 Verify whether the provided command/path for Snakemake is working
@@ -159,7 +159,7 @@ def workflow(args):
     cmd = CONFIG['snakemake']['path']+' '\
           +' --snakefile '+snakefile\
           +' --configfile '+configfile\
-          +' --latency-wait 6'\
+          +' --latency-wait '+str(latency_wait)\
           +' --rerun-incomplete'\
           +' --keep-going'\
           +' --verbose'\
@@ -182,6 +182,29 @@ def workflow(args):
 
     print('\n=======================================\n'+
           'Command to re-run the pipeline:\n'+cmd+
+          '\n=======================================\n\n')
+    res = subprocess.run(cmd, shell=True, check=True, env=os.environ.copy())
+    print('exit status code:', res.returncode )
+    return res
+
+
+
+"""
+Run "Report" after the Snakemake workflow
+"""
+def report(args):
+    snakefile = os.path.abspath(args.snakefile)
+    configfile = os.path.join(CONFIG['results'], CONFIGFILE)
+    
+    homeDir = str(Path.home())
+
+    cmd = CONFIG['snakemake']['path']+' '\
+          +' --snakefile '+snakefile\
+          +' --configfile '+configfile\
+          +' --report '+os.path.join(CONFIG['results'], 'report.html')
+    
+    print('\n=======================================\n'+
+          'Command to re-run the pipeline-report:\n'+cmd+
           '\n=======================================\n\n')
     res = subprocess.run(cmd, shell=True, check=True, env=os.environ.copy())
     print('exit status code:', res.returncode )
@@ -294,3 +317,6 @@ if __name__ == '__main__':
     
     # Launch workflow
     res = workflow(args)
+    
+    # Run report
+    res = report(args)
