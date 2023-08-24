@@ -3,7 +3,7 @@
 No archive
 No JBrowse
 No metadata MongoDB database
-No biokitr and other report
+No biokitr report
 """
 import sys
 import pandas as pd
@@ -183,8 +183,7 @@ localrules: all, \
 # ------------------------------------------------------------------------------
 rule all:
     input:
-        os.path.join(OD_ANNO, 'processing.done'),
-        #SNAKEMAKE_REPORT
+        os.path.join(OD_ANNO, 'processing.done')
 
 
 # ----------------------------------------------------------------------------
@@ -256,20 +255,11 @@ else:
 # ----------------------------------------------------------------------------
 """
 Snakemake Report
+by using the snakemake option --report
 """
 report: 'report/description.rst'
 
 # Add some useful Snakemake variables for the "report" to the config dict
+# will be used in the file "workflow/report/description.rst"
 config['TOTAL_NUMBER_OF_SAMPLES'] = len(sample_ids)
 config['TOTAL_NUMBER_OF_GROUPS'] = len(sample_groups)
-
-
-rule generate_report:
-    output:
-        SNAKEMAKE_REPORT
-    run:
-        from snakemake.report import report
-
-        report('report/template.rst', output[0], context=str(sample_ids)) #, context=dict(all_samples=sample_ids, all_groups=sample_groups))
-        
-                                               
