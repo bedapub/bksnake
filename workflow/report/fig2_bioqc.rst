@@ -1,0 +1,1 @@
+BioQC tissue heterogeneity detection. Calculation and graphical representation of enrichment scores for tissue- and cell-type specific reference gene sets. Only gene sets with an enrichment score above a threshold are  used for the clustered heatmap.
