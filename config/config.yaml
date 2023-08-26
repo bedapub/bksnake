@@ -22,8 +22,8 @@ metadata:
 # In order to generate and/or keep those files set either 'True' or 'False' (default)
 keep_fastq_files: False    # whether to keep the downloaded fastq files in the results folder, default 'False'
 keep_bam_files: False      # whether to keep intermediate bam files in the results folder, default 'False'
-generate_cram_files: True  # whether to generate and keep final cram files, default 'True'
-generate_bw_files: True    # whether to generate and keep final bw files (read coverage bigwig files), default: 'True'
+generate_cram_files: False # whether to generate and keep final cram files, default 'False'
+generate_bw_files: False   # whether to generate and keep final bw files (read coverage bigwig files), default: 'False'
 generate_unmapped: False   # whether to generate and keep unmapped read files, default: 'False'
 
 # Cutadapt, read trimming
@@ -40,7 +40,7 @@ cutadapt:
 #################################
 # SEQUENCING LIBRARY PARAMETERS #
 #################################
-# TO DO: this information may come from the metadata catalog moose.
+# TO DO: this information may come from the metadata.
 # Strand information for Picard and featureCount (FC) tools (this could be integrated in the Snakefile)
 # type: choose either 'paired-end' (most common) or 'single-end' (will be derived also from input metadata file)
 # strand: choose one of three options:
@@ -81,7 +81,7 @@ genomes:
     chm13: { species: 'chm13', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'chm13', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'], db: ['refseq'] }
     mfa5: { species: 'mfa5', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa5', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
     mfa6: { species: 'mfa6', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa6', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq'] }
-    mm10: { species: 'mm10', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: '../genomes_2021-08-20/mouse/mm10', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['refseq', 'ensembl', 'gencode'] }
+    mm10: { species: 'mm10', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'mm10', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['refseq', 'ensembl', 'gencode'] }
     mm39: { species: 'mm39', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'mm39', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['refseq', 'ensembl', 'gencode'] }
     rn6: { species: 'rn6', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn6', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq', 'ensembl'] }
     rn7: { species: 'rn7', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn7', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq', 'ensembl'] }
@@ -99,8 +99,6 @@ ref_fasta_fai: 'fasta/genome.fa.gz.fai'
 ref_fasta_gzi: 'fasta/genome.fa.gz.gzi'
 genome_size: 'fasta/genome.chrom.sizes'
 ribo_intervals: 'fasta/genome.rRNA_intervals'
-chip_file_ref: 'resources/geneids.chip'
-chip_file_ens: 'resources/ENSEMBLGENES.chip'
 
 
 ####################################
@@ -128,18 +126,3 @@ STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.10b--h9ee064
 SUBREAD_IMAGE: 'https://depot.galaxyproject.org/singularity/subread:2.0.1--hed695b0_0'
 TABIX_IMAGE: 'https://depot.galaxyproject.org/singularity/tabix:0.2.6--ha92aebf_0'
 VEP_IMAGE: 'https://depot.galaxyproject.org/singularity/ensembl-vep%3A107.0--pl5321h4a94de4_0'
-
-
-###############################
-# OUTPUT FILE NAMES           #  do not change
-###############################
-#tpm_gct_ref: 'refseq_tpm.gct'
-#tpm_gct_ens: 'ensembl_tpm.gct'
-#log2tpm_gct_ref: 'refseq_log2tpm.gct'
-#log2tpm_gct_ens: 'ensembl_log2tpm.gct'
-#count_gct_ref: 'refseq_count.gct'
-#count_gct_ens: 'ensembl_count.gct'
-#collapsed_gct_ref: 'refseq_count_collapsed.gct'
-#collapsed_gct_ens: 'ensembl_count_collapsed.gct'
-#tpm_collapsed_gct_ref: 'refseq_tpm_collapsed.gct'
-#tpm_collapsed_gct_ens: 'ensembl_tpm_collapsed.gct'

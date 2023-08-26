@@ -85,27 +85,17 @@ rule collapse:
         tpm = os.path.join(OD_GCT, '{db}_tpm_collapsed.gct'),
         cnt = os.path.join(OD_GCT, '{db}_count_collapsed.gct')
     params:
-        chip = os.path.join('resources', '{db}.chip'),
-        #tmp = os.path.join(OD_GCT, '{db}_tmp.gct')
+        chip = os.path.join('resources', '{db}.chip')
     resources:
         mem_mb = 10000
     singularity:
         RIBIOSSCRIPTS_IMAGE
     shell:
         """        
-        #awk 'BEGIN{{FS=\"\\t\"}}{{if (NR<4){{print $0}} else {{split($1,a,\".\"); printf(\"%s\", a[1]); \
-        #    for (i=2;i<=NF;i++){{printf(\"\\t%s\", $i)}}; printf(\"\\n\")}}}}' {input.tpm} > {params.tmp}
-
         collapseExprsMatByChip.Rscript -useChipfileAnno \
             -infile {input.tpm} -outfile {output.tpm} -chipfile {params.chip}
-
-        #awk 'BEGIN{{FS=\"\\t\"}}{{if (NR<4){{print $0}} else {{split($1,a,\".\"); printf(\"%s\", a[1]); \
-        #    for (i=2;i<=NF;i++){{printf(\"\\t%s\", $i)}}; printf(\"\\n\")}}}}' {input.cnt} > {params.tmp}
-
         collapseExprsMatByChip.Rscript -useChipfileAnno \
             -infile {input.tpm} -outfile {output.cnt} -chipfile {params.chip}
-            
-        #rm -f {params.tmp}
         """
 
 # ------------------------------------------------------------------------------

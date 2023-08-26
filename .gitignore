@@ -14,5 +14,5 @@ logs*
 *output*
 results*
 singularity-images
-config.yaml
 *test*
+*.yaml

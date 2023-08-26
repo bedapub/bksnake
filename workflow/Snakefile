@@ -34,27 +34,26 @@ OD_STATS = os.path.join(OD, 'stats')
 OD_FASTQ = os.path.join(OD, 'fastq')
 OD_FASTQC = os.path.join(OD, 'fastqc')
 OD_MULTIQC = os.path.join(OD, 'multiqc_data')
-OD_MULTIQC_ENS = os.path.join(OD, 'multiqc_data_ensembl')
 OD_QC = os.path.join(OD, 'qc')
 OD_FC = os.path.join(OD, 'fc')
 OD_METRICS = os.path.join(OD, 'metrics')
 OD_BW = os.path.join(OD, 'bw')
 OD_CUTADAPT = os.path.join(OD, 'cutadapt')
-SNAKEMAKE_REPORT = os.path.join(OD, 'snakemake_report.html')
 
 SAMPLES = os.path.join(OD, 'samples.txt')
 PHENODATA = os.path.join(OD_ANNO, 'phenoData.meta')
 METADATA = os.path.join(OD, 'metadata.txt')
 MAPSTATS = os.path.join(OD_STATS, 'mapping_stats.txt')
 
-# chip files (in gct rule file)
-CHIP_FILE_REF = config['chip_file_ref']
-CHIP_FILE_ENS = config['chip_file_ens']
 
-# gene length file, columns are:
+# ------------------------------------------------------------------------------
+# Gene length file, columns are:
+#
 # gene    mean    median  longest_isoform merged
 # 1       2       3       4               5
+#
 # used for tpm calculation, 4th column of geneLength file is used for tpm calculation.
+#
 GENE_LENGTH_COLUMN_INDEX = 4 
 
 
@@ -105,7 +104,7 @@ config = funcs.update_organism(config, meta)
 """
 Determine strand orientation of the sequencing library
 
-Normally this value should come from the Moose metadata as True or False
+Normally this value should come from the metadata as True or False
 
 However, the strand may have 3 options:
  1. SECOND_READ_TRANSCRIPTION_STRAND (default, most common) 
@@ -138,7 +137,7 @@ fastq_names_noext = locators['name'].str.replace('.fastq.gz', '', regex=True)
 
 # ------------------------------------------------------------------------------
 # genome reference data and annotations
-DBS = config['genomes'][config['species']]['db'] # ['refseq', 'ensembl', 'gencode']
+DBS = config['genomes'][config['species']]['db']
 GENOME_DIR = os.path.normpath(os.path.join(config['genome_dir'], config['genomes'][config['species']]['genome_subdir']))
 GENOME_FASTA_GZ = os.path.join(GENOME_DIR, config['ref_fasta_gz'])
 GENOME_FAI = os.path.join(GENOME_DIR, config['ref_fasta_fai'])
@@ -206,7 +205,7 @@ rule metadata:
 
 # ----------------------------------------------------------------------------
 """
-bksnake or vcsnake
+bksnake or vcsnake. Currently, only "bksnake" is supported.
 here, we list all files necessary for the pipeline to have generated
 prior to archive the data.
 this also deletes all "empty" files, ie of size 0, in the "log" folder
@@ -260,6 +259,6 @@ by using the snakemake option --report
 report: 'report/description.rst'
 
 # Add some useful Snakemake variables for the "report" to the config dict
-# will be used in the file "workflow/report/description.rst"
+# so that they can be used in the file "workflow/report/description.rst"
 config['TOTAL_NUMBER_OF_SAMPLES'] = len(sample_ids)
 config['TOTAL_NUMBER_OF_GROUPS'] = len(sample_groups)
