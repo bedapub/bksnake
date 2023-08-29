@@ -14,53 +14,31 @@ else:
     P_PARAM = ''
 
 
+
 # ------------------------------------------------------------------------------
-rule fc_ref:
+rule fc:
     input:
-        os.path.join(OD_UBAM,'{sample}_Aligned.out.bam')
+        bam = os.path.join(OD_UBAM,'{sample}_Aligned.out.bam'),
+        gtf = os.path.join(OD_ANNO,'{db}.gtf.gz')
     output:
-        os.path.join(OD_FC,'{sample}.refseq.cnt.gz'),
-        os.path.join(OD_FC,'{sample}.refseq.cnt.summary')
+        os.path.join(OD_FC,'{sample}.{db}.cnt.gz'),
+        os.path.join(OD_FC,'{sample}.{db}.cnt.summary')
     log:
-        os.path.join(OD_LOG,'{sample}.fc_ref.log')
+        os.path.join(OD_LOG,'{sample}.fc_{db}.log')
     params:
-        cnt = os.path.join(OD_FC,'{sample}.refseq.cnt')
+        cnt = os.path.join(OD_FC,'{sample}.{db}.cnt')
     threads: 4
     resources:
         mem_mb = 30000
     singularity:
         config['SUBREAD_IMAGE']
     shell:
-        'featureCounts '
-        '    -t exon -g gene_id {P_PARAM}'
-        '    -Q 10 -B -C --minOverlap {MIN_OVERLAP}'
-        '     --fracOverlap {FRAC_OVERLAP}'
-        '    -s {FC_STRAND} -a {GTF_REF}'
-        '    -T {threads} -o {params.cnt} {input} 2> {log} &&'
-        'gzip {params.cnt}'
-
-
-# ------------------------------------------------------------------------------
-rule fc_ens:
-    input:
-        os.path.join(OD_UBAM,'{sample}_Aligned.out.bam')
-    output:
-        os.path.join(OD_FC,'{sample}.ensembl.cnt.gz'),
-        os.path.join(OD_FC,'{sample}.ensembl.cnt.summary')
-    log:
-        os.path.join(OD_LOG,'{sample}.fc_ens.log')
-    params:
-        cnt = os.path.join(OD_FC,'{sample}.ensembl.cnt')
-    threads: 4
-    resources:
-        mem_mb = 30000
-    singularity:
-        config['SUBREAD_IMAGE']
-    shell:
-        'featureCounts '
-        '    -t exon -g gene_id {P_PARAM}'
-        '    -Q 10 -B -C --minOverlap {MIN_OVERLAP}'
-        '    --fracOverlap {FRAC_OVERLAP}'
-        '    -s {FC_STRAND} -a {GTF_ENS}'
-        '    -T {threads} -o {params.cnt} {input} 2> {log} &&'
-        'gzip {params.cnt}'
+        """
+        featureCounts \
+            -t exon -g gene_id {P_PARAM} \
+            -Q 10 -B -C --minOverlap {MIN_OVERLAP} \
+             --fracOverlap {FRAC_OVERLAP} \
+            -s {FC_STRAND} -a {input.gtf} \
+            -T {threads} -o {params.cnt} {input.bam} 2> {log} \
+        && gzip {params.cnt}
+        """

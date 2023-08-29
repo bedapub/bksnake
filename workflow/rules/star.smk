@@ -112,7 +112,7 @@ if config['library']['type'] == 'paired-end':
                 --outFileNamePrefix {params.prefix} \
                 --outTmpDir {output[0]} \
                 --outTmpKeep All \
-                --sjdbGTFfile {GTF_REF} \
+                --sjdbGTFfile {GTF_FOR_STAR_MAPPING} \
                 --outSAMmapqUnique {params.sam_mapq_unique} \
                 --outSAMattributes All \
                 --outSAMtype BAM Unsorted \
@@ -156,7 +156,7 @@ else:
                 --outFileNamePrefix {params.prefix} \
                 --outTmpDir {output[0]} \
                 --outTmpKeep All \
-                --sjdbGTFfile {GTF_REF} \
+                --sjdbGTFfile {GTF_FOR_STAR_MAPPING} \
                 --outSAMmapqUnique {params.sam_mapq_unique} \
                 --outSAMattributes All \
                 --outSAMtype BAM Unsorted \

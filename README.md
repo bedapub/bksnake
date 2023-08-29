@@ -24,7 +24,7 @@ Public version of `bksnake` - biokit snakemake - bulk RNASeq Snakemake workflow
 
 ## Introduction ([top](#top)) <a name="introduction"></a>
 
-`bksnake` is a _Snakemake_ ([Moelder et al., 2021](https://f1000research.com/articles/10-33/v1)) workflow for bulk RNASeq data analysis. It uses _STAR_ aligner ([Dobin et al., 2012](https://academic.oup.com/bioinformatics/article/29/1/15/272537)) for read mapping and _FeatureCounts_ from the _Subread package_ ([Liao et al., 2014](https://pubmed.ncbi.nlm.nih.gov/24227677/)) for gene quantification. Reference genomes with _RefSeq_ and _Ensembl_ gene annotations are available for several species such as _hg38, chm13, mm10, mm39, rn6, rn7, mfa5, mfa6, ss11_, and _oc2_. The generation of these reference genomes and annotation files is documented in a separate repository that is currently under construction. Data quality and RNASeq metrics are determined using _FastQC_ ([Andrews et al.](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)), _MultiQC_ ([Ewels et al., 2015](https://academic.oup.com/bioinformatics/article/32/19/3047/2196507)), and _Picard_ tools ([Broad Institute](http://broadinstitute.github.io/picard/)). In addition, diagnostic plots for data quality assessment such as _BioQC_ tissue heterogeneity ([Zhang et al., 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2)) or _Principal Component Analysis_ are provided in an HTML report that is also currently under construction. Optionally, genome coverage files (_BigWig_) and read alignment files (_BAM/CRAM_) can be generated as well. Input read trimming with _Cutadapt_ ([Martin, 2010](https://cutadapt.readthedocs.io/en/stable)) and generation of _unmapped reads_ are also available. The pipeline can be launched via a helper tool, `run.py`, or directly with Snakemake for users familiar with the workflow tool. All parameters for the pipeline are specified within a configuration _yaml_ file or explicitly on the command line when using `run.py`. All input data, i.e. input fastq files, a human-readable tab-delimited file describing the samples, as well as the reference genome and STAR index files, must be available to the pipeline in a local data folder. To run the pipeline, Snakemake and [_Singularity_](https://sylabs.io/docs/) must be installed and pre-configured. All software tools used by the pipeline are pulled from public _Singularity_ or _Docker_ image repositories. It is recommended to run the pipeline on a high-performance cluster environment.
+`bksnake` is a _Snakemake_ ([Moelder et al., 2021](https://f1000research.com/articles/10-33/v1)) workflow for bulk RNASeq data analysis. It uses _STAR_ aligner ([Dobin et al., 2012](https://academic.oup.com/bioinformatics/article/29/1/15/272537)) for read mapping and _FeatureCounts_ from the _Subread package_ ([Liao et al., 2014](https://pubmed.ncbi.nlm.nih.gov/24227677/)) for gene quantification. Reference genomes with _RefSeq_ and _Ensembl_ gene annotations are available for several species such as _hg38, chm13, mm10, mm39, rn6, rn7, mfa5, mfa6, ss11_, and _oc2_. The generation of these reference genomes and annotation files is documented in a separate repository on github (see [refsnake](https://github.com/bedapub/refsnake/tree/main)). Data quality and RNASeq metrics are determined using _FastQC_ ([Andrews et al.](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/)), _MultiQC_ ([Ewels et al., 2015](https://academic.oup.com/bioinformatics/article/32/19/3047/2196507)), and _Picard_ tools ([Broad Institute](http://broadinstitute.github.io/picard/)). In addition, diagnostic plots for data quality assessment such as _BioQC_ tissue heterogeneity ([Zhang et al., 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2)) or _Principal Component Analysis_ are provided in an HTML report generate by using the Snakemake optional parameter `--report`. Optionally, genome coverage files (_BigWig_) and read alignment files (_BAM/CRAM_) can be generated as well. Input read trimming with _Cutadapt_ ([Martin, 2010](https://cutadapt.readthedocs.io/en/stable)) and generation of _unmapped reads_ are also available. The pipeline can be launched via a helper tool, `run.py`, or directly with Snakemake for users familiar with the workflow tool. All parameters for the pipeline are specified within a configuration _yaml_ file or explicitly on the command line when using `run.py`. All input data, i.e. input fastq files, a human-readable tab-delimited file describing the samples, as well as the reference genome and STAR index files, must be available to the pipeline in a local data folder. To run the pipeline, Snakemake and [_Singularity_](https://sylabs.io/docs/) must be installed and pre-configured. All software tools used by the pipeline are pulled from public _Singularity_ or _Docker_ image repositories. It is recommended to run the pipeline on a high-performance cluster environment.
 
 
 ### Overview of the analysis workflow ([top](#top)) <a name="overview"></a>
@@ -199,14 +199,13 @@ Folder structure of a typical workflow run (* = optional output, + = Roche versi
 ├── fastq*                           copy of input reads (optional)
 ├── fastqc                           FASTQC output files
 ├── fc                               FeatureCounts output files
-├── gct                              gene counts and normalized gene counts in GCT file format for RefSeq annotations
-├── gct-ens                          gene counts and normalized gene counts in GCT file format for Ensembl annotations
+├── gct                              gene counts and normalized gene counts in GCT file format for RefSeq/Ensembl/Gencode annotations
 ├── log                              log and output files from the tools used
-├── multiqc_data                     MultiQC data files for RefSeq annotations
-├── multiqc_data_ensembl             MultiQC data files for Ensembl annotations
+├── multiqc_data                     MultiQC data files
 ├── multiqc_report_ensembl.html      MultiQC report for Ensembl annotations
-├── multiqc_report.html              MultiQC report for RefSeq annotations
+├── multiqc_report_refseq.html       MultiQC report for RefSeq annotations
 ├── qc                               some QC plots, e.g. PCA or BioQC
+├── report.html                      Snakemake report, containing workflow and QC metrics
 ├── rulegraph.pdf                    workflow DAG in pdf format
 ├── rulegraph.png                    workflow DAG in png format
 ├── samples.txt                      sample metadata in tab-delimited file
@@ -255,23 +254,13 @@ Intermediate output files, summary and compressed counts file, from the gene qua
 
 ### "gct" folder
 
-Contains _RefSeq_ annotated gene counts, normalized counts, _log2_-transformed counts in [`GCT`](https://software.broadinstitute.org/software/igv/GCT) file format.
+Contains - if available - _RefSeq_, _Ensembl_, or _Gencode_ (`<db>`) annotated gene counts, normalized counts, _log2_-transformed counts in [`GCT`](https://software.broadinstitute.org/software/igv/GCT) file format.
 
-- `refseq_count.gct`: RefSeq gene counts
-- `refseq_count_collapsed.gct`: RefSeq gene counts collapsed to human orthologous gene symbols (using `resources/geneids.chip`)
-- `refseq_tpm.gct`: normalized RefSeq transcript per million mapped reads (tpm)
-- `refseq_tpm_collapsed.gct`: human orthologs of normalized counts (tpm)
-- `refseq_log2tpm.gct`: log2-transformed normalized RefSeq transcript per million mapped reads (tpm)
-
-### "gct-ens" folder
-
-Contains _Ensembl_ annotated gene counts, normalized counts, _log2_-transformed counts in [`GCT`](https://software.broadinstitute.org/software/igv/GCT) file format.
-
-- `ensembl_count.gct`: Ensembl gene counts
-- `ensembl_count_collapsed.gct`: Ensembl counts collapsed to human orthologous gene symbols (using `resources/ENSEMBLGENES.chip`)
-- `ensembl_tpm.gct`: normalized Ensembl transcript per million mapped reads (tpm)
-- `ensembl.gct`: human orthologs of normalized counts (tpm)
-- `ensembl_log2tpm.gct`: log2-transformed normalized RefSeq transcript per million mapped reads (tpm)
+- `<db>_count.gct`: RefSeq gene counts
+- `<db>_count_collapsed.gct`: RefSeq gene counts collapsed to human orthologous gene symbols (using `resources/geneids.chip`)
+- `<db>_tpm.gct`: normalized RefSeq transcript per million mapped reads (tpm)
+- `<db>_tpm_collapsed.gct`: human orthologs of normalized counts (tpm)
+- `<db>_log2tpm.gct`: log2-transformed normalized RefSeq transcript per million mapped reads (tpm)
 
 ### "log" folder
 
@@ -279,29 +268,21 @@ Contains several log files from analysis tools used by the pipeline. Mainly used
 
 ### "multiqc_data" folder
 
-Output files from the [`MultiQC`](https://multiqc.info/docs/) tool with _RefSeq_ gene annotations (e.g. for Picard RNASeq metrics).
+Output files from the [`MultiQC`](https://multiqc.info/docs/) tool with _RefSeq_, _Ensembl_, _Gencode_ gene annotations (e.g. for Picard RNASeq metrics).
 
-### "multiqc_data_ensembl" folder
+### "multiqc_report_refseq.html" file
 
-Output files from the [`MultiQC`](https://multiqc.info/docs/) tool with _Ensembl_ gene annotations (e.g. for Picard RNASeq metrics).
-
-### "multiqc_report_ensembl.html" file
-
-HTML summary report from the [`MultiQC`](https://multiqc.info/docs/) tool based on _Ensembl_ genome annotations.
-
-### "multiqc_report.html" file
-
-HTML summary report from the [`MultiQC`](https://multiqc.info/docs/) tool based on _RefSeq_ genome annotations.
+HTML summary report from the [`MultiQC`](https://multiqc.info/docs/) tool based on genome annotations from `<db>` where `<db>` is _refseq_, _ensembl_, _gencode_ (if available).
 
 ### "qc" folder
 
-Plots for quality control purposes.
+Plots for quality control purposes, using genome annotations from `<db>`.
 
-- `bioQC.pdf`: Heatmap representationg of the _BioQC_ enrichment scores for detecting detecting such tissue heterogeneity ([Zhang et al. 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2))
-- `bioQC_thr2.txt`: _BioQC_ enrichment scores above threshold 2
-- `bioQC.txt`: All _BioQC_ enrichment scores 
-- `refseq_log2tpm_pca.pdf`: Plot of the main components from the principal component analysis on the basis of the _log2_-transformed normalized _RefSeq_ gene counts (log2tpm).
-- `refseq_log2tpm_pca.txt`: Coordinates of the components from the principal component analysis on the basis of the _log2_-transformed normalized _RefSeq_ gene counts (log2tpm).
+- `<db>_bioQC.pdf`: Heatmap representationg of the _BioQC_ enrichment scores for detecting detecting such tissue heterogeneity ([Zhang et al. 2017](https://bmcgenomics.biomedcentral.com/articles/10.1186/s12864-017-3661-2))
+- `<db>_bioQC_thr2.txt`: _BioQC_ enrichment scores above threshold 2
+- `<db>_bioQC.txt`: All _BioQC_ enrichment scores 
+- `<db>_log2tpm_pca.pdf`: Plot of the main components from the principal component analysis on the basis of the _log2_-transformed normalized gene counts (log2tpm).
+- `<db>_log2tpm_pca.txt`: Coordinates of the components from the principal component analysis on the basis of the _log2_-transformed normalized gene counts (log2tpm).
 
 ### "rulegraph.pdf" and "rulegraph.png" files
 
