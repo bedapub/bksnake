@@ -13,7 +13,7 @@ rule picard:
     params:
         str = PICARD_STRAND, 
         records = 1000000 # default is 500000 
-    threads: 1
+    threads: 8
     resources:
         mem_mb = 30000
     singularity:
