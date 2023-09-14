@@ -1,4 +1,0 @@
-__default__:                                                                                 
-  - '-q short'
-star:
- - '-q long'
