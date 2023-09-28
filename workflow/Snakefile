@@ -144,7 +144,8 @@ GENOME_FAI = os.path.join(GENOME_DIR, config['ref_fasta_fai'])
 GENOME_GZI = os.path.join(GENOME_DIR, config['ref_fasta_gzi'])
 GENOME_SIZE = os.path.join(GENOME_DIR, config['genome_size'] )
 RIBO_INTERVALS = os.path.join(GENOME_DIR, config['ribo_intervals'])
-STAR_DIR = os.path.join(GENOME_DIR, config['star_version'])
+#STAR_DIR = os.path.join(GENOME_DIR, config['star_version'])
+STAR_DIR = os.path.join(GENOME_DIR, config['star_version'], DBS[0])
 GTF_FOR_STAR_MAPPING = os.path.join(GENOME_DIR, 'gtf', DBS[0], DBS[0]+'.exons.gtf') # must not be gzipped
 
 # check some of these paths
