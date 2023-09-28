@@ -1,0 +1,128 @@
+#####################################
+# GENERAL PARAMETERS                #
+#####################################
+genome_dir: '/projects/site/pred/ngs/genomes_2023-09-18'             # ENTER VALUE for genome_dir: path to "root" directory containing sub-directory for each species
+snakemake:
+    path: 'snakemake'     # ENTER VALUE for the snakemake command (including path, or modules to load)
+    parameters: ''                         # Additional Snakemake parameters, e.g. '--dry-run --notemp'
+singularity:
+    prefix: 'singularity-images'           # ENTER VALUE for the folder where images should be stored for re-use (typically a central location)
+pipeline: 'bksnake'                        # (do not change) Type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline. Currently only  "bksnake" is supported !
+
+
+###############################
+# COMMONLY CHANGED PARAMETERS #
+###############################
+results: 'output_test-data'                   # ENTER VALUE for the folder name of output files ("result" files)
+metadata:
+    file: 'resources/test-data/metadata.txt'  # ENTER VALUE for the metadata file
+    group_name: 'GROUP'                       # ENTER VALUE matching the input metdata file (one of the column names)
+
+# Optional parameters for output files generation and storage:
+# In order to generate and/or keep those files set either 'True' or 'False' (default)
+keep_fastq_files: False    # whether to keep the downloaded fastq files in the results folder, default 'False'
+keep_bam_files: False      # whether to keep intermediate bam files in the results folder, default 'False'
+generate_cram_files: False # whether to generate and keep final cram files, default 'False'
+generate_bw_files: False   # whether to generate and keep final bw files (read coverage bigwig files), default: 'False'
+generate_unmapped: False   # whether to generate and keep unmapped read files, default: 'False'
+
+# Cutadapt, read trimming
+# -a adapter   Sequence of an adapter ligated to the 3' end (paired data: of the first read).
+# -A ADAPTER   3' adapter to be removed from R2
+# Below are the default Illumina universal parameters
+# For optional parameters, see cutadapt manual: https://cutadapt.readthedocs.io/en/stable/guide.html#basic-usage
+# Normally, trimming is not required (see https://academic.oup.com/nargab/article/2/3/lqaa068/5901066 )
+cutadapt:
+    run: False  # switch to perform or not cutadapt trimming, default: 'False'
+    parameters: '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT --minimum-length 10'
+
+
+#################################
+# SEQUENCING LIBRARY PARAMETERS #
+#################################
+# TO DO: this information may come from the metadata.
+# Strand information for Picard and featureCount (FC) tools (this could be integrated in the Snakefile)
+# type: choose either 'paired-end' (most common) or 'single-end' (will be derived also from input metadata file)
+# strand: choose one of three options:
+#    option 1: 'SECOND_READ_TRANSCRIPTION_STRAND' (most common)
+#    option 2: 'FIRST_READ_TRANSCRIPTION_STRAND'
+#    option 3: 'NONE' (for unstranded paired-end library, for single-end reads library and in case of doubt)
+library:
+    type: 'paired-end' # 'paired-end' (default) or 'single-end'
+    strand: 'SECOND_READ_TRANSCRIPTION_STRAND'
+
+
+####################################
+# LESS COMMONLY CHANGED PARAMETERS #
+####################################
+# featureCounts parameters
+#
+# stranded quantification
+# 0 for unstranded quantification
+# 1 for forward (e.g. for Lexogen's QuantSeq)
+# 2 for reverse (e.g. for Illumina's TruSeq Stranded mRNA)
+# strand: 0 see above fc_strand
+fc_min_overlap: 10
+fc_frac_overlap: 0.2
+
+# STAR read mapping parameters
+star_sam_mapq_unique: 60
+star_threads: 4
+star_version: 'star_2.7.10b'  # required for STAR_DIR variable
+
+
+#####################################
+# REFERENCE GENOMES AND ANNOTATIONS #
+#####################################
+# genome_dir: path to "root" directory containing sub-directory for each species (is specified above)
+# genomes: genome_subdir: sub-directory name under the "root" directory
+genomes:
+    hg38: { species: 'hg38', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'hg38', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'], db: ['refseq', 'ensembl', 'gencode'] }
+    chm13: { species: 'chm13', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'chm13', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'], db: ['refseq'] }
+    mfa5: { species: 'mfa5', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa5', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
+    mfa6: { species: 'mfa6', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa6', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq'] }
+    mm10: { species: 'mm10', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'mm10', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['refseq', 'ensembl', 'gencode'] }
+    mm39: { species: 'mm39', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'mm39', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['refseq', 'ensembl', 'gencode'] }
+    rn6: { species: 'rn6', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn6', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq', 'ensembl'] }
+    rn7: { species: 'rn7', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn7', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq', 'ensembl'] }
+    ss11: { species: 'ss11', species_name: 'pig', organism: 'Sus scrofa', genome_subdir: 'ss11', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
+    oc2: { species: 'oc2', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_subdir: 'oc2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
+
+
+#########################################
+# REFERENCE GENOMES RELATIVE FILE PATHS # do not change
+#########################################
+# stable file names
+ref_fasta: 'fasta/genome.fa'
+ref_fasta_gz: 'fasta/genome.fa.gz'
+ref_fasta_fai: 'fasta/genome.fa.gz.fai'
+ref_fasta_gzi: 'fasta/genome.fa.gz.gzi'
+genome_size: 'fasta/genome.chrom.sizes'
+ribo_intervals: 'fasta/genome.rRNA_intervals'
+
+
+####################################
+# PUBLIC DOMAIN SINGULARITY IMAGES # do not change
+####################################
+BAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bamtools:2.5.1--he513fc3_6'
+BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.13--h3a49de5_0'
+BEDSORT_IMAGE: 'https://depot.galaxyproject.org/singularity/ucsc-bedsort:377--h446ed27_2'
+BEDTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0'
+BWA_IMAGE: 'https://depot.galaxyproject.org/singularity/bwa%3A0.7.17--h7132678_9'
+CUTADAPT_IMAGE: 'https://depot.galaxyproject.org/singularity/cutadapt%3A3.5--py39h38f01e4_0'
+DEEPTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/deeptools%3A3.5.0--py_0'
+FASTQC_IMAGE: 'https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0'
+GATK_IMAGE: 'https://depot.galaxyproject.org/singularity/gatk4%3A4.0.0.0--py36_0'
+JAVA_IMAGE: 'https://depot.galaxyproject.org/singularity/java-jdk:8.0.112--0'
+JBROWSE2_IMAGE: 'https://depot.galaxyproject.org/singularity/jbrowse2%3A2.1.0--hd6180af_0'
+JQ_IMAGE: 'https://depot.galaxyproject.org/singularity/jq%3A1.6'
+MULTIQC_IMAGE: 'https://depot.galaxyproject.org/singularity/multiqc%3A1.13a--pyhdfd78af_1'
+NGSTOOLS_IMAGE: 'docker://ghcr.io/bedapub/ngs-tools:main'
+PICARD_IMAGE: 'https://depot.galaxyproject.org/singularity/picard-slim:2.25.1--0'
+RIBIOSSCRIPTS_IMAGE: 'docker://ghcr.io/bedapub/ribiosscripts:main'
+RSEQC_IMAGE: 'https://depot.galaxyproject.org/singularity/rseqc:4.0.0--py38h0213d0e_0'
+SAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/samtools%3A1.15.1--h1170115_0'
+STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.10b--h9ee0642_0'
+SUBREAD_IMAGE: 'https://depot.galaxyproject.org/singularity/subread:2.0.1--hed695b0_0'
+TABIX_IMAGE: 'https://depot.galaxyproject.org/singularity/tabix:0.2.6--ha92aebf_0'
+VEP_IMAGE: 'https://depot.galaxyproject.org/singularity/ensembl-vep%3A107.0--pl5321h4a94de4_0'

@@ -16,3 +16,4 @@ results*
 singularity-images
 *test*
 *.yaml
+!resources/test-data/config.yaml
