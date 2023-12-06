@@ -504,10 +504,12 @@ def fastq_locators(meta, config):
     if library_type(meta) == 'paired-end':
         data = {'file': meta['FASTQ1'],
                 'uuid': raw[nraw],
+                'path': meta['Raw'],               
                 'name': meta['#ID']+'_1.fastq.gz'}
         df1 = pd.DataFrame(data)
         data = {'file': meta['FASTQ2'],
                 'uuid': raw[nraw],
+                'path': meta['Raw'],
                 'name': meta['#ID']+'_2.fastq.gz'}
         df2 = pd.DataFrame(data)
         locators = df1.append(df2)
@@ -515,12 +517,19 @@ def fastq_locators(meta, config):
     else:
         data = {'file': meta['FASTQ1'],
                 'uuid': raw[nraw],
+                'path': meta['Raw'],
                 'name': meta['#ID']+'.fastq.gz'}
         df1 = pd.DataFrame(data)
         locators = df1
         del[df1]
-    locators['locator'] = locators['uuid']+'/'+locators['file']
-    locators.set_index('file', inplace=True)
+    # old:
+    #locators['locator'] = locators['uuid']+'/'+locators['file']
+    #locators.set_index('file', inplace=True)
+    # new:
+    locators['locator_uuid'] = locators['uuid']+'/'+locators['file']
+    locators['locator'] = locators['path']+'/'+locators['file']
+    locators['name_as_index'] = locators['name']
+    locators.set_index('name_as_index', inplace=True)
 
     return locators
 
@@ -638,6 +647,7 @@ def map_organism_to_config(organism):
         return 'ss11'
     elif org == 'rabbit' or org == 'oryctolagus cuniculus':
         return 'oc2'
-    else:
-        raise Exception('Unknown organism: \"'+organism+'\"')
-    return org
+# new: commented out in order to allow for 'custom' genomes
+#    else:
+#        raise Exception('Unknown organism: \"'+organism+'\"')
+    return organism
