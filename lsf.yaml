@@ -1,0 +1,139 @@
+__default__:                                                                                 
+  - "-q preempt"
+  - "-R 'rusage[mem=10GB/host]'"
+
+bamstats:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+bed:
+  - "-q long"
+  - "-R rusage[mem=20GB/host]"
+
+bed_index:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+bw:
+  - "-q long"
+  - "-R rusage[mem=10GB/host]"
+
+collapse:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+collapse_tpm:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+cram:
+  - "-q long"
+  - "-R rusage[mem=10GB/host]"
+
+cramindex:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+crosscheck:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+cutadapt:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+fastqc:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+fc:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+fingerprint:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+flagstat:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+gct:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+get_fastq:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+gzip_unmapped_mate1:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+gzip_unmapped_mate2:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+indexbam:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+indexrmdup:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+junctions:
+  - "-q long"
+  - "-R rusage[mem=20GB/host]"
+
+metrics:
+  - "-q long"
+  - "-R rusage[mem=20GB/host]"
+
+metrics_report:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+multiqc:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+picard:
+  - "-q long"
+  - "-R rusage[mem=20GB/host]"
+
+qc:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+refdata:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+report:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+samstats:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+sortbam_star:
+  - "-q long"
+  - "-R rusage[mem=20GB/host]"
+
+star:
+  - "-q long"
+  - "-R rusage[mem=50GB/host]"
+
+tpm:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+validate_fastq:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+validate_gzip:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"

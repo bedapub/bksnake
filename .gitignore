@@ -17,3 +17,4 @@ singularity-images
 *test*
 *.yaml
 !resources/test-data/config.yaml
+!lsf.yaml
