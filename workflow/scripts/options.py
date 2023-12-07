@@ -17,6 +17,7 @@ def get_optional_output_files(sample_ids, config):
     OD_BAM = os.path.join(OD, 'bam')
     OD_CRAM = os.path.join(OD, 'cram')
     OD_BW = os.path.join(OD, 'bw')
+    OD_METRICS = os.path.join(OD, 'metrics')
 
     optional_output_files = []
     if config['keep_fastq_files'] == True:
@@ -56,6 +57,12 @@ def get_optional_output_files(sample_ids, config):
             optional_output_files.append(expand(os.path.join(OD, 'unmapped', '{sample}_2.fastq.gz'), sample=sample_ids))
         else:
             optional_output_files.append(expand(os.path.join(OD, 'unmapped', '{sample}_1.fastq.gz'), sample=sample_ids))
+
+
+    if config['organism'] == 'Homo sapiens' and 'crosscheck_fingerprints' in config:
+        if config['crosscheck_fingerprints'] == True:
+            optional_output_files.append(os.path.join(OD_METRICS, 'crosscheck_metrics'))
+
 
     return optional_output_files
 #print('List of all optional output files')

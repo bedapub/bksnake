@@ -39,6 +39,7 @@ OD_FC = os.path.join(OD, 'fc')
 OD_METRICS = os.path.join(OD, 'metrics')
 OD_BW = os.path.join(OD, 'bw')
 OD_CUTADAPT = os.path.join(OD, 'cutadapt')
+OD_VCF = os.path.join(OD, 'vcf')
 
 SAMPLES = os.path.join(OD, 'samples.txt')
 PHENODATA = os.path.join(OD_ANNO, 'phenoData.meta')
@@ -149,10 +150,12 @@ fastq_names_noext = locators['name'].str.replace('.fastq.gz', '', regex=True)
 # genome reference data and annotations
 DBS = config['genomes'][config['species']]['db']
 GENOME_DIR = os.path.normpath(os.path.join(config['genome_dir'], config['genomes'][config['species']]['genome_subdir']))
+GENOME_FASTA = os.path.join(GENOME_DIR, config['ref_fasta'])
 GENOME_FASTA_GZ = os.path.join(GENOME_DIR, config['ref_fasta_gz'])
 GENOME_FAI = os.path.join(GENOME_DIR, config['ref_fasta_fai'])
 GENOME_GZI = os.path.join(GENOME_DIR, config['ref_fasta_gzi'])
 GENOME_SIZE = os.path.join(GENOME_DIR, config['genome_size'] )
+GENOME_DICT = os.path.join(GENOME_DIR, config['genome_dict'] )
 RIBO_INTERVALS = os.path.join(GENOME_DIR, config['ribo_intervals'])
 #STAR_DIR = os.path.join(GENOME_DIR, config['star_version'])
 STAR_DIR = os.path.join(GENOME_DIR, config['star_version'], DBS[0])
@@ -174,6 +177,7 @@ include: 'rules/gct.smk'
 include: 'rules/picard.smk'
 include: 'rules/qc.smk'
 include: 'rules/reference.smk'
+include: 'rules/snp.smk'
 include: 'rules/star.smk'
 
 

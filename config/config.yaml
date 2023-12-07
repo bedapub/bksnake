@@ -20,11 +20,12 @@ metadata:
 
 # Optional parameters for output files generation and storage:
 # In order to generate and/or keep those files set either 'True' or 'False' (default)
-keep_fastq_files: False    # whether to keep the downloaded fastq files in the results folder, default 'False'
-keep_bam_files: False      # whether to keep intermediate bam files in the results folder, default 'False'
-generate_cram_files: False # whether to generate and keep final cram files, default 'False'
-generate_bw_files: False   # whether to generate and keep final bw files (read coverage bigwig files), default: 'False'
-generate_unmapped: False   # whether to generate and keep unmapped read files, default: 'False'
+keep_fastq_files: False        # whether to keep the downloaded fastq files in the results folder, default 'False'
+keep_bam_files: False          # whether to keep intermediate bam files in the results folder, default 'False'
+generate_cram_files: False     # whether to generate and keep final cram files, default 'False'
+generate_bw_files: False       # whether to generate and keep final bw files (read coverage bigwig files), default: 'False'
+generate_unmapped: False       # whether to generate and keep unmapped read files, default: 'False'
+crosscheck_fingerprints: False # whether to perform Picard's 'CrosscheckFingerprints' metrics, only for organism=Homo sapiens, default: False
 
 # Cutadapt, read trimming
 # -a adapter   Sequence of an adapter ligated to the 3' end (paired data: of the first read).
@@ -97,6 +98,7 @@ ref_fasta: 'fasta/genome.fa'
 ref_fasta_gz: 'fasta/genome.fa.gz'
 ref_fasta_fai: 'fasta/genome.fa.gz.fai'
 ref_fasta_gzi: 'fasta/genome.fa.gz.gzi'
+genome_dict: 'fasta/genome.dict'
 genome_size: 'fasta/genome.chrom.sizes'
 ribo_intervals: 'fasta/genome.rRNA_intervals'
 
