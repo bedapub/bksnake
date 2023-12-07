@@ -102,7 +102,8 @@ if config['library']['type'] == 'paired-end':
             #mem_mb = 120 * 1024
         params:
             sam_mapq_unique = config['star_sam_mapq_unique'],
-            prefix = join(OD_UBAM, '{sample}_')
+            prefix = join(OD_UBAM, '{sample}_'),
+            rg = '{sample}'
         singularity:
             config['STAR_IMAGE']
         shell:
@@ -118,6 +119,7 @@ if config['library']['type'] == 'paired-end':
                 --outSAMtype BAM Unsorted \
                 --readFilesCommand zcat \
                 --outReadsUnmapped Fastx \
+                --outSAMattrRGline ID:{params.rg} SM:{params.rg} \
                 --readFilesIn {input.fq1} {input.fq2} > {log.f0}
             mv --force {params.prefix}Log.out {log.f1}
             mv --force {params.prefix}Log.final.out {output[2]}
@@ -146,7 +148,8 @@ else:
             mem_mb = 120 * 1024
         params:
             sam_mapq_unique = config['star_sam_mapq_unique'],
-            prefix = join(OD_UBAM, '{sample}_')
+            prefix = join(OD_UBAM, '{sample}_'),
+	    rg = '{sample}'
         singularity:
             config['STAR_IMAGE']
         shell:
@@ -162,6 +165,7 @@ else:
                 --outSAMtype BAM Unsorted \
                 --readFilesCommand zcat \
                 --outReadsUnmapped Fastx \
+                --outSAMattrRGline ID:{params.rg} SM:{params.rg} \		
                 --readFilesIn {input.fq1} > {log.f0}
             mv --force {params.prefix}Log.out {log.f1}
             mv --force {params.prefix}Log.final.out {output[2]}
