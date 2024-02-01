@@ -283,17 +283,26 @@ if __name__ == '__main__':
                         required=False, default='all')
     parser.add_argument('--cluster-profile', '-p', 
                         help='Path to cluster profile, only used with --jobs. Not in config.', 
-                        required=False, default='config/lsf')
+                        required=False, default=None)
     parser.add_argument('--no-dag',
                         help='Do not create \"directed acyclic graph\" of the workflow. Not in config.', 
                         required=False, action='store_true')
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('--cores', '-c', help='Number of cores to use for local run, required for local run, e.g. 8. Not in config.')
-    group.add_argument('--jobs', '-j', help='Number of jobs for running on the cluster, required for run on cluster, e.g. 100. Not in config.')
+    group.add_argument('--cores', '-c', help='Number of cores to use for local run, required for local run, e.g. 8. Not in config.', default=None)
+    group.add_argument('--jobs', '-j', help='Number of jobs for running on the cluster, required for run on cluster, e.g. 100. Not in config.', default=None)
     
     args = parser.parse_args()
 
+    
+    # Custom logic to check for the required conditions (--cores OR [--jobs AND --cluster-profile] )
+    if args.cores is None and (args.jobs is None or args.cluster_profile is None):
+        parser.error('Either --cores is required or both --jobs and --cluster-profile must be given together')
+
+    if args.cores is not None and (args.jobs is not None or args.cluster_profile is not None):
+        parser.error('--cores cannot be given with --jobs or --cluster-profile')
+
+    
     # Check snakemake file
     if not os.path.isfile(args.snakefile):
         raise Exception('Snakemake file does not exist. Abort! '+args.snakefile)

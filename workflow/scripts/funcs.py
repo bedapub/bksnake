@@ -330,10 +330,17 @@ def get_metadata_from_file(metadata_file, group):
 
     
     # Determine the "group" name, may combine several columns
-    if group == 'NA' or group == 'na' or group == 'n/a':
-        assert 'GROUP' not in df.columns
-        df['GROUP'] = 'noGroup' #'NA'
+    if isBlank(group) or group == 'NA' or group == 'na' or group == 'n/a':
+        #assert 'GROUP' not in df.columns
+        df['GROUP'] = 'noGroup'
     elif isNotBlank(group):
+        if group not in df.columns:
+            raise Exception('The provided [metadata][group_name]="'
+                            +group
+                            +'" from the config file is not in the input metadata file: '
+                            +metadata_file+'. The colums are in the metadata file are: '
+                            +str(df.columns))
+        #assert 'GROUP' not in df.columns
         groupList = [clean_string(item) for item in group.split(';')]
         for col in groupList:
             df[col] = df[col].astype(str)
@@ -347,8 +354,8 @@ def get_metadata_from_file(metadata_file, group):
             print(f"Unknown column(s) '{group}'", file=sys.stderr)
             sys.exit(2)
     else:
-        assert 'GROUP' not in df.columns
-        df['GROUP'] = 'noGroup' #'NA'
+        raise Exception('GROUP error. Abort! [metadata][group_name]='+group)
+       
 
     # Replace NA group name by 'noGroup'
     df['GROUP'] = df['GROUP'].replace(to_replace=r'^NaN$', value='noGroup', regex=True)
