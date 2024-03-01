@@ -69,7 +69,7 @@ fc_frac_overlap: 0.2
 # STAR read mapping parameters
 star_sam_mapq_unique: 60
 star_threads: 12
-star_version: 'star_2.7.10b'  # required for STAR_DIR variable
+star_version: 'star_2.7.11b'  # required for STAR_DIR variable
 
 
 #####################################
@@ -106,25 +106,31 @@ ribo_intervals: 'fasta/genome.rRNA_intervals'
 ####################################
 # PUBLIC DOMAIN SINGULARITY IMAGES # do not change
 ####################################
-BAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bamtools:2.5.1--he513fc3_6'
-BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.13--h3a49de5_0'
-BEDSORT_IMAGE: 'https://depot.galaxyproject.org/singularity/ucsc-bedsort:377--h446ed27_2'
-BEDTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0'
-BWA_IMAGE: 'https://depot.galaxyproject.org/singularity/bwa%3A0.7.17--h7132678_9'
-CUTADAPT_IMAGE: 'https://depot.galaxyproject.org/singularity/cutadapt%3A3.5--py39h38f01e4_0'
-DEEPTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/deeptools%3A3.5.0--py_0'
-FASTQC_IMAGE: 'https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0'
+# Image from Galaxy Depot
+BAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bamtools%3A2.5.2--hdcf5f25_2'
+BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.13--h3a49de5_0' 
+#BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.19--h8b25389_0' ### THIS VERSION MAKES PROBLEMS IN THE CONCATENATE STEP OF VCSNAKE
+BEDSORT_IMAGE: 'https://depot.galaxyproject.org/singularity/ucsc-bedsort%3A377--ha8a8165_4'
+BEDTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bedtools%3A2.31.1--hf5e1c6e_0'
+BWA_IMAGE: 'https://depot.galaxyproject.org/singularity/bwa%3A0.7.17--he4a0461_11'
+CUTADAPT_IMAGE: 'https://depot.galaxyproject.org/singularity/cutadapt%3A4.6--py39hf95cd2a_1'
+DEEPTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/deeptools%3A3.5.4--pyhdfd78af_1'
+FASTQC_IMAGE: 'https://depot.galaxyproject.org/singularity/fastqc%3A0.12.1--hdfd78af_0'
 GATK_IMAGE: 'https://depot.galaxyproject.org/singularity/gatk4%3A4.0.0.0--py36_0'
 JAVA_IMAGE: 'https://depot.galaxyproject.org/singularity/java-jdk:8.0.112--0'
-JBROWSE2_IMAGE: 'https://depot.galaxyproject.org/singularity/jbrowse2%3A2.1.0--hd6180af_0'
+JBROWSE2_IMAGE: 'https://depot.galaxyproject.org/singularity/jbrowse2%3A2.10.2--hd6180af_0'
 JQ_IMAGE: 'https://depot.galaxyproject.org/singularity/jq%3A1.6'
-MULTIQC_IMAGE: 'https://depot.galaxyproject.org/singularity/multiqc%3A1.13a--pyhdfd78af_1'
-NGSTOOLS_IMAGE: 'docker://ghcr.io/bedapub/ngs-tools:main'
-PICARD_IMAGE: 'https://depot.galaxyproject.org/singularity/picard-slim:2.25.1--0'
-RIBIOSSCRIPTS_IMAGE: 'docker://ghcr.io/bedapub/ribiosscripts:main'
-RSEQC_IMAGE: 'https://depot.galaxyproject.org/singularity/rseqc:4.0.0--py38h0213d0e_0'
-SAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/samtools%3A1.15.1--h1170115_0'
-STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.10b--h9ee0642_0'
-SUBREAD_IMAGE: 'https://depot.galaxyproject.org/singularity/subread:2.0.1--hed695b0_0'
+MULTIQC_IMAGE: 'https://depot.galaxyproject.org/singularity/multiqc%3A1.21--pyhdfd78af_0'
+PICARD_IMAGE: 'https://depot.galaxyproject.org/singularity/picard-slim%3A3.1.1--hdfd78af_0'
+RSEQC_IMAGE: 'https://depot.galaxyproject.org/singularity/rseqc%3A5.0.3--py39hf95cd2a_0'
+SAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/samtools%3A1.19.2--h50ea8bc_0'
+#STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.10b--h9ee0642_0'
+STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.11b--h43eeafb_0' 
+SUBREAD_IMAGE: 'https://depot.galaxyproject.org/singularity/subread%3A2.0.6--he4a0461_0'  ### Introduction of new parameter --countReadPairs
 TABIX_IMAGE: 'https://depot.galaxyproject.org/singularity/tabix:0.2.6--ha92aebf_0'
-VEP_IMAGE: 'https://depot.galaxyproject.org/singularity/ensembl-vep%3A107.0--pl5321h4a94de4_0'
+VEP_IMAGE: 'https://depot.galaxyproject.org/singularity/ensembl-vep%3A111.0--pl5321h2a3209d_0'
+
+# Other images
+AWS_CLI_IMAGE: 'docker://common-cache-docker.repository.intranet.roche.com/amazon/aws-cli:latest'
+NGSTOOLS_IMAGE: 'docker://ghcr.io/bedapub/ngs-tools:main'
+RIBIOSSCRIPTS_IMAGE: 'docker://ghcr.io/bedapub/ribiosscripts:main'

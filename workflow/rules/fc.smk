@@ -1,18 +1,26 @@
 """
 Calculate gene counts with feature counts from subreads
-
-TO DO: modularize better, merge ref and ens
 """
 
 # ------------------------------------------------------------------------------
 # Variables
+
 MIN_OVERLAP = config['fc_min_overlap']
 FRAC_OVERLAP = config['fc_frac_overlap']
+
+"""
+NOTE: Introduction of new parameter in v2.0.2 (https://subread.sourceforge.net): 
+  
+  --countReadPairs
+
+New parameter '--countReadPairs' is added to featureCounts to explicitly specify that read pairs will be counted, 
+and the '-p' option in featureCounts now only specifies if the input reads are paired end 
+(it also implied that counting of read pairs would be performed in previous versions).
+"""
 if config['library']['type'] == 'paired-end':
-    P_PARAM = '-p'
+    P_PARAM = '-p --countReadPairs'
 else:
     P_PARAM = ''
-
 
 
 # ------------------------------------------------------------------------------

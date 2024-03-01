@@ -265,6 +265,7 @@ Updates:
     - allow combining multiple columns for group
     - remove special characters from group, e.g. greek symbols
     - remove first character from fastq files names if it is a slash '/'
+    - add Gender column if missing
 """
 def get_metadata_from_file(metadata_file, group):
     """Get metadata from flat file or from study and sample metadata MongoDB database.
@@ -382,6 +383,12 @@ def get_metadata_from_file(metadata_file, group):
 
     # replace white spaces and slashes in GROUP by underscore
     df['GROUP'] = df['GROUP'].str.replace(' ', '_', regex=False).replace('/', '_', regex=False)
+    
+    # add Gender column if missing, could be used for biokitr package (in development)
+    normalized_columns = [col.lower() for col in df.columns]
+    if 'sex' not in normalized_columns and 'gender' not in normalized_columns:
+        print(f'NOTE: Columns "S/sex" or "G/gender" not present in sample metadata columns. Add column "Gender" with values "Unknown"', file=sys.stderr)
+        df['Gender'] = 'Unknown'
 
     return df
 
@@ -416,19 +423,17 @@ def library_type(meta):
 """------------------------------------------------------------------------------
 Determine strand orientation of the sequencing library
 
-Normally this value should come from the Moose metadata as True or False
-
-However, the strand may have 3 options:
+3 options:
  1. SECOND_READ_TRANSCRIPTION_STRAND (default, most common) 
  2. FIRST_READ_TRANSCRIPTION_STRAND 
  3. NONE
  
 Strategy:
  1. if present and valid in config then use it from config
- 2. if present and valid from moose/metadata then it from moose
+ 2. if present and valid from metadata file then it from file
  3. raise error
 
-What if Moose/metadata 'Is Stranded (DAT)' is True but it is not 2nd but 1st read strand ? --> use config.yaml
+What if metadata 'Is Stranded (DAT)' is True but it is not 2nd but 1st read strand ? --> use config.yaml
 """
 def strandedness(meta, config):
     """Determine strand orientation of the sequencing library.

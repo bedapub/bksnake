@@ -1,9 +1,9 @@
 #####################################
 # GENERAL PARAMETERS                #
 #####################################
-genome_dir: '/projects/site/pred/ngs/genomes_2023-09-18'             # ENTER VALUE for genome_dir: path to "root" directory containing sub-directory for each species
+genome_dir: ''             # ENTER VALUE for genome_dir: path to "root" directory containing sub-directory for each species
 snakemake:
-    path: 'snakemake'     # ENTER VALUE for the snakemake command (including path, or modules to load)
+    path: ''     # ENTER VALUE for the snakemake command (including path, or modules to load)
     parameters: ''                         # Additional Snakemake parameters, e.g. '--dry-run --notemp'
 singularity:
     prefix: 'singularity-images'           # ENTER VALUE for the folder where images should be stored for re-use (typically a central location)
@@ -52,25 +52,6 @@ library:
     strand: 'SECOND_READ_TRANSCRIPTION_STRAND'
 
 
-####################################
-# LESS COMMONLY CHANGED PARAMETERS #
-####################################
-# featureCounts parameters
-#
-# stranded quantification
-# 0 for unstranded quantification
-# 1 for forward (e.g. for Lexogen's QuantSeq)
-# 2 for reverse (e.g. for Illumina's TruSeq Stranded mRNA)
-# strand: 0 see above fc_strand
-fc_min_overlap: 10
-fc_frac_overlap: 0.2
-
-# STAR read mapping parameters
-star_sam_mapq_unique: 60
-star_threads: 4
-star_version: 'star_2.7.10b'  # required for STAR_DIR variable
-
-
 #####################################
 # REFERENCE GENOMES AND ANNOTATIONS #
 #####################################
@@ -88,41 +69,3 @@ genomes:
     ss11: { species: 'ss11', species_name: 'pig', organism: 'Sus scrofa', genome_subdir: 'ss11', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
     oc2: { species: 'oc2', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_subdir: 'oc2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
 
-
-#########################################
-# REFERENCE GENOMES RELATIVE FILE PATHS # do not change
-#########################################
-# stable file names
-ref_fasta: 'fasta/genome.fa'
-ref_fasta_gz: 'fasta/genome.fa.gz'
-ref_fasta_fai: 'fasta/genome.fa.gz.fai'
-ref_fasta_gzi: 'fasta/genome.fa.gz.gzi'
-genome_size: 'fasta/genome.chrom.sizes'
-ribo_intervals: 'fasta/genome.rRNA_intervals'
-
-
-####################################
-# PUBLIC DOMAIN SINGULARITY IMAGES # do not change
-####################################
-BAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bamtools:2.5.1--he513fc3_6'
-BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.13--h3a49de5_0'
-BEDSORT_IMAGE: 'https://depot.galaxyproject.org/singularity/ucsc-bedsort:377--h446ed27_2'
-BEDTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bedtools:2.30.0--hc088bd4_0'
-BWA_IMAGE: 'https://depot.galaxyproject.org/singularity/bwa%3A0.7.17--h7132678_9'
-CUTADAPT_IMAGE: 'https://depot.galaxyproject.org/singularity/cutadapt%3A3.5--py39h38f01e4_0'
-DEEPTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/deeptools%3A3.5.0--py_0'
-FASTQC_IMAGE: 'https://depot.galaxyproject.org/singularity/fastqc:0.11.9--0'
-GATK_IMAGE: 'https://depot.galaxyproject.org/singularity/gatk4%3A4.0.0.0--py36_0'
-JAVA_IMAGE: 'https://depot.galaxyproject.org/singularity/java-jdk:8.0.112--0'
-JBROWSE2_IMAGE: 'https://depot.galaxyproject.org/singularity/jbrowse2%3A2.1.0--hd6180af_0'
-JQ_IMAGE: 'https://depot.galaxyproject.org/singularity/jq%3A1.6'
-MULTIQC_IMAGE: 'https://depot.galaxyproject.org/singularity/multiqc%3A1.13a--pyhdfd78af_1'
-NGSTOOLS_IMAGE: 'docker://ghcr.io/bedapub/ngs-tools:main'
-PICARD_IMAGE: 'https://depot.galaxyproject.org/singularity/picard-slim:2.25.1--0'
-RIBIOSSCRIPTS_IMAGE: 'docker://ghcr.io/bedapub/ribiosscripts:main'
-RSEQC_IMAGE: 'https://depot.galaxyproject.org/singularity/rseqc:4.0.0--py38h0213d0e_0'
-SAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/samtools%3A1.15.1--h1170115_0'
-STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.10b--h9ee0642_0'
-SUBREAD_IMAGE: 'https://depot.galaxyproject.org/singularity/subread:2.0.1--hed695b0_0'
-TABIX_IMAGE: 'https://depot.galaxyproject.org/singularity/tabix:0.2.6--ha92aebf_0'
-VEP_IMAGE: 'https://depot.galaxyproject.org/singularity/ensembl-vep%3A107.0--pl5321h4a94de4_0'
