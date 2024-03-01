@@ -68,7 +68,7 @@ else:
     raise Exception('Metadata file is missing. Abort! '+config['metadata']['file'])
  
  
-# Make dataframe with arvados locators for all fastq files
+# Make dataframe with locators for all fastq files
 # --> give to fastq files new name, from #ID column !
 # Here, use path/url/location from column 'Source Folder' if existing, otherwise from column 'Raw'
 if 'Source Folder' in meta:
@@ -114,7 +114,7 @@ However, the strand may have 3 options:
  
 Strategy:
  1. if present and valid in config then use it from config
- 2. if present and valid from moose/metadata then it from moose
+ 2. if present and valid from metadata then it from file
  3. raise error
 """
 PICARD_STRAND, BIOKIT_STRAND, FC_STRAND = funcs.strandedness(meta, config)
