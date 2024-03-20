@@ -29,7 +29,7 @@ def star_mapping_stats (outfile, phenoFile, indir):
     del df
 
     # Re-format data table and merge with annotation data table
-    tab['0'] = tab['0'].str.replace(' \|','')
+    tab['0'] = tab['0'].str.replace(r'\|', '', regex=True)
     tab['0'] = tab['0'].str.strip()
     df = tab.transpose()
     df.reset_index(inplace=True)
