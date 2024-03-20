@@ -148,30 +148,29 @@ def get_git_revision_short_hash() -> str:
 
 
 
+
 """------------------------------------------------------------------------------
 Check whether the input sample IDs are unique or not    
 """
 def check_unique_sampleids(ids):
-    """Check whether the input sample IDs are unique or not.
+    """Check whether the input sample IDs are unique or not using pandas.
+
     Parameters
     ----------
-    ids : str
+    ids : list or array-like
         Input sample identifiers.
     """
-    if len(ids)!=len(set(ids)):
-        seen = {}
-        dups = []
-        for id in ids:
-            if id not in seen:
-                seen[id]=1
-            else:
-                if seen[id] == 1:
-                    dups.append(id)
-                seen[id]+=1
-        print('Duplicated ids:' + ', '.join(dups), file=sys.stderr)
+    ids_series = pd.Series(ids)
+    dups = ids_series[ids_series.duplicated(keep=False)]
+
+    if not dups.empty:
+        print('Duplicated ids: ' + ', '.join(dups.unique()), file=sys.stderr)
         print('Duplicated sample ids detected. Program quits.', file=sys.stderr)
+        return False
     else:
-        pass
+        print('All sample ids are unique.')
+        return True
+    
 
 """------------------------------------------------------------------------------
 Read sample annotations from a flat file
@@ -524,8 +523,8 @@ def fastq_locators(meta, config):
                 'path': meta['Raw'],
                 'name': meta['#ID']+'_2.fastq.gz'}
         df2 = pd.DataFrame(data)
-        locators = df1.append(df2)
-        del [[df1],[df2]]
+        locators = pd.concat([df1, df2])
+        del df1, df2
     else:
         data = {'file': meta['FASTQ1'],
                 'uuid': raw[nraw],
@@ -533,7 +532,7 @@ def fastq_locators(meta, config):
                 'name': meta['#ID']+'.fastq.gz'}
         df1 = pd.DataFrame(data)
         locators = df1
-        del[df1]
+        del df1
     # old:
     #locators['locator'] = locators['uuid']+'/'+locators['file']
     #locators.set_index('file', inplace=True)
