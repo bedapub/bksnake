@@ -3,7 +3,7 @@
 #####################################
 genome_dir: '/path/to/genomes'             # ENTER VALUE for genome_dir: path to "root" directory containing sub-directory for each species
 snakemake:
-    path: '/path/to/snakemake/program'     # ENTER VALUE for the snakemake command (including path, or modules to load)
+    path: '/path/to/snakemake/program'     # ENTER VALUE for the snakemake v7.16.1 command (including path, or modules to load)
     parameters: ''                         # Additional Snakemake parameters, e.g. '--dry-run --notemp'
 singularity:
     prefix: 'singularity-images'           # ENTER VALUE for the folder where images should be stored for re-use (typically a central location)

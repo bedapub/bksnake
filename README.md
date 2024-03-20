@@ -46,7 +46,7 @@ Directed acyclic graph of a representative analysis workflow.
 This workflow requires the following tools in the system path
 
 1. [Singularity](https://docs.sylabs.io/guides/main/user-guide/)
-2. [Snakemake](https://snakemake.readthedocs.io/en/stable/)
+2. [Snakemake](https://snakemake.readthedocs.io/en/stable/) (version 7.16.1)
 3. [git](https://en.wikipedia.org/wiki/Git)
 
 In order to pull Singularity images from GitHub package registry one needs to specify username and GitHub read package token:

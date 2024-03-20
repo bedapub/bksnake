@@ -214,7 +214,7 @@ def report(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description='Wrapper script for the Snakemake workflow of the biokit bulk RNASeq pipeline aka bksnake.'
+        description='Wrapper script for the Snakemake workflow of the biokit bulk RNASeq pipeline aka bksnake using Snakemake version 7.16.'
     )
 
     # Required arguments
@@ -294,14 +294,12 @@ if __name__ == '__main__':
     
     args = parser.parse_args()
 
-    
     # Custom logic to check for the required conditions (--cores OR [--jobs AND --cluster-profile] )
     if args.cores is None and (args.jobs is None or args.cluster_profile is None):
         parser.error('Either --cores is required or both --jobs and --cluster-profile must be given together')
 
     if args.cores is not None and (args.jobs is not None or args.cluster_profile is not None):
         parser.error('--cores cannot be given with --jobs or --cluster-profile')
-
     
     # Check snakemake file
     if not os.path.isfile(args.snakefile):
