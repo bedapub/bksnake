@@ -131,6 +131,5 @@ TABIX_IMAGE: 'https://depot.galaxyproject.org/singularity/tabix:0.2.6--ha92aebf_
 VEP_IMAGE: 'https://depot.galaxyproject.org/singularity/ensembl-vep%3A111.0--pl5321h2a3209d_0'
 
 # Other images
-AWS_CLI_IMAGE: 'docker://common-cache-docker.repository.intranet.roche.com/amazon/aws-cli:latest'
 NGSTOOLS_IMAGE: 'docker://ghcr.io/bedapub/ngs-tools:main'
 RIBIOSSCRIPTS_IMAGE: 'docker://ghcr.io/bedapub/ribiosscripts:main'
