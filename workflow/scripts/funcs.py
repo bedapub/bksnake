@@ -658,6 +658,10 @@ def map_organism_to_config(organism):
         return 'ss11'
     elif org == 'rabbit' or org == 'oryctolagus cuniculus':
         return 'oc2'
+    elif org == 'green monkey' or org == 'african green monkey' or org == 'chlorocebus sabaeus':
+        return 'Vero_WHO_p1.0'
+    elif org == 'rhesus' or org == 'rhesus monkey' or org == 'macaca mulatta':
+        return 'Mmul_10'
 # new: commented out in order to allow for 'custom' genomes
 #    else:
 #        raise Exception('Unknown organism: \"'+organism+'\"')
