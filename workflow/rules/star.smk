@@ -165,7 +165,7 @@ else:
                 --outSAMtype BAM Unsorted \
                 --readFilesCommand zcat \
                 --outReadsUnmapped Fastx \
-                --outSAMattrRGline ID:{params.rg} SM:{params.rg} \		
+                --outSAMattrRGline ID:{params.rg} SM:{params.rg} \
                 --readFilesIn {input.fq1} > {log.f0}
             mv --force {params.prefix}Log.out {log.f1}
             mv --force {params.prefix}Log.final.out {output[2]}
