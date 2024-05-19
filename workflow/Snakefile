@@ -148,7 +148,18 @@ fastq_names_noext = locators['name'].str.replace('.fastq.gz', '', regex=True)
 
 # ------------------------------------------------------------------------------
 # genome reference data and annotations
+# Specify genome annotation databases if given as list in config input file, e.g. annotations = ['refseq'], 
+# Default is to use all available annotations
 DBS = config['genomes'][config['species']]['db']
+if 'annotations' in config:  
+    annotations = set(config['annotations'])
+    all_annotations = set(DBS)      
+    if not annotations.issubset(all_annotations):
+        missing_annotations = annotations - all_annotations
+        raise ValueError(f'\n-----\nThe following annotations are missing: {missing_annotations}\n-----\n')
+    else:
+        DBS = list(annotations)    
+    
 GENOME_DIR = os.path.normpath(os.path.join(config['genome_dir'], config['genomes'][config['species']]['genome_subdir']))
 GENOME_FASTA = os.path.join(GENOME_DIR, config['ref_fasta'])
 GENOME_FASTA_GZ = os.path.join(GENOME_DIR, config['ref_fasta_gz'])

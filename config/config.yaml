@@ -26,6 +26,8 @@ generate_cram_files: False     # whether to generate and keep final cram files, 
 generate_bw_files: False       # whether to generate and keep final bw files (read coverage bigwig files), default: 'False'
 generate_unmapped: False       # whether to generate and keep unmapped read files, default: 'False'
 crosscheck_fingerprints: False # whether to perform Picard's 'CrosscheckFingerprints' metrics, only for organism=Homo sapiens, default: False
+#annotations: ['refseq','ensembl'] # use this list to specify which annotations should be processed, see "genomes: db" parameter below, default: all annotations will be processed
+
 
 # Cutadapt, read trimming
 # -a adapter   Sequence of an adapter ligated to the 3' end (paired data: of the first read).
@@ -69,7 +71,7 @@ fc_frac_overlap: 0.2
 # STAR read mapping parameters
 star_sam_mapq_unique: 60
 star_threads: 12
-star_version: 'star_2.7.11b'  # required for STAR_DIR variable
+star_version: 'star_2.7.10b'  # required for STAR_DIR variable
 
 
 #####################################
