@@ -26,6 +26,8 @@ generate_cram_files: False     # whether to generate and keep final cram files, 
 generate_bw_files: False       # whether to generate and keep final bw files (read coverage bigwig files), default: 'False'
 generate_unmapped: False       # whether to generate and keep unmapped read files, default: 'False'
 crosscheck_fingerprints: False # whether to perform Picard's 'CrosscheckFingerprints' metrics, only for organism=Homo sapiens, default: False
+#annotations: ['refseq','ensembl'] # use this list to specify which annotations should be processed, see "genomes: db" parameter below, default: all annotations will be processed
+
 
 # Cutadapt, read trimming
 # -a adapter   Sequence of an adapter ligated to the 3' end (paired data: of the first read).
@@ -69,7 +71,7 @@ fc_frac_overlap: 0.2
 # STAR read mapping parameters
 star_sam_mapq_unique: 60
 star_threads: 12
-star_version: 'star_2.7.11b'  # required for STAR_DIR variable
+star_version: 'star_2.7.10b'  # required for STAR_DIR variable
 
 
 #####################################
@@ -124,7 +126,6 @@ MULTIQC_IMAGE: 'https://depot.galaxyproject.org/singularity/multiqc%3A1.21--pyhd
 PICARD_IMAGE: 'https://depot.galaxyproject.org/singularity/picard-slim%3A3.1.1--hdfd78af_0'
 RSEQC_IMAGE: 'https://depot.galaxyproject.org/singularity/rseqc%3A5.0.3--py39hf95cd2a_0'
 SAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/samtools%3A1.19.2--h50ea8bc_0'
-#STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.10b--h9ee0642_0'
 STAR_IMAGE: 'https://depot.galaxyproject.org/singularity/star%3A2.7.11b--h43eeafb_0' 
 SUBREAD_IMAGE: 'https://depot.galaxyproject.org/singularity/subread%3A2.0.6--he4a0461_0'  ### Introduction of new parameter --countReadPairs
 TABIX_IMAGE: 'https://depot.galaxyproject.org/singularity/tabix:0.2.6--ha92aebf_0'
