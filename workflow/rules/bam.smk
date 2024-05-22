@@ -5,15 +5,15 @@ rule indexbam:
     input:
         os.path.join(OD_BAM, '{sample}.bam'),
     output:
-        (os.path.join(OD_BAM, '{sample}.bam.bai'))
+        os.path.join(OD_BAM, '{sample}.bam.bai') if config['keep_bam_files'] else temp(os.path.join(OD_BAM, '{sample}.bam.bai')),
     threads: 2
     resources:
-        mem_mb = 20000
+        mem_mb=20000
     singularity:
-         SAMTOOLS_IMAGE
+        SAMTOOLS_IMAGE
     shell:
         'samtools index -@ {threads} {input}'
-
+        
 # -------------------------------------------------------------
 rule flagstat:
     input:
@@ -121,7 +121,7 @@ rule cramindex:
         'samtools index -@ {threads} {input} 2> {log}'
 
 # -------------------------------------------------------------
-# only data from flagstat
+# Use only data from flagstat
 rule mapping_stats:
     input:
         expand(os.path.join(OD_STATS, '{sample}.bam.flagstat'), sample=sample_ids)
@@ -133,9 +133,7 @@ rule mapping_stats:
     run:
         with open(output[0], 'w') as f:
             f.write('ID\tGROUP\tTOTAL_READS\tMAPPED_READS\tMAPPED_IN_PERC\tUNMAPPED_READS\tUNMAPPED_IN_PERC\n')
-#            f.write('SampleName\tID\tGROUP\tTOTAL_READS\tMAPPED_READS\tMAPPED_IN_PERC\tUNMAPPED_READS\tUNMAPPED_IN_PERC\n')
             for ind, sid in enumerate(sample_ids):
-#                f.write(sample_names[ind] + '\t')
                 f.write(str(sid) + '\t')
                 f.write(sample_groups[ind] + '\t')
                 with open(input[ind], 'r') as fsf:
@@ -154,44 +152,27 @@ rule mapping_stats:
                         unmapping_rate))
                         
 # -------------------------------------------------------------
-# bigwig files for jbrowse
-# Documentation for bamCoverage
-# https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html
-
-if 'jbrowse' in config:
-    binSize = config['jbrowse']['bamCoverage_binSize']
-else:
-    binSize = 3
-
-if config['generate_bw_files'] == True:
-    rule bw:
-        input:
-            os.path.join(OD_BAM, '{sample}.bam'),
-            os.path.join(OD_BAM, '{sample}.bam.bai')
-        output:
-            os.path.join(OD_BW, '{sample}.bw'),
-            temp(os.path.join(OD_BW, '{sample}.bw.done'))
-        log:
-            os.path.join(OD_LOG, '{sample}.bw.log')
-        params:
-            prefix = os.path.join(OD_BW, '{sample}'),
-            binSize = binSize
-        threads: 8
-        resources:
-            mem_mb = 20000
-        singularity:
-            config['DEEPTOOLS_IMAGE']
-        shell:
-            """
-            (bamCoverage --ignoreDuplicates --binSize {params.binSize} \
-                -p {threads} -b {input[0]} -o {output[0]}) 2> {log} && \
-            touch {output[1]}
-            """
-else:
-    rule touch_bw:
-        output:
-            temp(os.path.join(OD_BW,'{sample}.bw.done'))
-        shell:
-            """
-            touch {output}
-            """                        
+# BigWig files for JBrowse genome viewer
+# Documentation for bamCoverage:
+#   https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html
+rule bw:
+    input:
+        os.path.join(OD_BAM, '{sample}.bam'),
+        os.path.join(OD_BAM, '{sample}.bam.bai')
+    output:
+        os.path.join(OD_BW, '{sample}.bw'),
+    log:
+        os.path.join(OD_LOG, '{sample}.bw.log')
+    params:
+        prefix = os.path.join(OD_BW, '{sample}'),
+        binSize = config['jbrowse']['bamCoverage_binSize'] if 'jbrowse' in config and 'bamCoverage_binSize' in config['jbrowse'] else 3,
+    threads: 8
+    resources:
+        mem_mb = 20000
+    singularity:
+        config['DEEPTOOLS_IMAGE']
+    shell:
+        """
+        (bamCoverage --ignoreDuplicates --binSize {params.binSize} \
+            -p {threads} -b {input[0]} -o {output}) 2> {log}
+        """

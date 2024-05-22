@@ -156,15 +156,9 @@ else:
                 """
 
 # ---------------------------------------------------------------
-if config['cutadapt']['run'] == True:
-    fastqc_input_dir = OD_CUTADAPT
-else:
-    fastqc_input_dir = OD_FASTQ
-
 rule fastqc:
-    input:
-        os.path.join(fastqc_input_dir, '{name}.fastq.gz'),
-        #os.path.join(OD_CUTADAPT, '{name}.report.txt') # ERROR: above name and this line name are not the same: above name has "_1" and "_2" !
+    input:      
+        os.path.join(OD_CUTADAPT, '{name}.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{name}.fastq.gz')
     output:
         os.path.join(OD_FASTQC, '{name}_fastqc.html'),
         temp(directory(os.path.join(OD_FASTQC, '{name}_fastqc'))),

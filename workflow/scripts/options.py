@@ -7,38 +7,79 @@ import sys
 import pandas as pd
 from snakemake.io import expand
 
+
+# ----------------------------------------------------------------------------
+"""
+bksnake or vcsnake. Currently, only "bksnake" is supported.
+here, we list all files necessary for the pipeline to have generated
+prior to archive the data.
+this also deletes all "empty" files, ie of size 0, in the "log" folder
+"""
+def get_all_output_files(config, sample_ids, dbs):
+
+    OD = config['results']
+    OD_QC = os.path.join(OD, 'qc')
+    OD_GCT = os.path.join(OD, 'gct')
+    OD_VCF = os.path.join(OD, 'vcf')
+    OD_CUTADAPT = os.path.join(OD, 'cutadapt')
+
+    all_output_files = []
+
+    if config['pipeline'] == 'bksnake':
+        # Count data
+        all_output_files = expand(os.path.join(OD_GCT, '{db}_tpm_collapsed.gct'), db=dbs)
+        
+        # QC reports
+        all_output_files += expand(os.path.join(OD, '{db}_multiqc_report.html'), db=dbs)
+        all_output_files += expand(os.path.join(OD_QC, '{db}_log2tpm_pca.png'), db=dbs)
+        all_output_files += expand(os.path.join(OD_QC, '{db}_bioQC.png'), db=dbs)
+           
+        # Other optional output files (unmapped, bw, etc)
+        all_output_files += expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids)
+        all_output_files += get_optional_output_files(sample_ids, config)
+        
+    elif config ['pipeline'] == 'vcsnake':
+        # QC reports
+        all_output_files.append(os.path.join(OD, 'multiqc_report.html'))
+        all_output_files.append(os.path.join(OD_VCF, 'allSamples_merged.vcf.gz'))
+        all_output_files.append(os.path.join(OD_VCF, 'allSamples_merged.vcf.gz.tbi'))
+        #all_output_files = os.path.join(OD, 'multiqc_report.html')
+        #all_output_files += os.path.join(OD_VCF, 'allSamples_merged.vcf.gz')
+        #all_output_files += os.path.join(OD_VCF, 'allSamples_merged.vcf.gz.tbi')
+
+        # Other optional output files (fastq)
+        all_output_files += get_optional_output_files_vc(sample_ids, config)
+        
+    else:
+        sys.exit('Variable \'pipeline\' not defined in input config yaml file.')
+
+    return all_output_files
+        
+
 # ------------------------------------------------------------------------------
 # Declare all required output files in a list object. This will be given to the rule 'all'
 # For bksnake / bulk rnaseq pipeline
 def get_optional_output_files(sample_ids, config):
 
     OD = config['results']
-    OD_FASTQ = os.path.join(OD, 'fastq')
+    OD_BW = os.path.join(OD, 'bw')
     OD_BAM = os.path.join(OD, 'bam')
     OD_CRAM = os.path.join(OD, 'cram')
-    OD_BW = os.path.join(OD, 'bw')
+    OD_FASTQ = os.path.join(OD, 'fastq')
     OD_METRICS = os.path.join(OD, 'metrics')
 
     optional_output_files = []
+    
     if config['keep_fastq_files'] == True:
         if config['library']['type'] == 'paired-end':
             optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_1.fastq.gz'), sample=sample_ids)
             optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_2.fastq.gz'), sample=sample_ids)
         else:
             optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}.fastq.gz'), sample=sample_ids)
-    else:
-        if config['library']['type'] == 'paired-end':
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_1.fastq.gz_to_delete'), sample=sample_ids)
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_2.fastq.gz_to_delete'), sample=sample_ids)
-        else:
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}.fastq.gz_to_delete'), sample=sample_ids)
 
     if config['keep_bam_files'] == True:
         optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam'), sample=sample_ids)
         optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam.bai'), sample=sample_ids)
-    else:
-        optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam_to_delete'), sample=sample_ids)
-        optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam.bai_to_delete'), sample=sample_ids)
 
     if config['generate_cram_files'] == True:
         optional_output_files += expand(os.path.join(OD_CRAM, '{sample}.cram'), sample=sample_ids)
@@ -58,9 +99,6 @@ def get_optional_output_files(sample_ids, config):
         if config['crosscheck_fingerprints'] == True:
             optional_output_files += [os.path.join(OD_METRICS, 'crosscheck_metrics')]
 
-    #print('List of all optional output files')
-    #from pprint import pprint
-    #pprint(optional_output_files)
     return optional_output_files
 
 
@@ -70,44 +108,25 @@ def get_optional_output_files(sample_ids, config):
 def get_optional_output_files_vc(sample_ids, config):
 
     OD = config['results']
-    OD_FASTQ = os.path.join(OD, 'fastq')
     OD_BAM = os.path.join(OD, 'bam')
     OD_CRAM = os.path.join(OD, 'cram')
-    #OD_BW = os.path.join(OD, 'bw')
+    OD_FASTQ = os.path.join(OD, 'fastq')
 
     optional_output_files = []
+    
     if config['keep_fastq_files'] == True:
         if config['library']['type'] == 'paired-end':
             optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_1.fastq.gz'), sample=sample_ids)
             optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_2.fastq.gz'), sample=sample_ids)
         else:
             optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}.fastq.gz'), sample=sample_ids)
-    else:
-        if config['library']['type'] == 'paired-end':
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_1.fastq.gz_to_delete'), sample=sample_ids)
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_2.fastq.gz_to_delete'), sample=sample_ids)
-        else:
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}.fastq.gz_to_delete'), sample=sample_ids)
 
     if config['keep_bam_files'] == True:
         optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam'), sample=sample_ids)
         optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam.bai'), sample=sample_ids)
-    else:
-        optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam_to_delete'), sample=sample_ids)
-        optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam.bai_to_delete'), sample=sample_ids)
 
     if config['generate_cram_files'] == True:
         optional_output_files += expand(os.path.join(OD_CRAM, '{sample}.cram'), sample=sample_ids)
         optional_output_files += expand(os.path.join(OD_CRAM, '{sample}.cram.crai'), sample=sample_ids)
-
-    #if config['generate_bw_files'] == True:
-    #    optional_output_files += expand(os.path.join(OD_BW, '{sample}.bw'), sample=sample_ids)
-
-    #if config['generate_unmapped'] == True:
-    #    if config['library']['type'] == 'paired-end':
-    #        optional_output_files += expand(os.path.join(OD, 'unmapped', '{sample}_1.fastq.gz'), sample=sample_ids)
-    #        optional_output_files += expand(os.path.join(OD, 'unmapped', '{sample}_2.fastq.gz'), sample=sample_ids)
-    #    else:
-    #        optional_output_files += expand(os.path.join(OD, 'unmapped', '{sample}_1.fastq.gz'), sample=sample_ids)
 
     return optional_output_files
