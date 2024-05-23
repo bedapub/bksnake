@@ -9,7 +9,7 @@ rule get_fastq:
     input:
         os.path.join(OD_TMP, '{name}.input')
     output:
-        os.path.join(OD_FASTQ, '{name}')
+        os.path.join(OD_FASTQ, '{name}') if config['keep_fastq_files'] else temp(os.path.join(OD_FASTQ, '{name}')),
     log:
         os.path.join(OD_LOG, '{name}.get_fastq.log')
     params:

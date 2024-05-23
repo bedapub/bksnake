@@ -177,10 +177,10 @@ if not os.path.isdir(GENOME_DIR):
     raise Exception('(root) genome directory is not a valid directory. Please check parameter \'genome dir\'.')
 
 
+
 # ------------------------------------------------------------------------------
 # rules
 include: 'rules/bam.smk'
-include: 'rules/delete.smk'
 include: 'rules/fastq.smk'
 include: 'rules/fastqc.smk'
 include: 'rules/fc.smk'
@@ -195,20 +195,18 @@ include: 'rules/star.smk'
 # ------------------------------------------------------------------------------
 # Declare local rules, ie not submitted to the cluster
 localrules: all, \
-            delete_fastq, \
-            delete_bam, \
             mapping_stats, \
             metadata, \
             no_cutadapt, \
             processing_done, \
-            star_stats, \
-            touch_bw            
+            star_stats      
             
             
 # ------------------------------------------------------------------------------
 rule all:
     input:
-        os.path.join(OD_ANNO, 'processing.done')
+        options.get_all_output_files(config, sample_ids, DBS)
+
 
 
 # ----------------------------------------------------------------------------
@@ -227,54 +225,6 @@ rule metadata:
         funcs.translate_biokit_to_phenoData_meta(output[0], output[1]) # Make {PHENODATA} file
         for name in locators.name:
             Path(os.path.join(OD_TMP, name+'.input')).touch()
-
-
-# ----------------------------------------------------------------------------
-"""
-bksnake or vcsnake. Currently, only "bksnake" is supported.
-here, we list all files necessary for the pipeline to have generated
-prior to archive the data.
-this also deletes all "empty" files, ie of size 0, in the "log" folder
-"""
-if config['pipeline'] == 'bksnake':
-    rule processing_done:
-        input:
-            # Count data
-            expand(os.path.join(OD_GCT, '{db}_tpm_collapsed.gct'), db=DBS),
-            #
-            # QC reports
-            expand(os.path.join(OD, '{db}_multiqc_report.html'), db=DBS),
-            expand(os.path.join(OD_QC, '{db}_log2tpm_pca.png'), db=DBS),
-            expand(os.path.join(OD_QC, '{db}_bioQC.png'), db=DBS),
-            #
-            # Other optional output files (unmapped, bw, etc)
-            expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids),
-            options.get_optional_output_files(sample_ids, config)
-        output:
-            os.path.join(OD_ANNO, 'processing.done')
-        shell:
-            """
-            find {OD_LOG} -type f -empty -print -delete && touch {output[0]}
-            """
-elif config ['pipeline'] == 'vcsnake':
-    rule processing_done:
-        input:
-            # QC reports
-            os.path.join(OD, 'multiqc_report.html'),
-            os.path.join(OD_VCF, 'allSamples_merged.vcf.gz'),
-            os.path.join(OD_VCF, 'allSamples_merged.vcf.gz.tbi'),
-
-            # Other optional output files (fastq)
-            options.get_optional_output_files_vc(sample_ids, config)
-        output:
-            os.path.join(OD_ANNO, 'processing.done')
-        shell:
-            """
-            find {OD_LOG} -type f -empty -print -delete && touch {output[0]}
-            """
-else:
-    sys.exit('Variable \'pipeline\' not defined in input config yaml file.')
-
 
 
 # ----------------------------------------------------------------------------

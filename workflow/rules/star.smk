@@ -59,11 +59,6 @@ if config['generate_unmapped'] == True:
 else:
     unmapped = ''
 
-if config['cutadapt']['run'] == True:
-    star_input_dir = OD_CUTADAPT
-else:
-    star_input_dir = OD_FASTQ
-
 
 # ------------------------------------------------------------------------------
 # Try calculate memory for star per thread: we want in total 120Gb
@@ -78,8 +73,8 @@ def get_mem_mb(wildcards, threads):
 if config['library']['type'] == 'paired-end':
     rule star:
         input:
-            fq1 = os.path.join(star_input_dir, '{sample}_1.fastq.gz'),
-            fq2 = os.path.join(star_input_dir, '{sample}_2.fastq.gz'),
+            fq1 = os.path.join(OD_CUTADAPT, '{sample}_1.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}_1.fastq.gz'),
+            fq2 = os.path.join(OD_CUTADAPT, '{sample}_2.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}_2.fastq.gz'),
             cutadapt = os.path.join(OD_CUTADAPT, '{sample}.report.txt'),
             done1 = os.path.join(OD_FASTQ, '{sample}_1.fastq.gz.done'),
             done2 = os.path.join(OD_FASTQ, '{sample}_2.fastq.gz.done'),
@@ -129,7 +124,7 @@ else:
 # single-end read mapping with STAR
     rule star:
         input:
-            fq1 = os.path.join(star_input_dir, '{sample}.fastq.gz'),
+            fq1 = os.path.join(OD_CUTADAPT, '{sample}.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}.fastq.gz'),
             done1 = os.path.join(OD_FASTQ, '{sample}.fastq.gz.done'),
         output:
             temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
@@ -149,7 +144,7 @@ else:
         params:
             sam_mapq_unique = config['star_sam_mapq_unique'],
             prefix = join(OD_UBAM, '{sample}_'),
-	    rg = '{sample}'
+            rg = '{sample}'
         singularity:
             config['STAR_IMAGE']
         shell:
@@ -206,7 +201,7 @@ rule sortbam_star:
     input:
         os.path.join(OD_UBAM, '{sample}_Aligned.out.bam')
     output:
-        (os.path.join(OD_BAM, '{sample}.bam'))
+        os.path.join(OD_BAM, '{sample}.bam') if config['keep_bam_files'] else temp(os.path.join(OD_BAM, '{sample}.bam')),
     log:
         os.path.join(OD_LOG, '{sample}.sortbam_star.log')
     threads: 1
