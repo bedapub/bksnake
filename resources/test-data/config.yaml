@@ -20,11 +20,15 @@ metadata:
 
 # Optional parameters for output files generation and storage:
 # In order to generate and/or keep those files set either 'True' or 'False' (default)
-keep_fastq_files: False    # whether to keep the downloaded fastq files in the results folder, default 'False'
-keep_bam_files: False      # whether to keep intermediate bam files in the results folder, default 'False'
-generate_cram_files: False # whether to generate and keep final cram files, default 'False'
-generate_bw_files: False   # whether to generate and keep final bw files (read coverage bigwig files), default: 'False'
-generate_unmapped: False   # whether to generate and keep unmapped read files, default: 'False'
+annotations: ['refseq']        # use this list to specify which annotations should be processed, see "genomes: db" parameter below, default: all annotations will be processed
+keep_fastq_files: False        # whether to keep the downloaded fastq files in the results folder, default 'False'
+keep_bam_files: False          # whether to keep intermediate bam files in the results folder, default 'False'
+keep_vcf_files: False          # whether to keep the vcf files from the crosscheck fingerprint analysis
+generate_cram_files: False     # whether to generate and keep final cram files, default 'False'
+generate_bw_files: False       # whether to generate and keep final bw files (read coverage bigwig files), default: 'False'
+generate_unmapped: False       # whether to generate and keep unmapped read files, default: 'False'
+crosscheck_fingerprints: False # whether to perform Picard's 'CrosscheckFingerprints' metrics, only for organism=Homo sapiens, default: False
+
 
 # Cutadapt, read trimming
 # -a adapter   Sequence of an adapter ligated to the 3' end (paired data: of the first read).
