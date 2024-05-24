@@ -21,7 +21,6 @@ def get_all_output_files(config, sample_ids, dbs):
     OD_QC = os.path.join(OD, 'qc')
     OD_GCT = os.path.join(OD, 'gct')
     OD_VCF = os.path.join(OD, 'vcf')
-    OD_CUTADAPT = os.path.join(OD, 'cutadapt')
 
     all_output_files = []
 
@@ -35,7 +34,7 @@ def get_all_output_files(config, sample_ids, dbs):
         all_output_files += expand(os.path.join(OD_QC, '{db}_bioQC.png'), db=dbs)
            
         # Other optional output files (unmapped, bw, etc)
-        all_output_files += expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids)
+        #all_output_files += expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids)
         all_output_files += get_optional_output_files(sample_ids, config)
         
     elif config ['pipeline'] == 'vcsnake':
@@ -43,9 +42,6 @@ def get_all_output_files(config, sample_ids, dbs):
         all_output_files.append(os.path.join(OD, 'multiqc_report.html'))
         all_output_files.append(os.path.join(OD_VCF, 'allSamples_merged.vcf.gz'))
         all_output_files.append(os.path.join(OD_VCF, 'allSamples_merged.vcf.gz.tbi'))
-        #all_output_files = os.path.join(OD, 'multiqc_report.html')
-        #all_output_files += os.path.join(OD_VCF, 'allSamples_merged.vcf.gz')
-        #all_output_files += os.path.join(OD_VCF, 'allSamples_merged.vcf.gz.tbi')
 
         # Other optional output files (fastq)
         all_output_files += get_optional_output_files_vc(sample_ids, config)

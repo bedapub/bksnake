@@ -71,8 +71,8 @@ rule fingerprint:
         bam = os.path.join(OD_BAM, '{sample}.bam'),
         bai = os.path.join(OD_BAM, '{sample}.bam.bai')
     output:
-        vcf = temp(os.path.join(OD_VCF, '{sample}.marked_duplicates_fingerprint.vcf')),
-        idx = temp(os.path.join(OD_VCF, '{sample}.marked_duplicates_fingerprint.vcf.idx'))
+        vcf = os.path.join(OD_VCF, '{sample}.marked_duplicates_fingerprint.vcf') if config['keep_vcf_files'] else temp(os.path.join(OD_VCF, '{sample}.marked_duplicates_fingerprint.vcf')),
+        idx = os.path.join(OD_VCF, '{sample}.marked_duplicates_fingerprint.vcf.idx') if config['keep_vcf_files'] else temp(os.path.join(OD_VCF, '{sample}.marked_duplicates_fingerprint.vcf.idx')),
     log:
         os.path.join(OD_LOG, '{sample}.fingerprint.log')
     params:
