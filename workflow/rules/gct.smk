@@ -11,7 +11,7 @@ Create GCT file with count for RefSeq/Ensembl gene annotations
 rule gct:
     input:
         files = lambda wildcards: expand(os.path.join(OD_FC, '{sample}.{db}.cnt.gz'), sample=sample_ids, db=wildcards.db),
-        annot = os.path.join(OD_ANNO, '{db}.annot')
+        annot = os.path.join(OD_ANNO, '{db}.annot.gz')
     output:
         gct = os.path.join(OD_GCT, '{db}_count.gct'),
     log:

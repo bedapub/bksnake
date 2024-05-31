@@ -35,7 +35,7 @@ rule annotations:
         gtf = os.path.join(OD_ANNO, '{db}.gtf.gz'),
         len = os.path.join(OD_ANNO, '{db}.geneLength.gz'),
         flat = os.path.join(OD_ANNO, '{db}.refFlat.gz'),
-        annot = os.path.join(OD_ANNO, '{db}.annot'),
+        annot = os.path.join(OD_ANNO, '{db}.annot.gz'),
         loci = os.path.join(OD_ANNO, '{db}.loci.txt'),
     threads: 1
     resources:
@@ -45,6 +45,6 @@ rule annotations:
         gzip -c {input.gtf} > {output.gtf}
         gzip -c {input.len} > {output.len}
         gzip -c {input.flat} > {output.flat}
-        cp -Lpr {input.annot} {output.annot}
+        gzip -c {input.annot} > {output.annot}
         cp -Lpr {input.loci} {output.loci}
         """

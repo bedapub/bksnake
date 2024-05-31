@@ -5,13 +5,12 @@ from os.path import exists, basename
 
 import pandas as pd
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Convert featureCounts to GCT.')
 
     parser.add_argument('--annotation', help='gene annotation file: '
-                        'tab-separated geneid, gene name, and description',
+                        'tab-separated geneid, gene name, and description. Maybe be gzipped.',
                         required=True)
 
     parser.add_argument('--overwrite', '-f', action='store_true',
@@ -41,12 +40,17 @@ if __name__ == "__main__":
         print('Error: Output file already exists.')
         exit(1)
 
+    # Determine the compression type based on the file extension
+    compression = 'gzip' if args.annotation.endswith('.gz') else None
+
+    # Read the annotation file with the appropriate compression setting
     annotation = pd.read_csv(args.annotation, sep='\t', header=None,
-                             names=('Geneid', 'gene', 'description'))
+                             names=('Geneid', 'gene', 'description'),
+                             compression=compression)
 
     full_df = None
 
-    # construct a merged DataFrame
+    # Construct a merged DataFrame from count files
     for fn in args.countfiles:
         df = pd.read_csv(fn, sep='\t', skiprows=1)
         assert (df.columns[:6] ==
@@ -57,12 +61,14 @@ if __name__ == "__main__":
             assert (full_df.iloc[:, :6] == df.iloc[:, :6]).all().all()
             full_df = full_df.join(df.iloc[:, 6:])
 
+    # Remove suffix from sample names if specified
     if args.remove_suffix:
         cols = full_df.columns[6:]
         full_df.rename(columns=dict(zip(cols,
                                         cols.str.replace(re.compile('[.][^.]+$'), ''))),
                        inplace=True)
 
+    # Remove fixed suffix from sample names if specified
     if args.remove_suffix_string is not None:
         cols = full_df.columns[6:]
         cols = cols[cols.str.endswith(args.remove_suffix_string)]
@@ -70,12 +76,14 @@ if __name__ == "__main__":
                                         cols.str.slice(stop=-len(args.remove_suffix_string)))),
                        inplace=True)
 
+    # Keep only the basename of sample names if specified
     if args.basename:
         cols = full_df.columns[6:]
         full_df.rename(columns=dict(zip(cols,
                                         cols.to_series().apply(basename))),
                        inplace=True)
 
+    # Reorder columns if specified
     if args.order:
         output_order = args.order.split(',')
         if len(set(output_order)) != len(output_order):
@@ -85,15 +93,17 @@ if __name__ == "__main__":
                              output_order, full_df.columns[6:])
         full_df = full_df.reindex(columns=full_df.columns[:6].tolist() + output_order)
 
-    # check that column types are compatible
+    # Check that column types are compatible
     assert annotation.Geneid.dtype == full_df.Geneid.dtype
     full_df = annotation.merge(full_df, 'right', 'Geneid')
 
+    # Drop unnecessary columns and rename for GCT format
     full_df = (full_df
                .drop(columns=[
                    'description', 'Chr', 'Start', 'End', 'Strand', 'Length'])
                .rename(columns={'Geneid': 'Name', 'gene': 'Description'}))
 
+    # Write the output GCT file
     with open(args.gct, 'w') as out:
         print('#1.2', file=out)
         print('{}\t{}'.format(full_df.shape[0], full_df.shape[1] - 2), file=out)
