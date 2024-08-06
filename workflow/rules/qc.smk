@@ -7,6 +7,7 @@ if config['pipeline'] == 'bksnake':
             cnts = lambda wildcards: expand(os.path.join(OD_FC, '{sample}.{db}.cnt.gz'), sample=sample_ids, db=wildcards.db),
             summaries = lambda wildcards: expand(os.path.join(OD_FC, '{sample}.{db}.cnt.summary'), sample=sample_ids, db=wildcards.db),
             metrics = lambda wildcards: expand(os.path.join(OD_METRICS, '{sample}.{db}.RNAmetrics.txt'), sample=sample_ids, db=wildcards.db),
+            rseqc = expand(os.path.join(OD_METRICS, '{sample}.strandedness.txt'), sample=sample_ids),
             html = expand(os.path.join(OD_FASTQC, '{name}_fastqc.html'), name=fastq_names_noext),
             fastqc = expand(os.path.join(OD_FASTQC, '{name}_fastqc'), name=fastq_names_noext),
             flagstat = expand(os.path.join(OD_STATS, '{sample}.bam.flagstat'), sample=sample_ids),

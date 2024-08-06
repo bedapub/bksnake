@@ -37,7 +37,7 @@ rule annotations:
         flat = os.path.join(OD_ANNO, '{db}.refFlat.gz'),
         annot = os.path.join(OD_ANNO, '{db}.annot.gz'),
         loci = os.path.join(OD_ANNO, '{db}.loci.txt'),
-        bed = os.path.join(OD_ANNO, '{db}.bed'),
+        bed = os.path.join(OD_ANNO, '{db}.bed.gz'),
     threads: 1
     resources:
         mem_mb = 1000
@@ -50,5 +50,5 @@ rule annotations:
         gzip -c {input.flat} > {output.flat}
         gzip -c {input.annot} > {output.annot}
         cp -Lpr {input.loci} {output.loci}        
-        gtf2bed < {input.gtf} > {output.bed}
+        gtf2bed < {input.gtf} | gzip -c > {output.bed}
         """
