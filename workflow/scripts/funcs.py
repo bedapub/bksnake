@@ -16,10 +16,8 @@ from snakemake.io import expand
 Column names in metadata panda dataframe
 """
 ORGANISM_PROPERTY = 'Organism'
-STRANDED_PROPERTY = 'Is Stranded (DAT)'
 FIRST_READ_PROPERTY = 'FASTQ1'
 SECOND_READ_PROPERTY = 'FASTQ2'
-
 
 """--------------------------------------------------------------------
 default header used in the case when there is no header in the sample file.
@@ -293,12 +291,10 @@ def get_metadata_from_file(metadata_file, group):
               file=sys.stderr )
 
         
-    # remove all NaN columns but keep 'Is Stranded (DAT)' column = STRANDED_PROPERTY
+    # remove all NaN columns
     col_names = df.columns
     df_copy = df
     df.dropna(axis='columns', how='all', inplace=True)
-    if STRANDED_PROPERTY in df_copy:
-        df[STRANDED_PROPERTY] = df_copy[STRANDED_PROPERTY]
     del df_copy
 
 
@@ -416,73 +412,6 @@ def library_type(meta):
     else:
         raise Exception('\"'+FIRST_READ_PROPERTY+'\" property not present in metadata, \
                          thus cannot determine whether paired- or single-end sequencing library.')
-
-        
-        
-"""------------------------------------------------------------------------------
-Determine strand orientation of the sequencing library
-
-3 options:
- 1. SECOND_READ_TRANSCRIPTION_STRAND (default, most common) 
- 2. FIRST_READ_TRANSCRIPTION_STRAND 
- 3. NONE
- 
-Strategy:
- 1. if present and valid in config then use it from config
- 2. if present and valid from metadata file then it from file
- 3. raise error
-
-What if metadata 'Is Stranded (DAT)' is True but it is not 2nd but 1st read strand ? --> use config.yaml
-"""
-def strandedness(meta, config):
-    """Determine strand orientation of the sequencing library.
-
-    Parameters
-    ----------
-        meta : DataFrame
-            Input DataFrame containing sample metadata.
-        config : Dict
-            Snakemake workflow configuration dictionary.
-
-    Returns
-    -------
-        strand : tuple
-            Strand information as tuple of three elements.
-    """
-    default_strand = tuple(('SECOND_READ_TRANSCRIPTION_STRAND', 2, 2)) # most common option for paired-end library
-    first_read = tuple(('FIRST_READ_TRANSCRIPTION_STRAND', 1, 1)) # less frequnent for paired-end library
-    no_strand = tuple(('NONE', 0, 0)) # no strand or single-end library
-
-    if library_type(meta) == 'single-end':
-        return no_strand
-
-    if 'library' in config and 'strand' in config['library']:
-        sys.stderr.write('Sequencing library properties used from input config file.\n')
-        if config['library']['strand'] == 'SECOND_READ_TRANSCRIPTION_STRAND':
-            return default_strand
-        elif config['library']['strand'] == 'FIRST_READ_TRANSCRIPTION_STRAND':
-            return first_strand
-        elif config['library']['strand'] == 'NONE':
-            return no_strand
-        else:
-            raise Exception('Invalid sequencing library property in input config file: '+
-                            config['library']['strand'])
-
-    if STRANDED_PROPERTY in meta.columns:
-        if len(meta[STRANDED_PROPERTY].unique()) == 1:
-            if meta[STRANDED_PROPERTY].unique()[0]: # is stranded library
-                return default_strand
-            else:
-                return no_strand
-        else:
-            raise Exception('Multiple values for sequencing library property \"'+
-                            STRANDED_PROPERTY+'\" in metadata.\n')
-    else:
-        sys.stderr.write('Sequencing library property \"'+STRANDED_PROPERTY+
-                         '\" not present in metadata nor in input config file. Thus, use \"unstranded\".\n')
-        return no_strand
-        
-    return default_strand
 
 
 
@@ -662,6 +591,11 @@ def map_organism_to_config(organism):
         return 'Vero_WHO_p1.0'
     elif org == 'rhesus' or org == 'rhesus monkey' or org == 'macaca mulatta':
         return 'Mmul_10'
+    elif org == 'hamster' or org == 'chinese hamster' or org == 'cricetulus griseus':
+        return 'CriGri_PICRH_1_0'       
+    elif org == 'dog' or org == 'canis lupus familiaris' or org == 'canis lupus':
+        return 'ROS_Cfam_1.0 '       
+    
 # new: commented out in order to allow for 'custom' genomes
 #    else:
 #        raise Exception('Unknown organism: \"'+organism+'\"')

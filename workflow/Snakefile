@@ -103,25 +103,6 @@ config = funcs.update_organism(config, meta)
 
 
 """
-Determine strand orientation of the sequencing library
-
-Normally this value should come from the metadata as True or False
-
-However, the strand may have 3 options:
- 1. SECOND_READ_TRANSCRIPTION_STRAND (default, most common) 
- 2. FIRST_READ_TRANSCRIPTION_STRAND 
- 3. NONE
- 
-Strategy:
- 1. if present and valid in config then use it from config
- 2. if present and valid from metadata then it from file
- 3. raise error
-"""
-PICARD_STRAND, BIOKIT_STRAND, FC_STRAND = funcs.strandedness(meta, config)
-
-
-
-"""
 Determine fastq file locators from metadata
 This depends whether paired- or single-end reads
 
@@ -133,17 +114,6 @@ sample_ids = meta['#ID']
 sample_groups = meta['GROUP']
 fastq_names = list(locators['name'])
 fastq_names_noext = locators['name'].str.replace('.fastq.gz', '', regex=True)
-
-
-## ------------------------------------------------------------------------------
-## for debugging
-#print('------------------------------------', file=sys.stderr)
-#print('locators=', file=sys.stderr)
-#print(locators, file=sys.stderr)
-#for col in locators.columns:
-#    print('------------------------------------', file=sys.stderr)
-#    print('locators[\''+col+'\']=', file=sys.stderr)
-#    print(locators[col], file=sys.stderr)
 
 
 # ------------------------------------------------------------------------------

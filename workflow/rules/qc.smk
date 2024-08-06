@@ -13,7 +13,7 @@ if config['pipeline'] == 'bksnake':
             stats = expand(os.path.join(OD_STATS, '{sample}.bam.stats'), sample=sample_ids),
             stats2 = expand(os.path.join(OD_STATS, '{sample}.bam.stats2'), sample=sample_ids),
             final = expand(os.path.join(OD_LOG, '{sample}_Log.final.out'), sample=sample_ids),
-	    cutadapt = expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids),
+            cutadapt = expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids),
         output:
             html = report(os.path.join(OD, '{db}_multiqc_report.html'), 
                 htmlindex=os.path.join(OD, '{db}_multiqc_report.html'), 

@@ -41,31 +41,10 @@ cutadapt:
     parameters: '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT --minimum-length 10'
 
 
-#################################
-# SEQUENCING LIBRARY PARAMETERS #
-#################################
-# TO DO: this information may come from the metadata.
-# Strand information for Picard and featureCount (FC) tools (this could be integrated in the Snakefile)
-# type: choose either 'paired-end' (most common) or 'single-end' (will be derived also from input metadata file)
-# strand: choose one of three options:
-#    option 1: 'SECOND_READ_TRANSCRIPTION_STRAND' (most common)
-#    option 2: 'FIRST_READ_TRANSCRIPTION_STRAND'
-#    option 3: 'NONE' (for unstranded paired-end library, for single-end reads library and in case of doubt)
-library:
-    type: 'paired-end' # 'paired-end' (default) or 'single-end'
-    strand: 'SECOND_READ_TRANSCRIPTION_STRAND'
-
-
 ####################################
 # LESS COMMONLY CHANGED PARAMETERS #
 ####################################
 # featureCounts parameters
-#
-# stranded quantification
-# 0 for unstranded quantification
-# 1 for forward (e.g. for Lexogen's QuantSeq)
-# 2 for reverse (e.g. for Illumina's TruSeq Stranded mRNA)
-# strand: 0 see above fc_strand
 fc_min_overlap: 10
 fc_frac_overlap: 0.2
 
@@ -113,6 +92,7 @@ ribo_intervals: 'fasta/genome.rRNA_intervals'
 BAMTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bamtools%3A2.5.2--hdcf5f25_2'
 BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.13--h3a49de5_0' 
 #BCFTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bcftools%3A1.19--h8b25389_0' ### THIS VERSION MAKES PROBLEMS IN THE CONCATENATE STEP OF VCSNAKE
+BEDOPS_IMAGE: 'https://depot.galaxyproject.org/singularity/bedops%3A2.4.41--h9f5acd7_0'
 BEDSORT_IMAGE: 'https://depot.galaxyproject.org/singularity/ucsc-bedsort%3A377--ha8a8165_4'
 BEDTOOLS_IMAGE: 'https://depot.galaxyproject.org/singularity/bedtools%3A2.31.1--hf5e1c6e_0'
 BWA_IMAGE: 'https://depot.galaxyproject.org/singularity/bwa%3A0.7.17--he4a0461_11'
