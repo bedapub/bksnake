@@ -17,15 +17,11 @@ New parameter '--countReadPairs' is added to featureCounts to explicitly specify
 and the '-p' option in featureCounts now only specifies if the input reads are paired end 
 (it also implied that counting of read pairs would be performed in previous versions).
 """
-if config['library']['type'] == 'paired-end':
-    P_PARAM = '-p --countReadPairs'
-else:
-    P_PARAM = ''
-
 
 # ------------------------------------------------------------------------------
 rule fc:
     input:
+        str = os.path.join(OD_METRICS, '{sample}.strandedness.txt'),
         bam = os.path.join(OD_UBAM,'{sample}_Aligned.out.bam'),
         gtf = os.path.join(OD_ANNO,'{db}.gtf.gz')
     output:
@@ -42,11 +38,22 @@ rule fc:
         config['SUBREAD_IMAGE']
     shell:
         """
+        set -e
+
+        str=$(grep 'featurecounts=' {input.str} | cut -d= -f2)
+        paired=$(grep -c 'PairEnd Data' {input.str})
+
+        if [[ "$paired" == 1 ]]; then
+            p_param="-p --countReadPairs"
+        else
+            p_param=""
+        fi
+
         featureCounts \
-            -t exon -g gene_id {P_PARAM} \
+            -t exon -g gene_id ${{p_param}} \
             -Q 10 -B -C --minOverlap {MIN_OVERLAP} \
-             --fracOverlap {FRAC_OVERLAP} \
-            -s {FC_STRAND} -a {input.gtf} \
+            --fracOverlap {FRAC_OVERLAP} \
+            -s ${{str}} -a {input.gtf} \
             -T {threads} -o {params.cnt} {input.bam} 2> {log} \
         && gzip {params.cnt}
         """

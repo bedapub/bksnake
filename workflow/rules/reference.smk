@@ -37,14 +37,18 @@ rule annotations:
         flat = os.path.join(OD_ANNO, '{db}.refFlat.gz'),
         annot = os.path.join(OD_ANNO, '{db}.annot.gz'),
         loci = os.path.join(OD_ANNO, '{db}.loci.txt'),
+        bed = os.path.join(OD_ANNO, '{db}.bed'),
     threads: 1
     resources:
         mem_mb = 1000
+    singularity:
+        config['BEDOPS_IMAGE']
     shell:
         """
         gzip -c {input.gtf} > {output.gtf}
         gzip -c {input.len} > {output.len}
         gzip -c {input.flat} > {output.flat}
         gzip -c {input.annot} > {output.annot}
-        cp -Lpr {input.loci} {output.loci}
+        cp -Lpr {input.loci} {output.loci}        
+        gtf2bed < {input.gtf} > {output.bed}
         """

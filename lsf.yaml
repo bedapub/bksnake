@@ -126,6 +126,10 @@ star:
   - "-q long"
   - "-R rusage[mem=50GB/host]"
 
+strandedness:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
 tpm:
   - "-q short"
   - "-R rusage[mem=10GB/host]"
