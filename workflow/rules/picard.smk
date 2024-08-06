@@ -1,14 +1,15 @@
 # -------------------------------------------------------------
 rule strandedness:
     input:
-        os.path.join(OD_BAM, '{sample}.bam'),
-        os.path.join(OD_BAM, '{sample}.bam.bai')
+        bam = os.path.join(OD_BAM, '{sample}.bam'),
+        bai = os.path.join(OD_BAM, '{sample}.bam.bai')
     output:
-        os.path.join(OD_METRICS, '{sample}.strandedness.txt'),
+        txt = temp(os.path.join(OD_METRICS, '{sample}.strandedness.txt')),
+        bed = temp(os.path.join(OD_METRICS, '{sample}.bed')),
     log:
         os.path.join(OD_LOG, '{sample}.strandedness.log')
     params:
-        bed = os.path.join(OD_ANNO, DBS[0]+'.bed'),
+        bed = os.path.join(OD_ANNO, DBS[0]+'.bed.gz'),
     threads: 1
     resources:
         mem_mb = 10000
@@ -16,8 +17,9 @@ rule strandedness:
         config['RSEQC_IMAGE']
     shell:
         """
-        infer_experiment.py -r {params.bed} -i {input[0]} > {output}
-        python workflow/scripts/strandedness.py {output} >> {output}
+        gunzip -c {params.bed} > {output.bed}
+        infer_experiment.py -r {output.bed} -i {input.bam} > {output.txt}
+        python workflow/scripts/strandedness.py {output.txt} >> {output.txt}
         """        
 
 
