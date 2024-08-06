@@ -41,21 +41,6 @@ cutadapt:
     parameters: '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT --minimum-length 10'
 
 
-#################################
-# SEQUENCING LIBRARY PARAMETERS #
-#################################
-# TO DO: this information may come from the metadata.
-# Strand information for Picard and featureCount (FC) tools (this could be integrated in the Snakefile)
-# type: choose either 'paired-end' (most common) or 'single-end' (will be derived also from input metadata file)
-# strand: choose one of three options:
-#    option 1: 'SECOND_READ_TRANSCRIPTION_STRAND' (most common)
-#    option 2: 'FIRST_READ_TRANSCRIPTION_STRAND'
-#    option 3: 'NONE' (for unstranded paired-end library, for single-end reads library and in case of doubt)
-library:
-    type: 'paired-end' # 'paired-end' (default) or 'single-end'
-    strand: 'SECOND_READ_TRANSCRIPTION_STRAND'
-
-
 #####################################
 # REFERENCE GENOMES AND ANNOTATIONS #
 #####################################
