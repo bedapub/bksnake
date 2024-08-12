@@ -1,0 +1,60 @@
+#####################################
+# GENERAL PARAMETERS                #
+#####################################
+genome_dir: ''             # ENTER VALUE for genome_dir: path to "root" directory containing sub-directory for each species
+snakemake:
+    path: ''     # ENTER VALUE for the snakemake command (including path, or modules to load)
+    parameters: ''                         # Additional Snakemake parameters, e.g. '--dry-run --notemp'
+singularity:
+    prefix: 'singularity-images'           # ENTER VALUE for the folder where images should be stored for re-use (typically a central location)
+pipeline: 'bksnake'                        # (do not change) Type of pipeline: bksnake (bulk RNAseq) or vcsnake (variant calling) pipeline. Currently only  "bksnake" is supported !
+
+
+###############################
+# COMMONLY CHANGED PARAMETERS #
+###############################
+results: 'output_test-data_single-end_reads'                   # ENTER VALUE for the folder name of output files ("result" files)
+metadata:
+    file: 'resources/test-data/metadata_single-end_reads.txt'  # ENTER VALUE for the metadata file
+    group_name: 'GROUP'                       # ENTER VALUE matching the input metdata file (one of the column names)
+
+# Optional parameters for output files generation and storage:
+# In order to generate and/or keep those files set either 'True' or 'False' (default)
+annotations: ['refseq']        # use this list to specify which annotations should be processed, see "genomes: db" parameter below, default: all annotations will be processed
+keep_fastq_files: False        # whether to keep the downloaded fastq files in the results folder, default 'False'
+keep_bam_files: False          # whether to keep intermediate bam files in the results folder, default 'False'
+keep_vcf_files: False          # whether to keep the vcf files from the crosscheck fingerprint analysis
+generate_cram_files: False     # whether to generate and keep final cram files, default 'False'
+generate_bw_files: False       # whether to generate and keep final bw files (read coverage bigwig files), default: 'False'
+generate_unmapped: False       # whether to generate and keep unmapped read files, default: 'False'
+crosscheck_fingerprints: False # whether to perform Picard's 'CrosscheckFingerprints' metrics, only for organism=Homo sapiens, default: False
+
+
+# Cutadapt, read trimming
+# -a adapter   Sequence of an adapter ligated to the 3' end (paired data: of the first read).
+# -A ADAPTER   3' adapter to be removed from R2
+# Below are the default Illumina universal parameters
+# For optional parameters, see cutadapt manual: https://cutadapt.readthedocs.io/en/stable/guide.html#basic-usage
+# Normally, trimming is not required (see https://academic.oup.com/nargab/article/2/3/lqaa068/5901066 )
+cutadapt:
+    run: False  # switch to perform or not cutadapt trimming, default: 'False'
+    parameters: '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT --minimum-length 10'
+
+
+#####################################
+# REFERENCE GENOMES AND ANNOTATIONS #
+#####################################
+# genome_dir: path to "root" directory containing sub-directory for each species (is specified above)
+# genomes: genome_subdir: sub-directory name under the "root" directory
+genomes:
+    hg38: { species: 'hg38', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'hg38', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'], db: ['refseq', 'ensembl', 'gencode'] }
+    chm13: { species: 'chm13', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'chm13', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'], db: ['refseq'] }
+    mfa5: { species: 'mfa5', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa5', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
+    mfa6: { species: 'mfa6', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'mfa6', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq'] }
+    mm10: { species: 'mm10', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'mm10', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['refseq', 'ensembl', 'gencode'] }
+    mm39: { species: 'mm39', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'mm39', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['refseq', 'ensembl', 'gencode'] }
+    rn6: { species: 'rn6', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn6', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq', 'ensembl'] }
+    rn7: { species: 'rn7', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn7', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq', 'ensembl'] }
+    ss11: { species: 'ss11', species_name: 'pig', organism: 'Sus scrofa', genome_subdir: 'ss11', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
+    oc2: { species: 'oc2', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_subdir: 'oc2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
+
