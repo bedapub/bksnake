@@ -40,8 +40,8 @@ rule fc:
         """
         set -e
 
-        str=$(grep 'featurecounts=' {input.str} | cut -d= -f2)
-        paired=$(grep -c 'PairEnd Data' {input.str})
+        paired=$(grep -c 'PairEnd Data' {input.str}) || true
+        str=$(grep 'featurecounts=' {input.str} | cut -d= -f2) || true
 
         if [[ "$paired" == 1 ]]; then
             p_param="-p --countReadPairs"

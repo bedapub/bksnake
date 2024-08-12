@@ -1,0 +1,4 @@
+#ID	GROUP	FASTQ1	Raw	Organism
+GSM5362225	HOXB9-KO	10k_SRR14749833_1.fastq.gz	resources/test-data/fastq	Human
+GSM5362224	HOXB9-T133A	10k_SRR14749832_1.fastq.gz	resources/test-data/fastq	Human
+GSM5362223	HOXB9	10k_SRR14749831_1.fastq.gz	resources/test-data/fastq	Human

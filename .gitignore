@@ -15,6 +15,7 @@ logs*
 results*
 singularity-images
 *test*
-*.yaml
-!resources/test-data/config.yaml
+config.yaml
+config_*.yaml
+!resources/test-data/
 !lsf.yaml
