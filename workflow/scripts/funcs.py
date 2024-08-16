@@ -29,22 +29,18 @@ default_header = ('#ID', 'GROUP', 'FASTQ1', 'FASTQ2')
 Helper functions
 """
 def clean_string(s):
-    return s.strip()
+    return ''.join(e for e in s if e.isalnum())
 
-def isBlank (s):
-    if s and s.strip():
-        return False
-    return True
+def isBlank(myString):
+    return not (myString and myString.strip())
 
-def isNotBlank (s):
-    if s and s.strip():
-        return True
-    return False
+def isNotBlank(myString):
+    return bool(myString and myString.strip())
 
 def move_columns_left(df, columns):
-    df_left = df[columns]
-    df_right = df[[col for col in df.columns if col not in df_left.columns]]
-    df = pd.concat([df_left, df_right], axis='columns')
+    for col in columns:
+        if col in df.columns:
+            df = df[[col] + [c for c in df if c != col]]
     return df
 
 
@@ -145,8 +141,6 @@ def get_git_revision_short_hash() -> str:
     return subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode('ascii').strip()
 
 
-
-
 """------------------------------------------------------------------------------
 Check whether the input sample IDs are unique or not    
 """
@@ -205,10 +199,9 @@ def read_biokit_sample_anno(filename):
 
 
 """------------------------------------------------------------------------------
-Convert sample annotations to PhenoData format
 """
 def biokit_sample_anno_to_phenoData(anno):
-    """convert biokit sample annotation DataFrame into the phenoData DataFrame
+    """Convert biokit sample annotation DataFrame into the phenoData DataFrame
     in the same format as the biokit output pipeline.
 
     Parameters
@@ -223,17 +216,36 @@ def biokit_sample_anno_to_phenoData(anno):
             GROUP. The rest columns contain sample annotation information in the
             input annotation file
     """
+    # Ensure GROUP column is a string and replace NA values with 'noGroup'
     anno['GROUP'] = anno['GROUP'].astype(str)
     anno['GROUP'] = anno['GROUP'].replace(to_replace=r'^NA$', value='noGroup', regex=True)
 
-    id_group = anno.iloc[:,0].astype(str) + "_" + anno.iloc[:,1].astype(str)
-    keepcols = [True] * len(anno.columns)
-    keepcols[2:4] = [False]*2 # FASTQ1 and FASTQ2
-    rest = anno.iloc[:, keepcols].copy()
-    res = pd.concat([rest, id_group], axis=1)
-    res.rename(columns={'#ID': 'ID', 0:'ID_GROUP'}, inplace=True)
+    # Create the ID_GROUP column by concatenating ID and GROUP columns
+    id_group = anno['#ID'].astype(str) + "_" + anno['GROUP'].astype(str)
 
-    return(res)
+    # Remove the FASTQ1 column
+    anno = anno.drop(columns=['FASTQ1'])
+
+    # Remove the FASTQ2 column if it exists
+    if 'FASTQ2' in anno.columns:
+        anno = anno.drop(columns=['FASTQ2'])
+
+    # Remove the Raw column
+    if 'Raw' in anno.columns:
+        anno = anno.drop(columns=['Raw'])
+
+    # Rename the #ID column to ID
+    anno = anno.rename(columns={'#ID': 'ID'})
+
+    # Add the ID_GROUP column to the DataFrame
+    anno['ID_GROUP'] = id_group
+
+    # Reorder the columns to have ID_GROUP, ID, and GROUP as the first three columns
+    columns_order = ['ID', 'GROUP', 'ID_GROUP'] + [col for col in anno.columns if col not in ['ID', 'GROUP', 'ID_GROUP']]
+    res = anno[columns_order]
+
+    return res
+
 
 
 """------------------------------------------------------------------------------
@@ -255,25 +267,85 @@ def translate_biokit_to_phenoData_meta(infile, outfile):
     outdf.to_csv(outfile, sep='\t', index=False)
 
 
-"""------------------------------------------------------------------------------
-Get metadata from flat file or from study and sample metadata MongoDB database.
-Updates:
-    - if metadata_file exists, then read from that file.
-    - allow combining multiple columns for group
-    - remove special characters from group, e.g. greek symbols
-    - remove first character from fastq files names if it is a slash '/'
-    - add Gender column if missing
+"""--------------------------------------------------------------------
+Check for paths of FASTQ1/2 files
+"""
+def check_fastq_paths(df):
+    """Check if the paths in FASTQ1 and FASTQ2 columns exist."""
+    for index, row in df.iterrows():
+        source_folder = row['Raw']
+        fastq1 = row['FASTQ1']
+        fastq1_combination = os.path.join(source_folder, fastq1)
+
+        if not os.path.exists(fastq1_combination):
+            raise ValueError(f"FASTQ1 path does not exist: {fastq1_combination}")
+
+        if 'FASTQ2' in df.columns:
+            fastq2 = row['FASTQ2']
+            fastq2_combination = os.path.join(source_folder, fastq2)
+            if not os.path.exists(fastq2_combination):
+                raise ValueError(f"FASTQ2 path does not exist: {fastq2_combination}")
+                
+    
+"""--------------------------------------------------------------------
+Check for duplicates in the FASTQ1/2 columns
+"""
+def check_fastq_columns(df):
+    required_columns = ['FASTQ1', 'Raw']
+    if not all(column in df.columns for column in required_columns):
+        raise ValueError(f"Missing required columns: {required_columns}")
+
+    has_fastq2 = 'FASTQ2' in df.columns
+
+    combinations = set()
+   
+    for index, row in df.iterrows():
+        source_folder = row['Raw']
+        fastq1 = row['FASTQ1']
+        fastq1_combination = f"{source_folder}/{fastq1}"
+
+        if has_fastq2:           
+            fastq2 = row['FASTQ2']
+            fastq2_combination = f"{source_folder}/{fastq2}"
+
+            if fastq1_combination == fastq2_combination:
+                raise ValueError(f"Identical combinations found: {fastq1_combination}")
+
+        if fastq1_combination in combinations:
+            raise ValueError(f"Duplicate combination found: {fastq1_combination}")
+
+        combinations.add(fastq1_combination)
+
+        if has_fastq2:
+            combinations.add(fastq2_combination)
+
+
+"""--------------------------------------------------------------------
+"""
+def check_raw_directories(df):
+    """Check if the directories in the 'Raw' column exist."""
+    if 'Raw' not in df.columns:
+        raise ValueError("Missing required column: 'Raw'")
+
+    unique_directories = df['Raw'].unique()
+
+    for directory in unique_directories:
+        if not os.path.exists(directory):
+            raise ValueError(f"Directory does not exist: {directory}")
+
+
+"""--------------------------------------------------------------------
 """
 def get_metadata_from_file(metadata_file, group):
-    """Get metadata from flat file or from study and sample metadata MongoDB database.
-    
+    """Get metadata from user given flat file.
+
     Parameters
     ----------
         metadata_file : str
             Input file name containing sample metadata information.
         group : str
             Name of the group or condition variable, ie one of the header/column names
-            
+
     Returns
     -------
         df : DataFrame
@@ -284,50 +356,52 @@ def get_metadata_from_file(metadata_file, group):
     else:
         raise Exception('Metadata file is missing. Abort! '+metadata_file)
 
-    # check for duplicated columns
+    # Check Raw column
+    #check_raw_directories(df)
+    
+    # Check if the paths in FASTQ1 and FASTQ2 columns exist
+    #check_fastq_paths(df)
+
+    # Perform the FASTQ and Source Folder checks
+    #check_fastq_columns(df)
+       
+    # Check for duplicated columns
     if df.columns.duplicated().any():
         print( 'Warning: Got duplicated columns:',
                 df.columns[df.columns.duplicated()].unique(),  
               file=sys.stderr )
 
-        
-    # remove all NaN columns
+    # Remove all NaN columns
     col_names = df.columns
     df_copy = df
     df.dropna(axis='columns', how='all', inplace=True)
-    del df_copy
+    del df_copy   
 
-
-    # determine whether single- or paired-end reads
+    # Determine whether single- or paired-end reads
     if 'FASTQ2'in df:
         single_end = False
     else:
         single_end = True
- 
-        
-    # remove '/' if it is first character in fastq files names
+
+    # Remove '/' if it is first character in fastq files names
     if 'FASTQ1' in df.columns:
         df['FASTQ1'] = df['FASTQ1'].str.replace('^/', '', regex=True)
     if 'FASTQ2' in df.columns:
         df['FASTQ2'] = df['FASTQ2'].str.replace('^/', '', regex=True)
 
-        
-    # find columns which are unique without parenthesis
+    # Find columns which are unique without parenthesis
     dup_cols = df.columns.str.replace(r' \([^(]+\)$', '', regex=True)
     dup_cols = dup_cols.duplicated(keep=False)
-    
-    
-    # remove parenthesis suffixes among unique columns
+
+    # Remove parenthesis suffixes among unique columns
     cols_to_rename = df.columns[~dup_cols]
     rename_dict = dict(
             zip(cols_to_rename, cols_to_rename.str.replace(r' \([^(]+\)$', '', regex=True))
             )
     df.rename(columns=rename_dict, inplace=True)
 
-    
     # Determine the "group" name, may combine several columns
     if isBlank(group) or group == 'NA' or group == 'na' or group == 'n/a':
-        #assert 'GROUP' not in df.columns
         df['GROUP'] = 'noGroup'
     elif isNotBlank(group):
         if group not in df.columns:
@@ -336,36 +410,32 @@ def get_metadata_from_file(metadata_file, group):
                             +'" from the config file is not in the input metadata file: '
                             +metadata_file+'. The colums are in the metadata file are: '
                             +str(df.columns))
-        #assert 'GROUP' not in df.columns
         groupList = [clean_string(item) for item in group.split(';')]
         for col in groupList:
             df[col] = df[col].astype(str)
         try:
             df['GROUP'] = df[groupList].T.agg('_'.join)
-            
+
             # Remove unicode characters in the GROUP column
             df['GROUP'] = df['GROUP'].str.encode('ascii', 'ignore').str.decode('ascii')
- 
+
         except KeyError:
             print(f"Unknown column(s) '{group}'", file=sys.stderr)
             sys.exit(2)
     else:
         raise Exception('GROUP error. Abort! [metadata][group_name]='+group)
-       
 
     # Replace NA group name by 'noGroup'
     df['GROUP'] = df['GROUP'].replace(to_replace=r'^NaN$', value='noGroup', regex=True)
     df['GROUP'] = df['GROUP'].replace(to_replace=r"^nan$", value='noGroup', regex=True)
     df['GROUP'] = df['GROUP'].replace(to_replace=r"^NA$", value='noGroup', regex=True)
- 
-        
-    # it may be that the ID are numbers, panda converts them to integers
+
+    # It may be that the ID are numbers, panda converts them to integers
     # but this is a problem for the subsequent statements,
     # thus we convert the whole column to string
     df['#ID'] = df['#ID'].astype(str)
 
-    
-    # escape spaces in #ID
+    # Escape spaces in #ID
     df['#ID'] = df['#ID'].str.replace(' ', '_', regex=True)
 
     if single_end == True:
@@ -373,13 +443,13 @@ def get_metadata_from_file(metadata_file, group):
     else:
         df = move_columns_left(df, ['#ID', 'GROUP', 'FASTQ1', 'FASTQ2'])
 
-    # replace tabs and newlines by space
+    # Replace tabs and newlines by space
     df.replace('\t|\n|\r', ' ', regex=True, inplace=True)
 
-    # replace white spaces and slashes in GROUP by underscore
+    # Replace white spaces and slashes in GROUP by underscore
     df['GROUP'] = df['GROUP'].str.replace(' ', '_', regex=False).replace('/', '_', regex=False)
-    
-    # add Gender column if missing, could be used for biokitr package (in development)
+
+    # Add Gender column if missing, could be used for biokitr package (in development)
     normalized_columns = [col.lower() for col in df.columns]
     if 'sex' not in normalized_columns and 'gender' not in normalized_columns:
         print(f'NOTE: Columns "S/sex" or "G/gender" not present in sample metadata columns. Add column "Gender" with values "Unknown"', file=sys.stderr)
