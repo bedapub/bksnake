@@ -162,6 +162,7 @@ def workflow(args):
           +' --latency-wait '+str(latency_wait)\
           +' --rerun-incomplete'\
           +' --keep-going'\
+          +' --show-failed-logs'\
           +' --verbose'\
           +' '+CONFIG['snakemake']['parameters']\
           +' --use-singularity'\
