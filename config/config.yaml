@@ -51,7 +51,7 @@ fc_frac_overlap: 0.2
 # STAR read mapping parameters
 star_sam_mapq_unique: 60
 star_threads: 12
-star_version: 'star_2.7.10b'  # required for STAR_DIR variable
+star_version: 'star_2.7.11b'  # required for STAR_DIR variable
 
 
 #####################################
