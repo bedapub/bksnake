@@ -2,6 +2,10 @@ __default__:
   - "-q preempt"
   - "-R 'rusage[mem=10GB/host]'"
 
+annotations:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
 bamstats:
   - "-q short"
   - "-R rusage[mem=10GB/host]"
@@ -59,6 +63,10 @@ flagstat:
   - "-R rusage[mem=10GB/host]"
 
 gct:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+genome:
   - "-q short"
   - "-R rusage[mem=10GB/host]"
 
