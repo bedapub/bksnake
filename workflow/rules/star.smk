@@ -73,6 +73,7 @@ def get_mem_mb(wildcards, threads):
 if config['library']['type'] == 'paired-end':
     rule star:
         input:
+            gtfs = expand(rules.annotations.output.ugtf, db=DBS),
             fq1 = os.path.join(OD_CUTADAPT, '{sample}_1.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}_1.fastq.gz'),
             fq2 = os.path.join(OD_CUTADAPT, '{sample}_2.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}_2.fastq.gz'),
             cutadapt = os.path.join(OD_CUTADAPT, '{sample}.report.txt'),
@@ -124,8 +125,9 @@ else:
 # single-end read mapping with STAR
     rule star:
         input:
-            fq1 = os.path.join(OD_CUTADAPT, '{sample}.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}.fastq.gz'),
+            gtfs = expand(rules.annotations.output.ugtf, db=DBS),
             done1 = os.path.join(OD_FASTQ, '{sample}.fastq.gz.done'),
+            fq1 = os.path.join(OD_CUTADAPT, '{sample}.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}.fastq.gz'),
         output:
             temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
             temp(directory(os.path.join(OD_UBAM, '{sample}__STARgenome'))),

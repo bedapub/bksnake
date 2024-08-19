@@ -19,16 +19,18 @@ How to make the haplotype map:
 """
 
 MAP = os.path.join(OD, 'haplotype.map')
+SPECIES = config['species']
 
 """
 Create the map file
 """
 rule haplotype_map:
     output:
+        map = temp(MAP),
         tmp = temp(os.path.join(OD, 'hg38_chr.map')),
-        map = temp(MAP)
     params:
-        uri = 'https://raw.githubusercontent.com/naumanjaved/fingerprint_maps/master/map_files/hg38_chr.map'
+        uri = 'https://raw.githubusercontent.com/naumanjaved/fingerprint_maps/master/map_files/hg38_chr.map',
+        map = os.path.join('resources', f'haplotype_{SPECIES}.map'),
     shell:
         """
         wget -q -N -O {output.tmp} {params.uri} \
@@ -68,6 +70,9 @@ Determine finger prints by picard
 rule fingerprint:
     input:
         map = MAP,
+        ref = rules.genome.output.ugz,
+        fai = rules.genome.output.faiugz,
+        dict = rules.genome.output.dict,
         bam = os.path.join(OD_BAM, '{sample}.bam'),
         bai = os.path.join(OD_BAM, '{sample}.bam.bai')
     output:
@@ -76,7 +81,6 @@ rule fingerprint:
     log:
         os.path.join(OD_LOG, '{sample}.fingerprint.log')
     params:
-        ref = GENOME_FASTA,
         map = MAP
     threads: 1
     resources:
@@ -88,7 +92,7 @@ rule fingerprint:
         export _JAVA_OPTIONS="-Xmx10g" && \
         /usr/local/bin/picard ExtractFingerprint \
             -INPUT {input.bam} \
-            -REFERENCE_SEQUENCE {params.ref} \
+            -REFERENCE_SEQUENCE {input.ref} \
             -HAPLOTYPE_MAP {input.map} \
             -OUTPUT {output.vcf} 2> {log}
         """
@@ -105,6 +109,9 @@ def convert_to_param(input_files_list):
 rule crosscheck:
     input:
         map = MAP,
+        ref = rules.genome.output.ugz,
+        fai = rules.genome.output.faiugz,
+        dict = rules.genome.output.dict,
         vcfs = expand(os.path.join(OD_VCF, '{sample}.marked_duplicates_fingerprint.vcf'), sample=sample_ids),
         idxs = expand(os.path.join(OD_VCF, '{sample}.marked_duplicates_fingerprint.vcf.idx'), sample=sample_ids)
     output:
@@ -113,7 +120,6 @@ rule crosscheck:
         os.path.join(OD_LOG, 'crosscheck.log')
     params:
         type = 'SAMPLE',
-        ref = GENOME_FASTA,
         input = convert_to_param(expand(os.path.join(OD_VCF, '{sample}.marked_duplicates_fingerprint.vcf'), sample=sample_ids))
     threads: 4
     resources:
@@ -127,7 +133,7 @@ rule crosscheck:
            --EXIT_CODE_WHEN_MISMATCH 0 \
            --EXIT_CODE_WHEN_NO_VALID_CHECKS 0 \
            --HAPLOTYPE_MAP {input.map} \
-           --REFERENCE_SEQUENCE {params.ref} \
+           --REFERENCE_SEQUENCE {input.ref} \
            --CROSSCHECK_BY {params.type} \
            --NUM_THREADS {threads} \
            --OUTPUT {output.file} \

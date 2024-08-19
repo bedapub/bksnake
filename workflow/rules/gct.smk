@@ -76,6 +76,8 @@ Uses Chip definition files
 
 Note: the gencode GCT file contain currenlty a dot in the gene id, e.g. "ENSG00000000003.16"
 temporarily th number will be removed for the "collapse" rule
+        #chip = os.path.join('resources', '{db}.chip')
+
 """
 rule collapse:
     input:
@@ -85,19 +87,19 @@ rule collapse:
         tpm = os.path.join(OD_GCT, '{db}_tpm_collapsed.gct'),
         cnt = os.path.join(OD_GCT, '{db}_count_collapsed.gct')
     params:
-        chip = os.path.join('resources', '{db}.chip')
+        chip = lambda wildcards: os.path.join('resources', f"{wildcards.db.split('_')[0] if '_' in wildcards.db else wildcards.db}.chip")
     resources:
         mem_mb = 10000
     singularity:
         RIBIOSSCRIPTS_IMAGE
     shell:
-        """        
+        """
         collapseExprsMatByChip.Rscript -useChipfileAnno \
             -infile {input.tpm} -outfile {output.tpm} -chipfile {params.chip}
         collapseExprsMatByChip.Rscript -useChipfileAnno \
-            -infile {input.tpm} -outfile {output.cnt} -chipfile {params.chip}
+            -infile {input.cnt} -outfile {output.cnt} -chipfile {params.chip}
         """
-
+        
 # ------------------------------------------------------------------------------
 """
 Create traditional QC files (bioQC, PCA plots) based on RefSeq or Ensembl.
