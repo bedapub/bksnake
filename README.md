@@ -69,6 +69,9 @@ git clone https://github.com/bedapub/bksnake.git
 
 ### Reference genome ([top](#top)) <a name="reference"></a>
 
+Below is the description for using reference genomes and annotatoins for bksnake version with tag v0.0.8 and earlier. 
+For newer versions, the structure of reference files has changed: the subfolder `gtf` has been removed, `refseq` and `ensembl` folders were renamed to `refseq_<version>` and `ensembl_<version>`. GTF and other files were also renamed.
+
 #### Human hg38 <a name="reference_hg38"></a>
 
 Download prepared reference genome annotation files from [Zenodo](https://zenodo.org/record/8017214) into a genome "root" directory and "untar" the downloaded files there.
@@ -149,7 +152,7 @@ It is important to specify the following parameters in the `config.yaml`
 - singularity images directory: `singularity: prefix: VALUE`
 - snakemake path: `snakemake: path: VALUE`
 - sample metadata file: `metadata: file: VALUE` and `metadata: group_name: VALUE`
-- sequencing library: `library: type: VALUE`
+- genome version (optional): `species: VALUE`
 
 
 ## Usage ([top](#top)) <a name="usage"></a>
@@ -203,7 +206,7 @@ Folder structure of a typical workflow run (* = optional output).
 ├── fc                               FeatureCounts output files
 ├── gct                              gene counts and normalized gene counts in GCT file format for RefSeq/Ensembl/Gencode annotations
 ├── log                              log and output files from the tools used
-├── metrics                          RSeQC strandedness files, and CrosscheckFingerprints files from Picard tools for human data (optional)
+├── metrics                          RSeQC strandedness files, and CrosscheckFingerprints files from Picard tools for human data and hg38/GRCh38p14 genome (optional)
 ├── multiqc_data                     MultiQC data files
 ├── multiqc_report_ensembl.html      MultiQC report for Ensembl annotations
 ├── multiqc_report_gencode.html      MultiQC report for Gencode annotations (human and mouse)
@@ -275,7 +278,7 @@ Contains several log files from analysis tools used by the pipeline. Mainly used
 The strandedness of reads is derived by using the _RSeQC_ tool ([Wang et al., 2012](https://rseqc.sourceforge.net/#infer-experiment-py)).
   
 There is an optional rule for cross-checking human sample matching using SNP fingerprints and the _Picard_ tool ([BroadPicard-Tool](http://broadinstitute.github.io/picard/)). 
-A haplotype map is a collection of "blocks" of SNPs that are in tight linkage with SNPs of the same block and low linkage with SNPs of different blocks (see [Javed et al., 2020](https://doi.org/10.1038/s41467-020-17453-5)). Here, we utilize fingerprint maps from [naumanjaved on github](https://github.com/naumanjaved/fingerprint_maps). In order to use these features, set the config file parameter `crosscheck_fingerprints: True`.
+A haplotype map is a collection of "blocks" of SNPs that are in tight linkage with SNPs of the same block and low linkage with SNPs of different blocks (see [Javed et al., 2020](https://doi.org/10.1038/s41467-020-17453-5)). Here, we utilize fingerprint maps from [naumanjaved on github](https://github.com/naumanjaved/fingerprint_maps). In order to use these features, set the config file parameter `crosscheck_fingerprints: True`. As of now, this tools works only for the human genome hg38/GRCh38p14.
 
 ### "multiqc_data" folder
 

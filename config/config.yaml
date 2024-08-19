@@ -1,6 +1,7 @@
 #####################################
 # GENERAL PARAMETERS                #
 #####################################
+#species: ''                               # OPTIONAL: ENTER VALUE for genome version, see 'genomes' dictionary below, e.g., hg38.
 genome_dir: '/path/to/genomes'             # ENTER VALUE for genome_dir: path to "root" directory containing sub-directory for each species
 snakemake:
     path: '/path/to/snakemake/program'     # ENTER VALUE for the snakemake v7.16.1 command (including path, or modules to load)
@@ -70,6 +71,68 @@ genomes:
     rn7: { species: 'rn7', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'rn7', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq', 'ensembl'] }
     ss11: { species: 'ss11', species_name: 'pig', organism: 'Sus scrofa', genome_subdir: 'ss11', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
     oc2: { species: 'oc2', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_subdir: 'oc2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq', 'ensembl'] }
+    CriGri_PICRH_1_0: { species: 'CriGri_PICRH_1_0', species_name: 'hamster', organism: 'Cricetulus griseus', genome_subdir: 'CriGri_PICRH_1_0', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_v104', 'ensembl_v111', 'ensembl_v112'] }
+    GRCh38p14: { species: 'GRCh38p14', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'GRCh38p14', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'], db: ['refseq_vRS_2023_10', 'gencode_v45', 'ensembl_v112', 'ensembl_v111'] }
+    GRCm38p6: { species: 'GRCm38p6', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'GRCm38p6', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['ensembl_v102'] }
+    GRCm39: { species: 'GRCm39', species_name: 'mouse', organism: 'Mus musculus', genome_subdir: 'GRCm39', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Xist', 'Ddx3y'], db: ['refseq_vRS_2024_02', 'gencode_vM34', 'ensembl_v112', 'ensembl_v111'] }
+    GRCr8: { species: 'GRCr8', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'GRCr8', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq_vRS_2024_02'] }
+    Macaca_fascicularis_5_0: { species: 'Macaca_fascicularis_5_0', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'Macaca_fascicularis_5_0', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_v101', 'ensembl_v102'] }
+    MFA1912RKSv2: { species: 'MFA1912RKSv2', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'MFA1912RKSv2', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_v102'] }
+    Mmul_10: { species: 'Mmul_10', species_name: 'rhesus', organism: 'Macaca mulatta', genome_subdir: 'Mmul_10', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_v103', 'ensembl_v112'] }
+    mRatBN7_2: { species: 'mRatBN7_2', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'mRatBN7_2', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq_v108', 'ensembl_v112', 'ensembl_v109'] }
+    OryCun2_0: { species: 'OryCun2_0', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_subdir: 'OryCun2_0', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_v102', 'ensembl_v112', 'ensembl_v109'] }
+    Rnor_6_0: { species: 'Rnor_6_0', species_name: 'rat', organism: 'Rattus norvegicus', genome_subdir: 'Rnor_6_0', biokitr_genes: ['Gapdh', 'Rps28', 'Actb', 'Ddx3x', 'Ddx3y'], db: ['refseq_v106', 'ensembl_v104'] }
+    ROS_Cfam_1_0: { species: 'ROS_Cfam_1_0', species_name: 'dog', organism: 'Canis lupus', genome_subdir: 'ROS_Cfam_1_0', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_v106', 'ensembl_v112'] }
+    Sscrofa11_1: { species: 'Sscrofa11_1', species_name: 'pig', organism: 'Sus scrofa', genome_subdir: 'Sscrofa11_1', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_v106', 'ensembl_v112', 'ensembl_v109'] }
+    T2T_CHM12v2_0: { species: 'T2T_CHM12v2_0', species_name: 'human', organism: 'Homo sapiens', genome_subdir: 'T2T_CHM12v2_0', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'XIST', 'DDX3Y'], db: ['refseq_vRS_2023_10'] }
+    T2T_MFA8v1_0: { species: 'T2T_MFA8v1_0', species_name: 'cyno', organism: 'Macaca fascicularis', genome_subdir: 'T2T_MFA8v1_0', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_vRS_2024_05'] }
+    UM_NZW_1_0: { species: 'UM_NZW_1_0', species_name: 'rabbit', organism: 'Oryctolagus cuniculus', genome_subdir: 'UM_NZW_1_0', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_vRS_2023_02'] }
+    UU_Cfam_GSD_1_0: { species: 'UU_Cfam_GSD_1_0', species_name: 'dog', organism: 'Canis lupus', genome_subdir: 'UU_Cfam_GSD_1_0', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_v106'] }
+    Vero_WHO_p1_0: { species: 'Vero_WHO_p1_0', species_name: 'green_monkey', organism: 'Chlorocebus sabaeus', genome_subdir: 'Vero_WHO_p1_0', biokitr_genes: ['GAPDH', 'RPS28', 'ACTB', 'DDX3X'], db: ['refseq_v102'] }
+
+
+#########################################
+# ORGANISM NAMES AND TRANSLATIONS       # all in lower case
+#########################################
+translations:
+  Homo sapiens:
+    - human
+    - homo sapiens
+  Mus musculus:
+    - mouse
+    - mus musculus
+  Rattus norvegicus:
+    - rat
+    - rattus norvegicus
+  Canis familiaris:
+    - dog
+    - canis lupus
+    - canis lupus familiaris
+  Sus scrofa:
+    - pig
+    - sus scrofa
+  Macaca fascicularis:
+    - cyno
+    - cyno monkey
+    - cynomolgus
+    - cynomolgus monkey
+    - macaca fascicularis
+  Macaca mulatta:
+    - rhesus
+    - rhesus monkey
+    - macaca mulatta
+  Chlorocebus sabaeus:
+    - green
+    - green monkey
+    - african green monkey
+    - chlorocebus sabaeus
+  Oryctolagus cuniculus:
+    - rabbit
+    - oryctolagus cuniculus
+  Cricetulus griseus:
+    - hamster
+    - chinese hamster
+    - cricetulus griseus
 
 
 #########################################

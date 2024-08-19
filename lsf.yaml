@@ -1,6 +1,6 @@
 __default__:                                                                                 
   - "-q preempt"
-  - "-R 'rusage[mem=10GB/host]'"
+  - "-R rusage[mem=10GB/host]"
 
 annotations:
   - "-q short"

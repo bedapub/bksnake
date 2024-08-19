@@ -25,12 +25,14 @@ rule strandedness:
 
 # ------------------------------------------------------------------------------
 # Picard mRNA metrics only for paired-end reads and for RefSeq/Ensembl annotations
+#        ref = rules.genome.output.ugz,
+
 rule picard:
     input:
         bam = os.path.join(OD_BAM, '{sample}.bam'),
         bai = os.path.join(OD_BAM, '{sample}.bam.bai'),
         ref = os.path.join(OD_ANNO, '{db}.refFlat.gz'),
-        ribo = os.path.join(OD_ANNO, 'genome.rRNA_intervals'),
+        ribo = os.path.join(OD_ANNO, '{db}.genome.rRNA_intervals'),
         str = os.path.join(OD_METRICS, '{sample}.strandedness.txt'),
     output:
         temp(os.path.join(OD_METRICS, '{sample}.{db}.RNAmetrics.txt'))

@@ -46,7 +46,7 @@ def read_config(file):
 """
 Create the config file for the Snakemake run
 
-Use the input config file (default: config/common.yaml) and 
+Use the input config file (default: config/config.yaml) and 
 add parameters from the user input. CONFIG is a global variable.
 Then, output the as a new file 'config.yaml' into the
 output directory

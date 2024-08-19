@@ -6,7 +6,6 @@ rule genome:
         fai = {GENOME_FAI},
         gzi = {GENOME_GZI},
         dict = {GENOME_DICT},
-        ribo = {RIBO_INTERVALS},
     output:
         ugz = temp(os.path.join(OD_ANNO, 'genome.fa')),
         dict = temp(os.path.join(OD_ANNO, 'genome.fa.dict')),
@@ -14,7 +13,6 @@ rule genome:
         gz = os.path.join(OD_ANNO, 'genome.fa.gz'),
         fai = os.path.join(OD_ANNO, 'genome.fa.gz.fai'),
         gzi = os.path.join(OD_ANNO, 'genome.fa.gz.gzi'),
-        ribo = os.path.join(OD_ANNO, 'genome.rRNA_intervals')
     threads: 1
     resources:
         mem_mb = 1000
@@ -26,7 +24,6 @@ rule genome:
         cp -Lpr {input.fai} {output.fai}
         cp -Lpr {input.fai} {output.faiugz}
         cp -Lpr {input.gzi} {output.gzi}
-        cp -Lpr {input.ribo} {output.ribo}
         cp -Lpr {input.dict} {output.dict}
         gunzip -c {input.gz} > {output.ugz}
         samtools faidx {output.ugz} 
@@ -41,6 +38,7 @@ rule annotations:
         flat = os.path.join(GENOME_DIR, '{db}/annotation.refFlat.gz'),
         annot = os.path.join(GENOME_DIR, '{db}/genes.tsv'),
         loci = os.path.join(GENOME_DIR, '{db}/genes.loci.txt'),
+        ribo = os.path.join(GENOME_DIR, '{db}/annotation.rRNA.interval_list'),
     output:
         gtf = os.path.join(OD_ANNO, '{db}.gtf.gz'),
         ugtf = temp(os.path.join(OD_ANNO, '{db}.gtf')),
@@ -49,6 +47,7 @@ rule annotations:
         annot = os.path.join(OD_ANNO, '{db}.annot.gz'),
         loci = os.path.join(OD_ANNO, '{db}.loci.txt'),
         bed = os.path.join(OD_ANNO, '{db}.bed.gz'),
+        ribo = os.path.join(OD_ANNO, '{db}.genome.rRNA_intervals'),
     threads: 1
     resources:
         mem_mb = 1000
@@ -63,4 +62,5 @@ rule annotations:
         grep -vw '^id' {input.annot} | awk 'BEGIN{{FS=\"\\t\"}}{{if (NF==4){{printf(\"%s\\t%s\\t%s\\n\", $1,$2,$4)}}else{{printf(\"%s\\n\",$0)}}}}' | gzip -c > {output.annot}
         cp -Lpr {input.loci} {output.loci}
         gtf2bed < {output.ugtf} | gzip -c > {output.bed}
+        cp -Lpr {input.ribo} {output.ribo}
         """

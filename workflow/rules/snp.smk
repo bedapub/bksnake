@@ -19,16 +19,18 @@ How to make the haplotype map:
 """
 
 MAP = os.path.join(OD, 'haplotype.map')
+SPECIES = config['species']
 
 """
 Create the map file
 """
 rule haplotype_map:
     output:
+        map = temp(MAP),
         tmp = temp(os.path.join(OD, 'hg38_chr.map')),
-        map = temp(MAP)
     params:
-        uri = 'https://raw.githubusercontent.com/naumanjaved/fingerprint_maps/master/map_files/hg38_chr.map'
+        uri = 'https://raw.githubusercontent.com/naumanjaved/fingerprint_maps/master/map_files/hg38_chr.map',
+        map = os.path.join('resources', f'haplotype_{SPECIES}.map'),
     shell:
         """
         wget -q -N -O {output.tmp} {params.uri} \

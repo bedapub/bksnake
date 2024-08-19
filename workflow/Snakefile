@@ -67,8 +67,8 @@ if os.path.exists(config['metadata']['file']):
         config['metadata']['group_name'])
 else:
     raise Exception('Metadata file is missing. Abort! '+config['metadata']['file'])
- 
- 
+
+
 # Make dataframe with locators for all fastq files
 # --> give to fastq files new name, from #ID column !
 # Here, use path/url/location from column 'Source Folder' if existing, otherwise from column 'Raw'
@@ -169,6 +169,7 @@ include: 'rules/star.smk'
 # ------------------------------------------------------------------------------
 # Declare local rules, ie not submitted to the cluster
 localrules: all, \
+            haplotype_map, \
             mapping_stats, \
             metadata, \
             no_cutadapt, \
