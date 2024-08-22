@@ -100,6 +100,10 @@ Updates config parameters:
 4. genome_dir: '/path/to/genome/directory/hg38'
 5. biokitr gene
 """
+
+# Call the function to check the genomes dictionary
+funcs.check_single_default_per_organism(config['genomes'])
+
 config = funcs.update_organism(config, meta)
 
 
@@ -138,18 +142,16 @@ GENOME_FAI = os.path.join(GENOME_DIR, config['ref_fasta_fai'])
 GENOME_GZI = os.path.join(GENOME_DIR, config['ref_fasta_gzi'])
 GENOME_SIZE = os.path.join(GENOME_DIR, config['genome_size'] )
 GENOME_DICT = os.path.join(GENOME_DIR, config['genome_dict'] )
-
 RIBO_INTERVALS = os.path.join(GENOME_DIR, config['ribo_intervals'])
 RIBO_INTERVALS = os.path.join(GENOME_DIR, DBS[0], 'annotation.rRNA.interval_list')
-
 STAR_DIR = os.path.join(GENOME_DIR, config['star_version'])
 GTF_FOR_STAR_MAPPING = os.path.join(OD_ANNO, DBS[0]+'.gtf')
 
-# check some of these paths
+# Check some of these paths
 if not os.path.isdir(GENOME_DIR):
     raise Exception('(root) genome directory is not a valid directory. Please check parameter \'genome dir\'.')
 
-print(f'{DBS[0]} annotations are used for read mapping with STAR.', file=sys.stderr)
+print(f"'{DBS[0]}' annotations are used for read mapping with STAR.", file=sys.stderr)
 
 
 # ------------------------------------------------------------------------------

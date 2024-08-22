@@ -494,10 +494,20 @@ def update_library_type(config, meta):
     config.setdefault('library', {}).setdefault('type', library_type_value)
     return config
 
+
 """------------------------------------------------------------------------------
 """
 def update_config_with_genome_id(config, genome_id):
-    """Update the config dictionary with genome information based on genome_id."""       
+    """
+    Update the config dictionary with the given genome ID.
+
+    Parameters
+    ----------
+    config : dict
+        Snakemake workflow configuration dictionary.
+    genome_id : str
+        The genome ID to update in the config.
+    """
     genome_info = config['genomes'][genome_id]
     genome_info['genome_dir'] = os.path.normpath(os.path.join(config['genome_dir'], genome_info['genome_subdir']))
     config.setdefault('species', genome_info['species'])
@@ -508,6 +518,24 @@ def update_config_with_genome_id(config, genome_id):
 
     
 """------------------------------------------------------------------------------
+Several cases:
+
+
+'organism' is a parameter coming from the metadata file
+'species' is a parameter coming from the configuration file
+'overrule_organism' is a new parameter coming from the configuration file
+   the default is False. By this parameter, if organism does not match species, 
+   then the species will be taken . For example, when mapping monkey data to 
+   the human genome.
+
+case 1: species and organism absent --> STOP
+case 2: species only                --> OK
+case 3: organism only               --> OK but choose default species
+case 4: species and organism
+        subcase 1: both match       --> OK
+        subcase 2: no match and overrule is False --> STOP
+        subcase 3: no mach and overrule is True   --> OK choose species
+
 """     
 def update_organism(config, meta):
     """Determine organism and update config dictionary
@@ -524,35 +552,47 @@ def update_organism(config, meta):
         config : Dict
             Updated Snakemake workflow configuration dictionary.      
     """
-    genomeid_from_config = config.get(GENOMEID_PROPERTY)
-    organism_from_config = None
+    # Case 1:
+    if (GENOMEID_PROPERTY not in config or not config[GENOMEID_PROPERTY]) and ORGANISM_PROPERTY not in meta:
+        raise ValueError(f"'{GENOMEID_PROPERTY}' property from config file and '{ORGANISM_PROPERTY}' property from metadata are invalid or missing.")
 
-    if genomeid_from_config:
-        if genomeid_from_config not in config['genomes']:
-            raise ValueError(f'The {GENOMEID_PROPERTY} parameter given in the config file {genomeid_from_config} is not in the genomes dictionary of the config file.')
+    # Case 2:
+    elif GENOMEID_PROPERTY in config and ORGANISM_PROPERTY not in meta:
+        genomeid = config.get(GENOMEID_PROPERTY)
+        if genomeid not in config['genomes']:
+            raise ValueError(f'The {GENOMEID_PROPERTY} parameter given in the config file {genomeid} is not in the genomes dictionary of the config file.')
+        print(f"'{GENOMEID_PROPERTY}' property from config file but '{ORGANISM_PROPERTY}' property not in metadata.", file=sys.stderr)
+
+    # Case 3:
+    elif GENOMEID_PROPERTY not in config and ORGANISM_PROPERTY in meta:
+        organism_from_metadata = check_uniqueness_of_organism(config, meta)  # otherwise raises an error!
+        if organism_from_metadata not in [details['organism'] for details in config['genomes'].values()]:
+            raise ValueError(f"'{ORGANISM_PROPERTY}' property from the metadata: {organism_from_metadata}, is not in config file.")
+        genomeid = get_default_species_for_organism(config['genomes'], organism_from_metadata)
+        print(f"'{ORGANISM_PROPERTY}' property from metadata: {organism_from_metadata}, but '{GENOMEID_PROPERTY}' property not given in config file. Use default species: {genomeid}.", file=sys.stderr)
+
+    # Case 4:
+    else:
+        genomeid_from_config = config.get(GENOMEID_PROPERTY)
+        organism_from_metadata = check_uniqueness_of_organism(config, meta)  # otherwise raises an error!
         organism_from_config = config['genomes'][genomeid_from_config]['organism']
 
-    organism_from_metadata = None
-    genomeid_from_metadata = None
+        # Subcase 1:
+        if organism_from_metadata == organism_from_config:
+            genomeid = genomeid_from_config
+            print(f"Organism from config and metadata match each other.", file=sys.stderr)
 
-    if ORGANISM_PROPERTY in meta:
-        unique_organisms = meta[ORGANISM_PROPERTY].unique()
-        if len(unique_organisms) > 1:
-            raise ValueError(f'The {ORGANISM_PROPERTY} column given in the metadata file contains multiple values.')
+        # Subcase 2:
+        elif 'overrule_organism' not in config or not config['overrule_organism']:
+            raise ValueError(f"Organism from config: {organism_from_config} is different than organism from metadata file: {organism_from_metadata}. Use parameter 'overrule_organism' to override.")
 
-        organism_from_metadata = translate_species(unique_organisms[0], config['translations'], ignore_case=True)
-        if not genomeid_from_config:
-            check_organism_in_config(config, organism_from_metadata)
-
-    if organism_from_config and organism_from_metadata and organism_from_config != organism_from_metadata:
-        raise ValueError(f'Organism from config: {organism_from_config} is different than organism from metadata file: {organism_from_metadata}.')
-
-    genomeid = genomeid_from_config or genomeid_from_metadata
-    if not genomeid:
-        raise ValueError(f'Genome id missing in config ({GENOMEID_PROPERTY} parameter) or metadata file ({ORGANISM_PROPERTY} column).')
+        # Subcase 3:
+        else:
+            genomeid = genomeid_from_config
+            print(f"Organism from config: {organism_from_config} overrules organism from metadata: {organism_from_metadata}.", file=sys.stderr)
 
     update_config_with_genome_id(config, genomeid)
-    return config        
+    return config
 
 
 """------------------------------------------------------------------------------
@@ -624,3 +664,114 @@ def translate_species(input_value, translation_dict, ignore_case=True):
             if input_value in synonyms:
                 return standard_value
     return input_value
+
+
+"""------------------------------------------------------------------------------
+"""
+def check_single_default_per_organism(genomes):
+    """
+    Check if there is only one default: True value per organism in the genomes dictionary.
+
+    This function iterates through the provided genomes dictionary and ensures that each organism
+    has at most one genome marked as default (i.e., 'default': True). If more than one default genome
+    is found for any organism, a ValueError is raised with details of the conflicting entries.
+
+    Parameters:
+    genomes (dict): Dictionary containing genome information. The dictionary should have the following structure:
+                    {
+                        'genome_id': {
+                            'species': str,
+                            'species_name': str,
+                            'organism': str,
+                            'genome_subdir': str,
+                            'biokitr_genes': list,
+                            'db': list,
+                            'default': bool
+                        },
+                        ...
+                    }
+
+    Raises:
+    ValueError: If more than one default: True value is found for any organism, with details of the conflicting entries.
+    """
+    organism_defaults = {}
+
+    for genome, details in genomes.items():
+        organism = details['organism']
+        is_default = details.get('default', False)
+
+        if organism not in organism_defaults:
+            organism_defaults[organism] = []
+
+        organism_defaults[organism].append((genome, is_default))
+
+    for organism, entries in organism_defaults.items():
+        default_count = sum(1 for _, is_default in entries if is_default)
+        if default_count > 1:
+            error_message = f"More than one default: True value found for organism '{organism}':\n"
+            for genome, is_default in entries:
+                error_message += f"  - Genome: {genome}, Default: {is_default}\n"
+            raise ValueError(error_message)
+
+
+"""------------------------------------------------------------------------------
+"""            
+def get_default_species_for_organism(genomes, organism):
+    """
+    Get the default species for a given organism from the genomes dictionary.
+
+    This function iterates through the provided genomes dictionary and returns the species
+    that is marked as default (i.e., 'default': True) for the specified organism. If no default
+    species is found for the organism, or if the organism is not present in the dictionary,
+    the function returns None.
+
+    Parameters:
+    genomes (dict): Dictionary containing genome information. The dictionary should have the following structure:
+                    {
+                        'genome_id': {
+                            'species': str,
+                            'species_name': str,
+                            'organism': str,
+                            'genome_subdir': str,
+                            'biokitr_genes': list,
+                            'db': list,
+                            'default': bool
+                        },
+                        ...
+                    }
+    organism (str): The organism for which to find the default species.
+
+    Returns:
+    str or None: The default species for the given organism, or None if no default species is found.
+    """
+    for genome, details in genomes.items():
+        if details['organism'] == organism and details.get('default', False):
+            return details['species']
+    return None
+
+
+
+"""------------------------------------------------------------------------------
+"""            
+def check_uniqueness_of_organism(config, meta):
+    """
+    Check whether Organism values are unique in metadata
+   
+    meta : DataFrame
+            Input DataFrame containing sample metadata.
+    config : Dict
+            Snakemake workflow configuration dictionary.
+
+    Raises:
+    ValueError: If organism are not unique.
+    
+    Returns:
+    str : The unique, translated organism
+    """
+    unique_organisms = meta[ORGANISM_PROPERTY].unique()
+    if len(unique_organisms) > 1:
+        raise ValueError(f'The {ORGANISM_PROPERTY} column given in the metadata file contains multiple values.')
+        
+    organism_from_metadata = translate_species(unique_organisms[0], config['translations'], ignore_case=True)
+        
+    return organism_from_metadata
