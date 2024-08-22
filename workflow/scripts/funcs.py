@@ -32,7 +32,7 @@ default_header = ('#ID', 'GROUP', FIRST_READ_PROPERTY, SECOND_READ_PROPERTY)
 Helper functions
 """
 def clean_string(s):
-    return ''.join([e for e in s if e.isalnum()])
+    return s.strip()
 
 def is_blank(my_string, check_not=False):
     return not (my_string and my_string.strip()) if not check_not else bool(my_string and my_string.strip())
