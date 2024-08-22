@@ -117,7 +117,7 @@ The metadata file is composed of one header line and sample information on subse
 - `FASTQ1`: name of forward read fastq file (mate 1, R1)
 - `FASTQ2`: name of reverse read fastq file (mate 2, R2)
 - `Raw`: path to the folder containing the input fastq files
-- `Organism`: Human, Rat, Mouse, or Pig
+- `Organism`: Human, Rat, Mouse, or Pig (same value in every row!)
 
 Note that columns `#ID` and `GROUP` may not contain white-spaces and other special characters.
 
