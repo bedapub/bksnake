@@ -1,5 +1,23 @@
 # files = lambda wildcards: expand(os.path.join(OD_FC, '{sample}.{db}.cnt.gz'), sample=sample_ids, db=wildcards.db),
 
+def optional_input_files(wildcards):
+    junction_annotation = expand(
+        os.path.join(OD_METRICS, '{sample}.{db}.junction_annotation.log'),
+        sample=sample_ids,
+        db=wildcards.db
+    ) if config['junction_annotation'] else None
+
+    junction_saturation = expand(
+        os.path.join(OD_METRICS, '{sample}.{db}.junctionSaturation_plot.r'),
+        sample=sample_ids,
+        db=wildcards.db
+    ) if config['junction_annotation'] else None
+
+    # Combine the lists, filtering out None values
+    return [f for f in (junction_annotation or []) + (junction_saturation or [])]
+
+
+
 # -----------------------------------------------------------------------------------------
 if config['pipeline'] == 'bksnake':
     rule multiqc: # Rule for RefSeq/Ensembl annotations
@@ -15,6 +33,7 @@ if config['pipeline'] == 'bksnake':
             stats2 = expand(os.path.join(OD_STATS, '{sample}.bam.stats2'), sample=sample_ids),
             final = expand(os.path.join(OD_LOG, '{sample}_Log.final.out'), sample=sample_ids),
             cutadapt = expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids),
+            optional = optional_input_files,
         output:
             html = report(os.path.join(OD, '{db}_multiqc_report.html'), 
                 htmlindex=os.path.join(OD, '{db}_multiqc_report.html'), 
@@ -51,7 +70,8 @@ if config['pipeline'] == 'bksnake':
                 {OD}/cutadapt \
                 {OD}/fastqc \
                 {OD}/log/*_Log.final.out \
-                {OD}/metrics \
+                {OD}/metrics/*.strandedness.txt \
+                {OD}/metrics/*{wildcards.db}* \
                 {OD}/fc \
                 {input.summaries} 2> {log} \
                 && mkdir -p {params.outdir} \

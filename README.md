@@ -206,7 +206,7 @@ Folder structure of a typical workflow run (* = optional output).
 ├── fc                               FeatureCounts output files
 ├── gct                              gene counts and normalized gene counts in GCT file format for RefSeq/Ensembl/Gencode annotations
 ├── log                              log and output files from the tools used
-├── metrics                          RSeQC strandedness files, and CrosscheckFingerprints files from Picard tools for human data and hg38/GRCh38p14 genome (optional)
+├── metrics                          RSeQC files, and CrosscheckFingerprints files from Picard tools for human data and hg38/GRCh38p14 genome (optional)
 ├── multiqc_data                     MultiQC data files
 ├── multiqc_report_ensembl.html      MultiQC report for Ensembl annotations
 ├── multiqc_report_gencode.html      MultiQC report for Gencode annotations (human and mouse)
@@ -279,6 +279,8 @@ The strandedness of reads is derived by using the _RSeQC_ tool ([Wang et al., 20
   
 There is an optional rule for cross-checking human sample matching using SNP fingerprints and the _Picard_ tool ([BroadPicard-Tool](http://broadinstitute.github.io/picard/)). 
 A haplotype map is a collection of "blocks" of SNPs that are in tight linkage with SNPs of the same block and low linkage with SNPs of different blocks (see [Javed et al., 2020](https://doi.org/10.1038/s41467-020-17453-5)). Here, we utilize fingerprint maps from [naumanjaved on github](https://github.com/naumanjaved/fingerprint_maps). In order to use these features, set the config file parameter `crosscheck_fingerprints: True`. As of now, this tools works only for the human genome hg38/GRCh38p14.
+
+Also optional are "junction_annotation" and "junction_saturation" from the _RSeQC_ tool. See config file parameter `junction_annotation`.
 
 ### "multiqc_data" folder
 

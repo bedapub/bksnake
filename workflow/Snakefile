@@ -164,6 +164,7 @@ include: 'rules/gct.smk'
 include: 'rules/picard.smk'
 include: 'rules/qc.smk'
 include: 'rules/reference.smk'
+include: 'rules/rseqc.smk'
 include: 'rules/snp.smk'
 include: 'rules/star.smk'
 
