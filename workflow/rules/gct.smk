@@ -16,6 +16,7 @@ rule gct:
         gct = os.path.join(OD_GCT, '{db}_count.gct'),
     log:
         os.path.join(OD_LOG, 'gct_{db}.log')
+    group: 'gct'
     params:
         order = ','.join(sample_ids)
     threads: 1
@@ -44,6 +45,7 @@ rule tpm:
         log = os.path.join(OD_GCT, '{db}_log2tpm.gct')
     log:
         os.path.join(OD_LOG, 'tpm_{db}.log')
+    group: 'gct'
     params:
         col = GENE_LENGTH_COLUMN_INDEX,
         len = os.path.join(OD_GCT, '{db}.geneLength')
@@ -86,6 +88,9 @@ rule collapse:
     output:
         tpm = os.path.join(OD_GCT, '{db}_tpm_collapsed.gct'),
         cnt = os.path.join(OD_GCT, '{db}_count_collapsed.gct')
+    log:
+        os.path.join(OD_LOG, 'collapse_{db}.log')
+    group: 'gct'
     params:
         chip = lambda wildcards: os.path.join('resources', f"{wildcards.db.split('_')[0] if '_' in wildcards.db else wildcards.db}.chip")
     resources:

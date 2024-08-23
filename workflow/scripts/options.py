@@ -35,7 +35,7 @@ def get_all_output_files(config, sample_ids, dbs):
            
         # Other optional output files (unmapped, bw, etc)
         #all_output_files += expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids)
-        all_output_files += get_optional_output_files(sample_ids, config)
+        all_output_files += get_optional_output_files(sample_ids, config, dbs)
         
     elif config ['pipeline'] == 'vcsnake':
         # QC reports
@@ -44,7 +44,7 @@ def get_all_output_files(config, sample_ids, dbs):
         all_output_files.append(os.path.join(OD_VCF, 'allSamples_merged.vcf.gz.tbi'))
 
         # Other optional output files (fastq)
-        all_output_files += get_optional_output_files_vc(sample_ids, config)
+        all_output_files += get_optional_output_files_vc(sample_ids, config, dbs)
         
     else:
         sys.exit('Variable \'pipeline\' not defined in input config yaml file.')
@@ -55,7 +55,7 @@ def get_all_output_files(config, sample_ids, dbs):
 # ------------------------------------------------------------------------------
 # Declare all required output files in a list object. This will be given to the rule 'all'
 # For bksnake / bulk rnaseq pipeline
-def get_optional_output_files(sample_ids, config):
+def get_optional_output_files(sample_ids, config, dbs):
 
     OD = config['results']
     OD_BW = os.path.join(OD, 'bw')
@@ -91,7 +91,18 @@ def get_optional_output_files(sample_ids, config):
         else:
             optional_output_files += expand(os.path.join(OD, 'unmapped', '{sample}_1.fastq.gz'), sample=sample_ids)
 
-    # Currently, fingerprinting works only for the hg38/GRCh38p14 genome
+    if config['junction_annotation'] == True:
+        optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junction_annotation.log'), sample=sample_ids, db=dbs)
+        optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.splice_events.pdf'), sample=sample_ids, db=dbs)
+        optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.splice_junction.pdf'), sample=sample_ids, db=dbs)
+        optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junction_plot.r'), sample=sample_ids, db=dbs)
+        optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junction.xls'), sample=sample_ids, db=dbs)
+        optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junction.bed'), sample=sample_ids, db=dbs)
+        optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junction.Interact.bed'), sample=sample_ids, db=dbs)
+        optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junctionSaturation_plot.pdf'), sample=sample_ids, db=dbs)
+        optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junctionSaturation_plot.r'), sample=sample_ids, db=dbs)
+
+# Currently, fingerprinting works only for the hg38/GRCh38p14 genome
     # In order to use the T2T_CHM12v2_0 genome, a new haplotype.map file needs to be created.
     if config['organism'] == 'Homo sapiens' and (config['species'] == 'GRCh38p14' or config['species'] == 'hg38') and 'crosscheck_fingerprints' in config:
         if config['crosscheck_fingerprints'] == True:

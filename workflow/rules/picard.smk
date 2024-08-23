@@ -1,28 +1,3 @@
-# -------------------------------------------------------------
-rule strandedness:
-    input:
-        bam = os.path.join(OD_BAM, '{sample}.bam'),
-        bai = os.path.join(OD_BAM, '{sample}.bam.bai')
-    output:
-        txt = temp(os.path.join(OD_METRICS, '{sample}.strandedness.txt')),
-        bed = temp(os.path.join(OD_METRICS, '{sample}.bed')),
-    log:
-        os.path.join(OD_LOG, '{sample}.strandedness.log')
-    params:
-        bed = os.path.join(OD_ANNO, DBS[0]+'.bed.gz'),
-    threads: 1
-    resources:
-        mem_mb = 10000
-    singularity:
-        config['RSEQC_IMAGE']
-    shell:
-        """
-        gunzip -c {params.bed} > {output.bed}
-        infer_experiment.py -r {output.bed} -i {input.bam} > {output.txt}
-        python workflow/scripts/strandedness.py {output.txt} >> {output.txt}
-        """        
-
-
 # ------------------------------------------------------------------------------
 # Picard mRNA metrics only for paired-end reads and for RefSeq/Ensembl annotations
 #        ref = rules.genome.output.ugz,
