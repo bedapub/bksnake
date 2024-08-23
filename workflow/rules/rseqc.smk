@@ -24,10 +24,11 @@ rule strandedness:
         infer_experiment.py -r {output.bed} -i {input.bam} > {output.txt}
         python workflow/scripts/strandedness.py {output.txt} >> {output.txt}
         """        
-
+        
 # -------------------------------------------------------------
 rule gtfToGenePred:
     input:
+        #rules.correct_gtf.output,
         rules.annotations.output.gtf,
     output:
         temp(os.path.join(OD_ANNO, '{db}.gtfToGenePred')),
@@ -41,7 +42,7 @@ rule gtfToGenePred:
         config['GTFTOGENEPRED_IMAGE']
     shell:
         """
-        gzip -cd {input} | gtfToGenePred -ignoreGroupsWithoutExons /dev/stdin {output}
+        gzip -cd {input} | grep -v 'unknown_transcript_' | gtfToGenePred -ignoreGroupsWithoutExons /dev/stdin {output}
         """        
 
 # -------------------------------------------------------------

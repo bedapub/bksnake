@@ -14,6 +14,10 @@ bed:
   - "-q long"
   - "-R rusage[mem=20GB/host]"
 
+bedfile:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
 bed_index:
   - "-q short"
   - "-R rusage[mem=10GB/host]"
@@ -74,6 +78,14 @@ get_fastq:
   - "-q short"
   - "-R rusage[mem=10GB/host]"
 
+genePredToBed:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+gtfToGenePred:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
 gzip_unmapped_mate1:
   - "-q short"
   - "-R rusage[mem=10GB/host]"
@@ -93,6 +105,14 @@ indexrmdup:
 junctions:
   - "-q long"
   - "-R rusage[mem=20GB/host]"
+
+junction_annotation:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
+
+junction_saturation:
+  - "-q short"
+  - "-R rusage[mem=10GB/host]"
 
 metrics:
   - "-q long"
