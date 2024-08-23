@@ -28,7 +28,6 @@ rule strandedness:
 # -------------------------------------------------------------
 rule gtfToGenePred:
     input:
-        #rules.correct_gtf.output,
         rules.annotations.output.gtf,
     output:
         temp(os.path.join(OD_ANNO, '{db}.gtfToGenePred')),
