@@ -22,16 +22,16 @@ def optional_input_files(wildcards):
 if config['pipeline'] == 'bksnake':
     rule multiqc: # Rule for RefSeq/Ensembl annotations
         input:
-            cnts = lambda wildcards: expand(os.path.join(OD_FC, '{sample}.{db}.cnt.gz'), sample=sample_ids, db=wildcards.db),
-            summaries = lambda wildcards: expand(os.path.join(OD_FC, '{sample}.{db}.cnt.summary'), sample=sample_ids, db=wildcards.db),
-            metrics = lambda wildcards: expand(os.path.join(OD_METRICS, '{sample}.{db}.RNAmetrics.txt'), sample=sample_ids, db=wildcards.db),
-            rseqc = expand(os.path.join(OD_METRICS, '{sample}.strandedness.txt'), sample=sample_ids),
-            html = expand(os.path.join(OD_FASTQC, '{name}_fastqc.html'), name=fastq_names_noext),
-            fastqc = expand(os.path.join(OD_FASTQC, '{name}_fastqc'), name=fastq_names_noext),
-            flagstat = expand(os.path.join(OD_STATS, '{sample}.bam.flagstat'), sample=sample_ids),
-            stats = expand(os.path.join(OD_STATS, '{sample}.bam.stats'), sample=sample_ids),
-            stats2 = expand(os.path.join(OD_STATS, '{sample}.bam.stats2'), sample=sample_ids),
-            final = expand(os.path.join(OD_LOG, '{sample}_Log.final.out'), sample=sample_ids),
+            cnts = lambda wildcards: expand(rules.fc.output.cnt, sample=sample_ids, db=wildcards.db),
+            summaries = lambda wildcards: expand(rules.fc.output.summary, sample=sample_ids, db=wildcards.db),
+            metrics = lambda wildcards: expand(rules.picard.output, sample=sample_ids, db=wildcards.db),
+            rseqc = expand(rules.strandedness.output.txt, sample=sample_ids),
+            html = expand(rules.fastqc.output.html, name=fastq_names_noext),
+            fastqc = expand(rules.fastqc.output.dir, name=fastq_names_noext),
+            flagstat = expand(rules.flagstat.output, sample=sample_ids),
+            stats = expand(rules.samstats.output, sample=sample_ids),
+            stats2 = expand(rules.bamstats.output, sample=sample_ids),
+            final = expand(rules.star.output.out, sample=sample_ids),
             cutadapt = expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids),
             optional = optional_input_files,
         output:

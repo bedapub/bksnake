@@ -4,11 +4,11 @@
 
 rule picard:
     input:
-        bam = os.path.join(OD_BAM, '{sample}.bam'),
-        bai = os.path.join(OD_BAM, '{sample}.bam.bai'),
-        ref = os.path.join(OD_ANNO, '{db}.refFlat.gz'),
-        ribo = os.path.join(OD_ANNO, '{db}.genome.rRNA_intervals'),
-        str = os.path.join(OD_METRICS, '{sample}.strandedness.txt'),
+        bam = rules.sortbam_star.output,
+        bai = rules.indexbam.output,
+        ref = rules.annotations.output.flat,
+        ribo = rules.annotations.output.ribo,
+        str = rules.strandedness.output.txt,
     output:
         temp(os.path.join(OD_METRICS, '{sample}.{db}.RNAmetrics.txt'))
     log:
