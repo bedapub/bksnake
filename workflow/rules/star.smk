@@ -54,13 +54,6 @@ def star_mapping_stats (outfile, phenoFile, indir):
 
 
 # ------------------------------------------------------------------------------
-if config['generate_unmapped'] == True:
-    unmapped = '--outReadsUnmapped Fastx'
-else:
-    unmapped = ''
-
-
-# ------------------------------------------------------------------------------
 # Try calculate memory for star per thread: we want in total 120Gb
 # https://snakemake.readthedocs.io/en/stable/snakefiles/rules.html
 def get_mem_mb(wildcards, threads):
@@ -68,105 +61,81 @@ def get_mem_mb(wildcards, threads):
     #return 120 * 1024 / threads # 120G / threads -->FAILS
 
 
+def star_input_done_files(wildcards):
+    files = []
+    if config['library']['type'] == 'paired-end':
+        files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}_1.fastq.gz.done"))
+        files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}_2.fastq.gz.done"))
+    else:
+        files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}.fastq.gz.done"))
+    return files
+
+
+def star_input_fastq_files(wildcards):
+    files = []
+    if config['library']['type'] == 'paired-end':
+        if config['cutadapt']['run']:
+            files.append(os.path.join(OD_CUTADAPT, f"{wildcards.sample}_1.fastq.gz"))
+            files.append(os.path.join(OD_CUTADAPT, f"{wildcards.sample}_2.fastq.gz"))
+        else:
+            files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}_1.fastq.gz"))
+            files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}_2.fastq.gz"))
+    else:
+        if config['cutadapt']['run']:
+            files.append(os.path.join(OD_CUTADAPT, f"{wildcards.sample}.fastq.gz"))
+        else:
+            files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}.fastq.gz"))
+    return files
+
+
 # ------------------------------------------------------------------------------
-# paired-end read mapping with STAR
-if config['library']['type'] == 'paired-end':
-    rule star:
-        input:
-            gtfs = expand(rules.annotations.output.ugtf, db=DBS),
-            fq1 = os.path.join(OD_CUTADAPT, '{sample}_1.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}_1.fastq.gz'),
-            fq2 = os.path.join(OD_CUTADAPT, '{sample}_2.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}_2.fastq.gz'),
-            cutadapt = os.path.join(OD_CUTADAPT, '{sample}.report.txt'),
-            done1 = os.path.join(OD_FASTQ, '{sample}_1.fastq.gz.done'),
-            done2 = os.path.join(OD_FASTQ, '{sample}_2.fastq.gz.done'),
-        output:
-            tmp1 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
-            tmp2 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARgenome'))),
-            out = temp(os.path.join(OD_LOG, '{sample}_Log.final.out')),
-            bam = temp(os.path.join(OD_UBAM, '{sample}_Aligned.out.bam')),
-            log = temp(os.path.join(OD_UBAM, '{sample}_Log.progress.out')),
-            tab = temp(os.path.join(OD_UBAM, '{sample}_SJ.out.tab')),
-            mate1 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate1')),
-            mate2 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate2'))
-        log:
-            f0 = os.path.join(OD_LOG, '{sample}.star.log'),
-            f1 = os.path.join(OD_LOG, '{sample}_Log.out')
-        retries: 3
-        threads: 12 # config['star_threads']
-        resources:
-            mem_mb = get_mem_mb
-            #mem_mb = 120 * 1024
-        params:
-            sam_mapq_unique = config['star_sam_mapq_unique'],
-            prefix = join(OD_UBAM, '{sample}_'),
-            rg = '{sample}'
-        singularity:
-            config['STAR_IMAGE']
-        shell:
-            """
-            STAR --runThreadN {threads} \
-                --genomeDir {STAR_DIR} \
-                --outFileNamePrefix {params.prefix} \
-                --outTmpDir {output[0]} \
-                --outTmpKeep All \
-                --sjdbGTFfile {GTF_FOR_STAR_MAPPING} \
-                --outSAMmapqUnique {params.sam_mapq_unique} \
-                --outSAMattributes All \
-                --outSAMtype BAM Unsorted \
-                --readFilesCommand zcat \
-                --outReadsUnmapped Fastx \
-                --outSAMattrRGline ID:{params.rg} SM:{params.rg} \
-                --readFilesIn {input.fq1} {input.fq2} > {log.f0}
-            mv --force {params.prefix}Log.out {log.f1}
-            mv --force {params.prefix}Log.final.out {output[2]}
-            """
-else:
-# ------------------------------------------------------------------------------
-# single-end read mapping with STAR
-    rule star:
-        input:
-            gtfs = expand(rules.annotations.output.ugtf, db=DBS),
-            done1 = os.path.join(OD_FASTQ, '{sample}.fastq.gz.done'),
-            fq1 = os.path.join(OD_CUTADAPT, '{sample}.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}.fastq.gz'),
-        output:
-            tmp1 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
-            tmp2 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARgenome'))),
-            out = temp(os.path.join(OD_LOG, '{sample}_Log.final.out')),
-            bam = temp(os.path.join(OD_UBAM, '{sample}_Aligned.out.bam')),
-            log = temp(os.path.join(OD_UBAM, '{sample}_Log.progress.out')),
-            tab = temp(os.path.join(OD_UBAM, '{sample}_SJ.out.tab')),
-            mate1 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate1'))
-        log:
-            f0 = os.path.join(OD_LOG, '{sample}.star.log'),
-            f1 = os.path.join(OD_LOG, '{sample}_Log.out')
-        retries: 3
-        threads: config['star_threads']
-        resources:
-            mem_mb = 120 * 1024
-        params:
-            sam_mapq_unique = config['star_sam_mapq_unique'],
-            prefix = join(OD_UBAM, '{sample}_'),
-            rg = '{sample}'
-        singularity:
-            config['STAR_IMAGE']
-        shell:
-            """
-            STAR --runThreadN {threads} \
-                --genomeDir {STAR_DIR} \
-                --outFileNamePrefix {params.prefix} \
-                --outTmpDir {output[0]} \
-                --outTmpKeep All \
-                --sjdbGTFfile {GTF_FOR_STAR_MAPPING} \
-                --outSAMmapqUnique {params.sam_mapq_unique} \
-                --outSAMattributes All \
-                --outSAMtype BAM Unsorted \
-                --readFilesCommand zcat \
-                --outReadsUnmapped Fastx \
-                --outSAMattrRGline ID:{params.rg} SM:{params.rg} \
-                --readFilesIn {input.fq1} > {log.f0}
-            mv --force {params.prefix}Log.out {log.f1}
-            mv --force {params.prefix}Log.final.out {output[2]}
-            """
+rule star:
+    input:
+        fq = star_input_fastq_files,
+        done = star_input_done_files,
+        gtfs = expand(rules.annotations.output.ugtf, db=DBS),
+        cutadapt = os.path.join(OD_CUTADAPT, '{sample}.report.txt'),
+    output:
+        tmp1 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
+        tmp2 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARgenome'))),
+        out = temp(os.path.join(OD_LOG, '{sample}_Log.final.out')),
+        bam = temp(os.path.join(OD_UBAM, '{sample}_Aligned.out.bam')),
+        log = temp(os.path.join(OD_UBAM, '{sample}_Log.progress.out')),
+        tab = temp(os.path.join(OD_UBAM, '{sample}_SJ.out.tab')),
+        mate1 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate1')),
+        mate2 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate2')) if config['library']['type'] == 'paired-end' else [],            
+    log:
+        f0 = os.path.join(OD_LOG, '{sample}.star.log'),
+        f1 = os.path.join(OD_LOG, '{sample}_Log.out')
+    retries: 3
+    threads: config['star_threads']
+    resources:
+        mem_mb = get_mem_mb
+    params:
+        sam_mapq_unique = config['star_sam_mapq_unique'],
+        prefix = join(OD_UBAM, '{sample}_'),
+        rg = '{sample}'
+    singularity:
+        config['STAR_IMAGE']
+    shell:
+        """
+        STAR --runThreadN {threads} \
+            --genomeDir {STAR_DIR} \
+            --outFileNamePrefix {params.prefix} \
+            --outTmpDir {output.tmp1} \
+            --outTmpKeep All \
+            --sjdbGTFfile {GTF_FOR_STAR_MAPPING} \
+            --outSAMmapqUnique {params.sam_mapq_unique} \
+            --outSAMattributes All \
+            --outSAMtype BAM Unsorted \
+            --readFilesCommand zcat \
+            --outReadsUnmapped Fastx \
+            --outSAMattrRGline ID:{params.rg} SM:{params.rg} \
+            --readFilesIn {input.fq} > {log.f0}
+        mv --force {params.prefix}Log.out {log.f1}
+        mv --force {params.prefix}Log.final.out {output.out}
+        """
+
 
 # ------------------------------------------------------------------------------
 if config['generate_unmapped'] == True:
@@ -208,7 +177,6 @@ rule sortbam_star:
         os.path.join(OD_LOG, '{sample}.sortbam_star.log')
     threads: 1
     resources:
-#        mem_mb = 120 * 1024
         mem_mb = 24000
     singularity:
         config['SAMTOOLS_IMAGE']
