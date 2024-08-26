@@ -156,17 +156,18 @@ print(f"'{DBS[0]}' annotations are used for read mapping with STAR.", file=sys.s
 
 # ------------------------------------------------------------------------------
 # rules
-include: 'rules/bam.smk'
+# THE ORDER OF INCLUDES DO MATTER...
+include: 'rules/reference.smk'
+include: 'rules/star.smk'       # depends on reference.smk
+include: 'rules/bam.smk'        # depends on star.smk
 include: 'rules/fastq.smk'
 include: 'rules/fastqc.smk'
-include: 'rules/fc.smk'
-include: 'rules/gct.smk'
-include: 'rules/picard.smk'
-include: 'rules/qc.smk'
-include: 'rules/reference.smk'
-include: 'rules/rseqc.smk'
-include: 'rules/snp.smk'
-include: 'rules/star.smk'
+include: 'rules/rseqc.smk'      # depends on star.smk, bam.smk
+include: 'rules/fc.smk'         # depends on reference.smk, star.smk, rseqc.smk
+include: 'rules/gct.smk'        # depends on reference.smk, fc.smk
+include: 'rules/picard.smk'     # depends on star.smk, bam.smk, rseqc.smk
+include: 'rules/qc.smk'         # depends on fastqc.smk, star.smk, bam.smk, fc.smk, picard.smk, rseqc.smk
+include: 'rules/snp.smk'        # depends on reference.smk
 
 
 # ------------------------------------------------------------------------------
@@ -190,9 +191,9 @@ rule all:
 # ----------------------------------------------------------------------------
 rule metadata:
     output:
-        {SAMPLES},
-        {PHENODATA},
-        temp(expand(os.path.join(OD_TMP, '{name}.input'), name=locators.name)),
+        samples = {SAMPLES},
+        pheno = {PHENODATA},
+        locators = temp(expand(os.path.join(OD_TMP, '{name}.input'), name=locators.name)),
     log:
         os.path.join(OD_LOG, 'metadata.log')
     threads: 1

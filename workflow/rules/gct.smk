@@ -10,8 +10,8 @@ Create GCT file with count for RefSeq/Ensembl gene annotations
 """
 rule gct:
     input:
-        files = lambda wildcards: expand(os.path.join(OD_FC, '{sample}.{db}.cnt.gz'), sample=sample_ids, db=wildcards.db),
-        annot = os.path.join(OD_ANNO, '{db}.annot.gz')
+        files = lambda wildcards: expand(rules.fc.output.cnt, sample=sample_ids, db=wildcards.db),
+        annot = rules.annotations.output.annot,
     output:
         gct = os.path.join(OD_GCT, '{db}_count.gct'),
     log:
@@ -38,8 +38,8 @@ Calculate normalized counts, TPM from RefSeq/Ensembl counts GCT file
 """
 rule tpm:
     input:
-        gct = os.path.join(OD_GCT, '{db}_count.gct'),
-        len = os.path.join(OD_ANNO, '{db}.geneLength.gz')
+        gct = rules.gct.output.gct,
+        len = rules.annotations.output.len,
     output:
         tpm = os.path.join(OD_GCT, '{db}_tpm.gct'),
         log = os.path.join(OD_GCT, '{db}_log2tpm.gct')
@@ -83,8 +83,8 @@ temporarily th number will be removed for the "collapse" rule
 """
 rule collapse:
     input:
-        tpm = os.path.join(OD_GCT, '{db}_tpm.gct'),
-        cnt = os.path.join(OD_GCT, '{db}_count.gct')
+        tpm = rules.tpm.output.tpm,
+        cnt = rules.gct.output.gct,
     output:
         tpm = os.path.join(OD_GCT, '{db}_tpm_collapsed.gct'),
         cnt = os.path.join(OD_GCT, '{db}_count_collapsed.gct')
@@ -116,8 +116,8 @@ Create traditional QC files (bioQC, PCA plots) based on RefSeq or Ensembl.
 rule qc:
     input:
         pheno = {PHENODATA},
-        log2 = os.path.join(OD_GCT, '{db}_log2tpm.gct'),
-        collapsed = os.path.join(OD_GCT, '{db}_tpm_collapsed.gct')
+        log2 = rules.tpm.output.log,
+        collapsed = rules.collapse.output.tpm,
     output:
         cls = temp(os.path.join(OD_ANNO, '{db}_phenoData.cls')),
         pca = report(os.path.join(OD_QC, '{db}_log2tpm_pca.png'), 

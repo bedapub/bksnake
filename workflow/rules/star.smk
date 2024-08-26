@@ -80,14 +80,14 @@ if config['library']['type'] == 'paired-end':
             done1 = os.path.join(OD_FASTQ, '{sample}_1.fastq.gz.done'),
             done2 = os.path.join(OD_FASTQ, '{sample}_2.fastq.gz.done'),
         output:
-            temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
-            temp(directory(os.path.join(OD_UBAM, '{sample}__STARgenome'))),
-            temp(os.path.join(OD_LOG, '{sample}_Log.final.out')),
-            temp(os.path.join(OD_UBAM, '{sample}_Aligned.out.bam')),
-            temp(os.path.join(OD_UBAM, '{sample}_Log.progress.out')),
-            temp(os.path.join(OD_UBAM, '{sample}_SJ.out.tab')),
-            temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate1')),
-            temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate2'))
+            tmp1 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
+            tmp2 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARgenome'))),
+            out = temp(os.path.join(OD_LOG, '{sample}_Log.final.out')),
+            bam = temp(os.path.join(OD_UBAM, '{sample}_Aligned.out.bam')),
+            log = temp(os.path.join(OD_UBAM, '{sample}_Log.progress.out')),
+            tab = temp(os.path.join(OD_UBAM, '{sample}_SJ.out.tab')),
+            mate1 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate1')),
+            mate2 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate2'))
         log:
             f0 = os.path.join(OD_LOG, '{sample}.star.log'),
             f1 = os.path.join(OD_LOG, '{sample}_Log.out')
@@ -129,13 +129,13 @@ else:
             done1 = os.path.join(OD_FASTQ, '{sample}.fastq.gz.done'),
             fq1 = os.path.join(OD_CUTADAPT, '{sample}.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{sample}.fastq.gz'),
         output:
-            temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
-            temp(directory(os.path.join(OD_UBAM, '{sample}__STARgenome'))),
-            temp(os.path.join(OD_LOG, '{sample}_Log.final.out')),
-            temp(os.path.join(OD_UBAM, '{sample}_Aligned.out.bam')),
-            temp(os.path.join(OD_UBAM, '{sample}_Log.progress.out')),
-            temp(os.path.join(OD_UBAM, '{sample}_SJ.out.tab')),
-            temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate1'))
+            tmp1 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
+            tmp2 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARgenome'))),
+            out = temp(os.path.join(OD_LOG, '{sample}_Log.final.out')),
+            bam = temp(os.path.join(OD_UBAM, '{sample}_Aligned.out.bam')),
+            log = temp(os.path.join(OD_UBAM, '{sample}_Log.progress.out')),
+            tab = temp(os.path.join(OD_UBAM, '{sample}_SJ.out.tab')),
+            mate1 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate1'))
         log:
             f0 = os.path.join(OD_LOG, '{sample}.star.log'),
             f1 = os.path.join(OD_LOG, '{sample}_Log.out')
@@ -172,7 +172,7 @@ else:
 if config['generate_unmapped'] == True:
     rule gzip_unmapped_mate1:
         input:
-            os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate1'),
+            rules.star.output.mate1,
         output:
             os.path.join(OD, 'unmapped', '{sample}_1.fastq.gz')
         threads: 1           
@@ -185,7 +185,7 @@ if config['generate_unmapped'] == True:
 if config['generate_unmapped'] == True and config['library']['type'] == 'paired-end':
     rule gzip_unmapped_mate2:
         input:
-            os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate2'),
+            rules.star.output.mate2,
         output:
             os.path.join(OD, 'unmapped', '{sample}_2.fastq.gz')
         threads: 1
@@ -201,7 +201,7 @@ because of the bam file name: _Aligned.out.bam
 """
 rule sortbam_star:
     input:
-        os.path.join(OD_UBAM, '{sample}_Aligned.out.bam')
+        rules.star.output.bam,
     output:
         os.path.join(OD_BAM, '{sample}.bam') if config['keep_bam_files'] else temp(os.path.join(OD_BAM, '{sample}.bam')),
     log:
@@ -222,7 +222,7 @@ rule sortbam_star:
 rule star_stats:
     input:
         pheno = {PHENODATA},
-        files = expand(os.path.join(OD_LOG, '{sample}_Log.final.out'), sample=sample_ids)
+        files = expand(rules.star.output.out, sample=sample_ids),
     output:
          {MAPSTATS}
     threads: 1

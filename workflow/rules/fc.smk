@@ -21,12 +21,12 @@ and the '-p' option in featureCounts now only specifies if the input reads are p
 # ------------------------------------------------------------------------------
 rule fc:
     input:
-        str = os.path.join(OD_METRICS, '{sample}.strandedness.txt'),
-        bam = os.path.join(OD_UBAM,'{sample}_Aligned.out.bam'),
-        gtf = os.path.join(OD_ANNO,'{db}.gtf.gz')
+        str = rules.strandedness.output.txt,
+        bam = rules.star.output.bam,
+        gtf = rules.annotations.output.gtf,
     output:
-        os.path.join(OD_FC,'{sample}.{db}.cnt.gz'),
-        os.path.join(OD_FC,'{sample}.{db}.cnt.summary')
+        cnt = os.path.join(OD_FC,'{sample}.{db}.cnt.gz'),
+        summary = os.path.join(OD_FC,'{sample}.{db}.cnt.summary')
     log:
         os.path.join(OD_LOG,'{sample}.fc_{db}.log')
     params:

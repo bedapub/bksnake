@@ -3,7 +3,7 @@ SAMTOOLS_IMAGE = config['SAMTOOLS_IMAGE']
 # -------------------------------------------------------------
 rule indexbam:
     input:
-        os.path.join(OD_BAM, '{sample}.bam'),
+        rules.sortbam_star.output,
     output:
         os.path.join(OD_BAM, '{sample}.bam.bai') if config['keep_bam_files'] else temp(os.path.join(OD_BAM, '{sample}.bam.bai')),
     threads: 2
@@ -17,7 +17,7 @@ rule indexbam:
 # -------------------------------------------------------------
 rule flagstat:
     input:
-        os.path.join(OD_BAM, '{sample}.bam')
+        rules.sortbam_star.output,
     output:
         temp(os.path.join(OD_STATS, '{sample}.bam.flagstat'))
     threads: 2
@@ -31,7 +31,7 @@ rule flagstat:
 # -------------------------------------------------------------
 rule samstats:
     input:
-        os.path.join(OD_BAM, '{sample}.bam')
+        rules.sortbam_star.output,
     output:
         temp(os.path.join(OD_STATS, '{sample}.bam.stats'))
     threads: 2
@@ -45,7 +45,7 @@ rule samstats:
 # -------------------------------------------------------------
 rule bamstats:
     input:
-        os.path.join(OD_BAM, '{sample}.bam')
+        rules.sortbam_star.output,        
     output:
         temp(os.path.join(OD_STATS, '{sample}.bam.stats2'))
     threads: 1
@@ -59,7 +59,7 @@ rule bamstats:
 # -------------------------------------------------------------
 rule rmdup:
     input:
-        os.path.join(OD_BAM, '{sample}.bam')
+        rules.sortbam_star.output,
     output:
         temp(os.path.join(OD, 'rmdup/{sample}.bam'))
     threads: 1
@@ -73,7 +73,7 @@ rule rmdup:
 # -------------------------------------------------------------
 rule indexrmdup:
     input:
-        os.path.join(OD, 'rmdup/{sample}.bam')
+        rules.rmdup.output,
     output:
         temp(os.path.join(OD, 'rmdup/{sample}.bam.bai'))
     threads: 2
@@ -87,11 +87,11 @@ rule indexrmdup:
 # -------------------------------------------------------------
 rule cram:
     input:
-        bam = os.path.join(OD_BAM, '{sample}.bam'),
-        bai = os.path.join(OD_BAM, '{sample}.bam.bai'),
-        genome_fa = os.path.join(OD_ANNO, 'genome.fa.gz'),
-        genome_fa_fai = os.path.join(OD_ANNO, 'genome.fa.gz.fai'),
-        genome_fa_gzi = os.path.join(OD_ANNO, 'genome.fa.gz.gzi')
+        bam = rules.sortbam_star.output,
+        bai = rules.indexbam.output,
+        genome_fa = rules.genome.output.gz,
+        fai = rules.genome.output.fai,
+        gzi = rules.genome.output.gzi,
     output:
         os.path.join(OD_CRAM, '{sample}.cram')
     log:
@@ -107,7 +107,7 @@ rule cram:
 # -------------------------------------------------------------
 rule cramindex:
     input:
-        os.path.join(OD_CRAM, '{sample}.cram')
+        rules.cram.output,
     output:
         os.path.join(OD_CRAM, '{sample}.cram.crai')
     log:
@@ -124,7 +124,7 @@ rule cramindex:
 # Use only data from flagstat
 rule mapping_stats:
     input:
-        expand(os.path.join(OD_STATS, '{sample}.bam.flagstat'), sample=sample_ids)
+        expand(rules.flagstat.output, sample=sample_ids),
     output:
         os.path.join(OD_STATS, 'flagstat_mapping_stats.txt')
     threads: 1
@@ -157,8 +157,8 @@ rule mapping_stats:
 #   https://deeptools.readthedocs.io/en/develop/content/tools/bamCoverage.html
 rule bw:
     input:
-        os.path.join(OD_BAM, '{sample}.bam'),
-        os.path.join(OD_BAM, '{sample}.bam.bai')
+        rules.sortbam_star.output,
+        rules.indexbam.output,
     output:
         os.path.join(OD_BW, '{sample}.bw'),
     log:

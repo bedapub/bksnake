@@ -1,5 +1,5 @@
 include: 'star.smk'
-include: 'bam.smk'
+#include: 'bam.smk'
 
 # -------------------------------------------------------------
 rule strandedness:

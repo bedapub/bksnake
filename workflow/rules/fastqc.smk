@@ -160,9 +160,9 @@ rule fastqc:
     input:      
         os.path.join(OD_CUTADAPT, '{name}.fastq.gz') if config['cutadapt']['run'] else os.path.join(OD_FASTQ, '{name}.fastq.gz')
     output:
-        os.path.join(OD_FASTQC, '{name}_fastqc.html'),
-        temp(directory(os.path.join(OD_FASTQC, '{name}_fastqc'))),
-        temp(os.path.join(OD_FASTQC, '{name}_fastqc.zip'))
+        html = os.path.join(OD_FASTQC, '{name}_fastqc.html'),
+        dir = temp(directory(os.path.join(OD_FASTQC, '{name}_fastqc'))),
+        zip = temp(os.path.join(OD_FASTQC, '{name}_fastqc.zip'))
     log:
         os.path.join(OD_LOG, '{name}.fastqc.log')
     threads: 4
