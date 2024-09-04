@@ -103,7 +103,7 @@ def get_optional_output_files(sample_ids, config, dbs):
         optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junctionSaturation_plot.r'), sample=sample_ids, db=dbs)
 
 # Currently, fingerprinting works only for the hg38/GRCh38p14 genome
-    # In order to use the T2T_CHM12v2_0 genome, a new haplotype.map file needs to be created.
+    # In order to use the T2T_CHM13v2_0 genome, a new haplotype.map file needs to be created.
     if config['organism'] == 'Homo sapiens' and (config['species'] == 'GRCh38p14' or config['species'] == 'hg38') and 'crosscheck_fingerprints' in config:
         if config['crosscheck_fingerprints'] == True:
             optional_output_files += [os.path.join(OD_METRICS, 'crosscheck_metrics')]
