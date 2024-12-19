@@ -10,6 +10,8 @@ rule strandedness:
         os.path.join(OD_LOG, '{sample}.strandedness.log')
     params:
         bed = os.path.join(OD_ANNO, DBS[0]+'.bed.gz'),
+        cutoff_low = config['strandedness_cutoff_low'],
+        cutoff_high = config['strandedness_cutoff_high'],
     threads: 1
     resources:
         mem_mb = 10000
@@ -19,7 +21,10 @@ rule strandedness:
         """
         gunzip -c {params.bed} > {output.bed}
         infer_experiment.py -r {output.bed} -i {input.bam} > {output.txt}
-        python workflow/scripts/strandedness.py {output.txt} >> {output.txt}
+        python workflow/scripts/strandedness.py \
+            --cutoff_low {params.cutoff_low} \
+            --cutoff_high {params.cutoff_high} \
+            {output.txt} >> {output.txt}
         """        
         
 # -------------------------------------------------------------

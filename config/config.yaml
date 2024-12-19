@@ -55,6 +55,9 @@ star_sam_mapq_unique: 60
 star_threads: 12
 star_version: star_2.7.11b  # required for STAR_DIR variable
 
+# infer_experiments strandedness parameters
+strandedness_cutoff_low: 0.4
+strandedness_cutoff_high: 0.8
 
 #####################################
 # REFERENCE GENOMES AND ANNOTATIONS #
