@@ -1,6 +1,6 @@
 import argparse
 
-def determine_strandedness(file_path, cutoff1, cutoff2):
+def determine_strandedness(file_path, cutoff_low, cutoff_high):
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
@@ -17,14 +17,14 @@ def determine_strandedness(file_path, cutoff1, cutoff2):
     }
 
     # Determine strandedness based on the conditions
-    if value1 > cutoff1 and value2 > cutoff1:
+    if value1 > cutoff_low and value2 > cutoff_low:
         results["default"] = "unstranded"
-    elif value1 > cutoff2 and value2 < (1 - cutoff2):
+    elif value1 > cutoff_high and value2 < (1 - cutoff_high):
         results["default"] = "stranded"
         results["picard"] = "FIRST_READ_TRANSCRIPTION_STRAND"
         results["featurecounts"] = 1
         results["biokit"] = 1
-    elif value2 > cutoff2 and value1 < (1 - cutoff2):
+    elif value2 > cutoff_high and value1 < (1 - cutoff_high):
         results["default"] = "stranded"
         results["picard"] = "SECOND_READ_TRANSCRIPTION_STRAND"
         results["featurecounts"] = 2
@@ -35,12 +35,12 @@ def determine_strandedness(file_path, cutoff1, cutoff2):
 def main():
     parser = argparse.ArgumentParser(description='Determine strandedness from a text file.')
     parser.add_argument('file_path', type=str, help='Path to the text file.')
-    parser.add_argument('--cutoff1', type=float, help='Cutoff value for unstranded determination.', default=0.4)
-    parser.add_argument('--cutoff2', type=float, help='Cutoff value for stranded determination.', default=0.9)
+    parser.add_argument('--cutoff_low', type=float, help='Cutoff value for unstranded determination.', default=0.4)
+    parser.add_argument('--cutoff_high', type=float, help='Cutoff value for stranded determination.', default=0.9)
 
     args = parser.parse_args()
 
-    results = determine_strandedness(args.file_path, args.cutoff1, args.cutoff2)
+    results = determine_strandedness(args.file_path, args.cutoff_low, args.cutoff_high)
 
     # Print all results
     print(f"default={results['default']}")
