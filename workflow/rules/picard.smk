@@ -8,7 +8,7 @@ rule picard:
         bai = rules.indexbam.output,
         ref = rules.annotations.output.flat,
         ribo = rules.annotations.output.ribo,
-        str = rules.strandedness.output.txt,
+        str = rules.strandness.output.txt,
     output:
         temp(os.path.join(OD_METRICS, '{sample}.{db}.RNAmetrics.txt'))
     log:

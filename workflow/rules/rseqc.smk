@@ -1,17 +1,16 @@
 # -------------------------------------------------------------
-rule strandedness:
+rule strandness:
     input:
         bam = rules.sortbam_star.output,
         bai = rules.indexbam.output,       
     output:
-        txt = temp(os.path.join(OD_METRICS, '{sample}.strandedness.txt')),
+        txt = temp(os.path.join(OD_METRICS, '{sample}.strandness.txt')),
         bed = temp(os.path.join(OD_METRICS, '{sample}.bed')),
     log:
-        os.path.join(OD_LOG, '{sample}.strandedness.log')
+        os.path.join(OD_LOG, '{sample}.strandness.log')
     params:
         bed = os.path.join(OD_ANNO, DBS[0]+'.bed.gz'),
-        cutoff_low = config['strandedness_cutoff_low'],
-        cutoff_high = config['strandedness_cutoff_high'],
+        strandness = config['strandness_mode'],
     threads: 1
     resources:
         mem_mb = 10000
@@ -21,12 +20,9 @@ rule strandedness:
         """
         gunzip -c {params.bed} > {output.bed}
         infer_experiment.py -r {output.bed} -i {input.bam} > {output.txt}
-        python workflow/scripts/strandedness.py \
-            --cutoff_low {params.cutoff_low} \
-            --cutoff_high {params.cutoff_high} \
-            {output.txt} >> {output.txt}
+        workflow/scripts/strandness.sh {output.txt} {params.strandness} >> {output.txt}
         """        
-        
+
 # -------------------------------------------------------------
 rule gtfToGenePred:
     input:

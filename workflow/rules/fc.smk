@@ -21,7 +21,7 @@ and the '-p' option in featureCounts now only specifies if the input reads are p
 # ------------------------------------------------------------------------------
 rule fc:
     input:
-        str = rules.strandedness.output.txt,
+        str = rules.strandness.output.txt,
         bam = rules.star.output.bam,
         gtf = rules.annotations.output.gtf,
     output:
