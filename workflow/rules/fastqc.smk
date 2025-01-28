@@ -110,7 +110,7 @@ else:
 
 
 # ---------------------------------------------------------------
-if config['cutadapt']['run'] == True:
+if config['cutadapt']['run'] == True and config['library']['type'] == 'paired-end':
     rule cutadapt:
         input:
             os.path.join(OD_FASTQ, '{name}_1.fastq.gz'),
@@ -131,6 +131,26 @@ if config['cutadapt']['run'] == True:
         shell:
             """
             cutadapt --cores {threads} {params} -o {output[0]} -p {output[1]} {input[0]} {input[1]} > {output.report}
+            """
+elif config['cutadapt']['run'] == True and config['library']['type'] == 'single-end':
+    rule cutadapt:
+        input:
+            fq = os.path.join(OD_FASTQ, '{name}.fastq.gz'),
+        output:
+            fq = temp(os.path.join(OD_CUTADAPT, '{name}.fastq.gz')),
+            report = temp(os.path.join(OD_CUTADAPT, '{name}.report.txt')),
+        log:
+            os.path.join(OD_LOG, '{name}.cutadapt.log')
+        threads: 12
+        resources:
+            mem_mb=10000
+        params:
+            config['cutadapt']['parameters']
+        singularity:
+            config['CUTADAPT_IMAGE']
+        shell:
+            """
+            cutadapt --cores {threads} {params} -o {output.fq} {input.fq} > {output.report}
             """
 else:
     if config['library']['type'] == 'paired-end':
