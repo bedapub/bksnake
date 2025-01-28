@@ -2,12 +2,6 @@
 Calculate gene counts with feature counts from subreads
 """
 
-# ------------------------------------------------------------------------------
-# Variables
-
-MIN_OVERLAP = config['fc_min_overlap']
-FRAC_OVERLAP = config['fc_frac_overlap']
-
 """
 NOTE: Introduction of new parameter in v2.0.2 (https://subread.sourceforge.net): 
   
@@ -30,7 +24,8 @@ rule fc:
     log:
         os.path.join(OD_LOG,'{sample}.fc_{db}.log')
     params:
-        cnt = os.path.join(OD_FC,'{sample}.{db}.cnt')
+        cnt = os.path.join(OD_FC,'{sample}.{db}.cnt'),
+        opt = config['featurecounts']['parameters'],
     threads: 4
     resources:
         mem_mb = 30000
@@ -50,9 +45,8 @@ rule fc:
         fi
 
         featureCounts \
-            -t exon -g gene_id ${{p_param}} \
-            -Q 10 -B -C --minOverlap {MIN_OVERLAP} \
-            --fracOverlap {FRAC_OVERLAP} \
+            {params.opt} \
+            ${{p_param}} \
             -s ${{str}} -a {input.gtf} \
             -T {threads} -o {params.cnt} {input.bam} 2> {log} \
         && gzip {params.cnt}

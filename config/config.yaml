@@ -46,9 +46,9 @@ cutadapt:
 ####################################
 # LESS COMMONLY CHANGED PARAMETERS #
 ####################################
-# featureCounts parameters
-fc_min_overlap: 10
-fc_frac_overlap: 0.2
+# Specify featureCounts parameters except -s, -a, -T, -o, as these are already specified in the corresponding rule
+featurecounts:
+    parameters: '-Q 10 -B -C --minOverlap 10 --fracOverlap 0.2 -t exon -g gene_id'
 
 # STAR read mapping parameters
 star_sam_mapq_unique: 60
