@@ -49,5 +49,5 @@ rule fc:
             ${{p_param}} \
             -s ${{str}} -a {input.gtf} \
             -T {threads} -o {params.cnt} {input.bam} 2> {log} \
-        && gzip {params.cnt}
+        && gzip -f {params.cnt}
         """
