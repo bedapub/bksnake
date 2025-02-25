@@ -4,7 +4,7 @@ rule strandness:
         bam = rules.sortbam_star.output,
         bai = rules.indexbam.output,
     output:
-        txt = temp(os.path.join(OD_METRICS, '{sample}.strandness.txt')),
+        txt = os.path.join(OD_METRICS, '{sample}.strandness.txt'),
     log:
         os.path.join(OD_LOG, '{sample}.strandness.log')
     params:
