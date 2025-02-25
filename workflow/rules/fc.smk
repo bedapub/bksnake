@@ -36,7 +36,7 @@ rule fc:
         set -e
 
         paired=$(grep -c 'PairEnd Data' {input.str}) || true
-        str=$(grep 'featurecounts=' {input.str} | cut -d= -f2) || true
+        str=$(grep 'featurecounts=' {input.str} | sort | uniq | cut -d= -f2) || true
 
         if [[ "$paired" == 1 ]]; then
             p_param="-p --countReadPairs"

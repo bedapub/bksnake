@@ -5,7 +5,9 @@ rule strandness:
         bai = rules.indexbam.output,       
     output:
         txt = temp(os.path.join(OD_METRICS, '{sample}.strandness.txt')),
-        bed = temp(os.path.join(OD_METRICS, '{sample}.bed')),
+        tmp1 = temp(os.path.join(OD_METRICS, '{sample}.strandness.tmp1')),	
+        tmp2 = temp(os.path.join(OD_METRICS, '{sample}.strandness.tmp2')), 
+	bed = temp(os.path.join(OD_METRICS, '{sample}.bed')),
     log:
         os.path.join(OD_LOG, '{sample}.strandness.log')
     params:
@@ -19,8 +21,9 @@ rule strandness:
     shell:
         """
         gunzip -c {params.bed} > {output.bed}
-        infer_experiment.py -r {output.bed} -i {input.bam} > {output.txt}
-        workflow/scripts/strandness.sh {output.txt} {params.strandness} >> {output.txt}
+        infer_experiment.py -r {output.bed} -i {input.bam} > {output.tmp1}
+        workflow/scripts/strandness.sh {output.tmp1} {params.strandness} > {output.tmp2}
+	cat {output.tmp1} {output.tmp2} > {output.txt}
         """        
 
 # -------------------------------------------------------------
