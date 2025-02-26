@@ -134,7 +134,8 @@ if 'annotations' in config:
         raise ValueError(f'\n-----\nThe following annotations are missing: {missing_annotations}\n-----\n')
     else:
         DBS = list(annotations)    
-    
+
+DBS0 = DBS[0]
 GENOME_DIR = os.path.normpath(os.path.join(config['genome_dir'], config['genomes'][config['species']]['genome_subdir']))
 GENOME_FASTA = os.path.join(GENOME_DIR, config['ref_fasta'])
 GENOME_FASTA_GZ = os.path.join(GENOME_DIR, config['ref_fasta_gz'])
@@ -143,15 +144,15 @@ GENOME_GZI = os.path.join(GENOME_DIR, config['ref_fasta_gzi'])
 GENOME_SIZE = os.path.join(GENOME_DIR, config['genome_size'] )
 GENOME_DICT = os.path.join(GENOME_DIR, config['genome_dict'] )
 RIBO_INTERVALS = os.path.join(GENOME_DIR, config['ribo_intervals'])
-RIBO_INTERVALS = os.path.join(GENOME_DIR, DBS[0], 'annotation.rRNA.interval_list')
+RIBO_INTERVALS = os.path.join(GENOME_DIR, DBS0, 'annotation.rRNA.interval_list')
 STAR_DIR = os.path.join(GENOME_DIR, config['star_version'])
-GTF_FOR_STAR_MAPPING = os.path.join(OD_ANNO, DBS[0]+'.gtf')
+GTF_FOR_STAR_MAPPING = os.path.join(OD_ANNO, DBS0+'.gtf')
 
 # Check some of these paths
 if not os.path.isdir(GENOME_DIR):
     raise Exception('(root) genome directory is not a valid directory. Please check parameter \'genome dir\'.')
 
-print(f"'{DBS[0]}' annotations are used for read mapping with STAR.", file=sys.stderr)
+print(f"'{DBS0}' annotations are used for read mapping with STAR.", file=sys.stderr)
 
 
 # ------------------------------------------------------------------------------

@@ -8,7 +8,7 @@ rule strandness:
     log:
         os.path.join(OD_LOG, '{sample}.strandness.log')
     params:
-        gz = os.path.join(OD_ANNO, DBS[0]+'.bed.gz'),
+        gz = os.path.join(OD_ANNO, DBS0+'.bed.gz'),
         bed = os.path.join(OD_METRICS, '{sample}.bed'),
 	tmp1 = os.path.join(OD_METRICS, '{sample}.strandness.tmp1'),
         tmp2 = os.path.join(OD_METRICS, '{sample}.strandness.tmp2'),
