@@ -22,7 +22,7 @@ rule picard:
         config['PICARD_IMAGE']
     shell:
         """
-        str="$(grep 'picard=' {input.str} | cut -d= -f2)"
+        str="$(grep 'picard=' {input.str} | sort | uniq | cut -d= -f2)"
         
         export _JAVA_OPTIONS="-Xmx25g" && \
         /usr/local/bin/picard CollectRnaSeqMetrics \

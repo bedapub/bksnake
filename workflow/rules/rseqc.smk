@@ -3,15 +3,15 @@ rule strandness:
     input:
         bam = rules.sortbam_star.output,
         bai = rules.indexbam.output,
+	bed = rules.annotations.output.bed,
     output:
-        txt = os.path.join(OD_METRICS, '{sample}.strandness.txt'),
+        txt = temp(os.path.join(OD_METRICS, '{sample}.{db}.strandness.txt')),
+        tmp1 = temp(os.path.join(OD_METRICS, '{sample}.{db}.strandness.tmp1')),
+        tmp2 = temp(os.path.join(OD_METRICS, '{sample}.{db}.strandness.tmp2')),
+        bed = temp(os.path.join(OD_METRICS, '{sample}.{db}.bed')),
     log:
-        os.path.join(OD_LOG, '{sample}.strandness.log')
+        os.path.join(OD_LOG, '{sample}.{db}.strandness.log')
     params:
-        gz = os.path.join(OD_ANNO, DBS0+'.bed.gz'),
-        bed = os.path.join(OD_METRICS, '{sample}.bed'),
-	tmp1 = os.path.join(OD_METRICS, '{sample}.strandness.tmp1'),
-        tmp2 = os.path.join(OD_METRICS, '{sample}.strandness.tmp2'),
         strandness = config['strandness_mode'],
     threads: 1
     resources:
@@ -20,11 +20,10 @@ rule strandness:
         config['RSEQC_IMAGE']
     shell:
         """
-        gunzip -c {params.gz} > {params.bed} \
-        && infer_experiment.py -r {params.bed} -i {input.bam} > {params.tmp1} \
-        && workflow/scripts/strandness.sh {params.tmp1} {params.strandness} > {params.tmp2} \
-	&& cat {params.tmp1} {params.tmp2} > {output.txt} \
-	&& rm -f {params.bed} {params.tmp1} {params.tmp2}
+        gunzip -c {input.bed} > {output.bed} \
+        && infer_experiment.py -r {output.bed} -i {input.bam} > {output.tmp1} \
+        && workflow/scripts/strandness.sh {output.tmp1} {params.strandness} > {output.tmp2} \
+	&& cat {output.tmp1} {output.tmp2} > {output.txt}
         """        
 
 # -------------------------------------------------------------

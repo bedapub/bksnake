@@ -25,7 +25,7 @@ if config['pipeline'] == 'bksnake':
             cnts = lambda wildcards: expand(rules.fc.output.cnt, sample=sample_ids, db=wildcards.db),
             summaries = lambda wildcards: expand(rules.fc.output.summary, sample=sample_ids, db=wildcards.db),
             metrics = lambda wildcards: expand(rules.picard.output, sample=sample_ids, db=wildcards.db),
-            rseqc = expand(rules.strandness.output.txt, sample=sample_ids),
+            rseqc = lambda wildcards: expand(rules.strandness.output.txt, sample=sample_ids, db=wildcards.db),
             html = expand(rules.fastqc.output.html, name=fastq_names_noext),
             fastqc = expand(rules.fastqc.output.dir, name=fastq_names_noext),
             flagstat = expand(rules.flagstat.output, sample=sample_ids),
@@ -70,7 +70,7 @@ if config['pipeline'] == 'bksnake':
                 {OD}/cutadapt \
                 {OD}/fastqc \
                 {OD}/log/*_Log.final.out \
-                {OD}/metrics/*.strandness.txt \
+                {OD}/metrics/*.{wildcards.db}.strandness.txt \
                 {OD}/metrics/*{wildcards.db}* \
                 {OD}/fc \
                 {input.summaries} 2> {log} \
