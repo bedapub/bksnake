@@ -50,13 +50,17 @@ cutadapt:
 featurecounts:
     parameters: '-Q 10 -B -C --minOverlap 10 --fracOverlap 0.2 -t exon -g gene_id'
 
-# STAR read mapping parameters
-star_sam_mapq_unique: 60
-star_threads: 12
-star_version: star_2.7.11b  # required for STAR_DIR variable
 
 # infer_experiments strandness parameter, see: https://rseqc.sourceforge.net/#infer-experiment-py
 strandness_mode: auto # auto, fr or ff
+
+# STAR read mapping parameters
+star_threads: 12
+star_version: star_2.7.11b  # required for STAR_DIR variable
+# Additional parameters for STAR, except the following as they are already used in the rule:
+# --runThreadN, --genomeDir, --outFileNamePrefix, --outTmpDir, --sjdbGTFfile, --outSAMtype, --readFilesCommand, --outReadsUnmapped, --outSAMattrRGline, --readFilesIn 
+star:
+    params: "--outTmpKeep All --outSAMmapqUnique 60 --outSAMattributes All"
 
 
 #####################################
