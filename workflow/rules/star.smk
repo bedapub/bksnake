@@ -112,7 +112,7 @@ rule star:
     resources:
         mem_mb = get_mem_mb
     params:
-        sam_mapq_unique = config['star_sam_mapq_unique'],
+        star_params = config['star']['params'],
         prefix = join(OD_UBAM, '{sample}_'),
         rg = '{sample}'
     singularity:
@@ -120,13 +120,11 @@ rule star:
     shell:
         """
         STAR --runThreadN {threads} \
+	    {params.star_params} \
             --genomeDir {STAR_DIR} \
             --outFileNamePrefix {params.prefix} \
             --outTmpDir {output.tmp1} \
-            --outTmpKeep All \
             --sjdbGTFfile {GTF_FOR_STAR_MAPPING} \
-            --outSAMmapqUnique {params.sam_mapq_unique} \
-            --outSAMattributes All \
             --outSAMtype BAM Unsorted \
             --readFilesCommand zcat \
             --outReadsUnmapped Fastx \
@@ -135,7 +133,6 @@ rule star:
         mv --force {params.prefix}Log.out {log.f1}
         mv --force {params.prefix}Log.final.out {output.out}
         """
-
 
 # ------------------------------------------------------------------------------
 if config['generate_unmapped'] == True:
