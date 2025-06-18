@@ -173,6 +173,7 @@ include: 'rules/snp.smk'        # depends on reference.smk
 # ------------------------------------------------------------------------------
 # Declare local rules, ie not submitted to the cluster
 localrules: all, \
+            compare_md5sum, \
             haplotype_map, \
             mapping_stats, \
             metadata, \

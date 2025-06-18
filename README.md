@@ -299,6 +299,7 @@ Plots for quality control purposes, using genome annotations from `<db>`.
 - `<db>_bioQC.txt`: All _BioQC_ enrichment scores 
 - `<db>_log2tpm_pca.pdf`: Plot of the main components from the principal component analysis on the basis of the _log2_-transformed normalized gene counts (log2tpm).
 - `<db>_log2tpm_pca.txt`: Coordinates of the components from the principal component analysis on the basis of the _log2_-transformed normalized gene counts (log2tpm).
+- `md5sum.txt`: md5 check sums for all fastq files.
 
 ### "rulegraph.pdf" and "rulegraph.png" files
 

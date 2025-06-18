@@ -32,6 +32,35 @@ def count_gzip_lines(filename):
         return i+1
 
 
+# ---------------------------------------------------------------
+# determine md5 check sum for each fastq file
+rule md5sum:
+    input:
+        os.path.join(OD_FASTQ, '{name}')
+    output:
+        temp(os.path.join(OD, 'md5sum', '{name}.md5sum'))
+    threads: 1
+    resources:
+        mem_mb=1000
+    shell:
+        """
+        md5sum {input} > {output}
+        """
+
+# ---------------------------------------------------------------
+# compare the md5 files
+rule compare_md5sum:
+    input:
+        files = expand(os.path.join(OD, 'md5sum', '{name}.fastq.gz.md5sum'), name=fastq_names_noext)
+    output:
+        md5sum = os.path.join(OD_QC, 'md5sum.txt')
+    params:
+        dir = os.path.join(OD, 'md5sum')
+    shell:
+        """
+        cat {input.files} > {output}
+        workflow/scripts/md5sum.sh {params.dir} >> {output}
+        """
 
 # ---------------------------------------------------------------
 # check integrity of raw input gzipped fastq files
