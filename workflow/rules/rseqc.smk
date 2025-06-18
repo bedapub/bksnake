@@ -3,7 +3,7 @@ rule strandness:
     input:
         bam = rules.sortbam_star.output,
         bai = rules.indexbam.output,
-	bed = rules.annotations.output.bed,
+        bed = rules.annotations.output.bed,
     output:
         txt = temp(os.path.join(OD_METRICS, '{sample}.{db}.strandness.txt')),
         tmp1 = temp(os.path.join(OD_METRICS, '{sample}.{db}.strandness.tmp1')),
@@ -23,7 +23,7 @@ rule strandness:
         gunzip -c {input.bed} > {output.bed} \
         && infer_experiment.py -r {output.bed} -i {input.bam} > {output.tmp1} \
         && workflow/scripts/strandness.sh {output.tmp1} {params.strandness} > {output.tmp2} \
-	&& cat {output.tmp1} {output.tmp2} > {output.txt}
+        && cat {output.tmp1} {output.tmp2} > {output.txt}
         """        
 
 # -------------------------------------------------------------

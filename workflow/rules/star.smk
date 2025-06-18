@@ -120,7 +120,7 @@ rule star:
     shell:
         """
         STAR --runThreadN {threads} \
-	    {params.star_params} \
+            {params.star_params} \
             --genomeDir {STAR_DIR} \
             --outFileNamePrefix {params.prefix} \
             --outTmpDir {output.tmp1} \

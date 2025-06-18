@@ -34,6 +34,7 @@ if config['pipeline'] == 'bksnake':
             final = expand(rules.star.output.out, sample=sample_ids),
             cutadapt = expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids),
             optional = optional_input_files,
+            md5sum = rules.compare_md5sum.output.md5sum, # NEW
         output:
             html = report(os.path.join(OD, '{db}_multiqc_report.html'), 
                 htmlindex=os.path.join(OD, '{db}_multiqc_report.html'), 
@@ -84,7 +85,8 @@ elif config['pipeline'] == 'vcsnake':
     rule multiqc:
         input:
             fastqc_html = expand(os.path.join(OD_FASTQC, '{name}_fastqc.html'), name=fastq_names_noext),
-            vep_html = expand(os.path.join(OD_VCF, '{sample}.vep.all_chroms_summary.html'), sample=sample_ids)
+            vep_html = expand(os.path.join(OD_VCF, '{sample}.vep.all_chroms_summary.html'), sample=sample_ids),
+            md5sum = rules.compare_md5sum.output.md5sum, # NEW
         output:
             os.path.join(OD, 'multiqc_report.html')
         log:
