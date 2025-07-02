@@ -146,15 +146,7 @@ rule qc:
         RIBIOSSCRIPTS_IMAGE
     shell:
         """
-        R -e \"df=ribiosIO::readTable(\'{input.pheno}\'); ribiosIO::write_cls(factor(df\$GROUP),\'{output.cls}\')\" > {log}
-        
-        (plotPCA.Rscript -infile {input.log2} -outfile {output.pca} -outTable {output.tab} -cls {output.cls}) >> {log}
-        
-        (bioqc.Rscript -featuretype GeneSymbol -infile {input.collapsed} -outfile {output.txt}) >> {log}
-        
-        (biosHeatmap.Rscript -infile {output.txt} -outfile {output.bioqc} -scale none -colors blackred \
-            -naColor lightgray -symbreaks auto -dendrogram both -dist euclidean -hclust ward.D2 \
-            -xlab -ylab -cexRow -cexCol -colorKeyTitle -width -height -margins -zlimLo -zlimHi -main \'BioQC\') >> {log}
-        
-        (bioqc.Rscript -threshold 2.0 -featuretype GeneSymbol -infile {input.collapsed} -outfile {output.thr}) >> {log}
+        workflow/scripts/qc.sh {log} \
+          {input.log2} {input.pheno} {input.collapsed} \
+          {output.cls} {output.tab} {output.txt} {output.thr} {output.pca} {output.bioqc}
         """
