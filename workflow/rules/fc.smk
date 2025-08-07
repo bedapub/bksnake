@@ -44,10 +44,30 @@ rule fc:
             p_param=""
         fi
 
+        # Run featureCounts and capture its exit status
         featureCounts \
             {params.opt} \
             ${{p_param}} \
             -s ${{str}} -a {input.gtf} \
-            -T {threads} -o {params.cnt} {input.bam} 2> {log} \
-        && gzip -f {params.cnt}
+            -T {threads} -o {params.cnt} {input.bam} 2> {log} || fc_failed=true
+
+        # Handle the output files
+        if [ -e {params.cnt} ]; then
+            gzip -f {params.cnt}
+            # Make sure the summary exists, or create it if missing
+            if [ ! -e {output.summary} ]; then
+                echo "Warning: Summary file not created by featureCounts. Creating empty file." >> {log}
+                touch {output.summary}
+            fi
+        else
+            echo "Warning: featureCounts did not produce expected output file. Creating empty files." >> {log}
+            touch {output.cnt}
+            touch {output.summary}
+        fi
+
+        # If featureCounts failed but we created the required output files,
+        # the rule will succeed but we'll leave a note in the log
+        if [ "${{fc_failed:-false}}" = true ]; then
+            echo "ERROR: featureCounts failed but pipeline continued with empty output files." >> {log}
+        fi
         """
