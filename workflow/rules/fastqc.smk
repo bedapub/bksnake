@@ -96,30 +96,46 @@ if config['library']['type'] == 'paired-end':
             # check if first from both mate files have same name
             import gzip
             import re
+            from pathlib import Path
+            import sys
 
-            with gzip.open(input[0],'r') as fin: 
-                first_line1 = fin.readline().strip()
-            with gzip.open(input[1],'r') as fin: 
-                first_line2 = fin.readline().strip()
-            r1 = re.split(' ', first_line1.decode('utf-8'))[0]
-            r2 = re.split(' ', first_line2.decode('utf-8'))[0]
-            if r1 != r2:
-                print('ERROR: First read names are different!', file=sys.stderr)
-                print('       read 1:'+r1, file=sys.stderr)
-                print('       read 2:'+r2, file=sys.stderr)
+            def normalize_read_name(read_name):
+                """Normalize read name by removing '/1' or '/2' suffixes."""
+                return re.sub(r'(/[12])$', '', read_name)
 
+            with gzip.open(input[0], 'rt') as fin1, gzip.open(input[1], 'rt') as fin2:
+                # Read the first lines from both files
+                first_line1 = fin1.readline().strip()
+                first_line2 = fin2.readline().strip()
+
+                # Extract the read names and normalize them
+                r1 = normalize_read_name(re.split(' ', first_line1)[0])
+                r2 = normalize_read_name(re.split(' ', first_line2)[0])
+
+                # Compare normalized read names
+                if r1 != r2:
+                    print('ERROR: First read names are different!', file=sys.stderr)
+                    print('       read 1: ' + r1, file=sys.stderr)
+                    print('       read 2: ' + r2, file=sys.stderr)
+                    sys.exit(1)  # Exit with error
+
+            # Count lines in both files
             n0 = count_gzip_lines(input[0])
             n1 = count_gzip_lines(input[1])
+
+            # Validate line counts
             if n0 == n1:
                 if n0 % 4 == 0:
                     Path(output[0]).touch()
                     Path(output[1]).touch()
                 else:
                     print('ERROR: Number of lines in fastq file is not multiple of four: ', n0, file=sys.stderr)
+                    sys.exit(1)
             else:
                 print('ERROR: Number of reads in mate files are different:', file=sys.stderr)
-                print('File '+input[0]+' contains '+str(n0)+' lines', file=sys.stderr)
-                print('File '+input[1]+' contains '+str(n1)+' lines', file=sys.stderr)
+                print('File ' + input[0] + ' contains ' + str(n0) + ' lines', file=sys.stderr)
+                print('File ' + input[1] + ' contains ' + str(n1) + ' lines', file=sys.stderr)
+                sys.exit(1)
 else:
     rule validate_fastq:
         input:
@@ -131,11 +147,15 @@ else:
         resources:
             mem_mb=1000
         run:
+            from pathlib import Path
+            import sys
+
             n0 = count_gzip_lines(input[0])
             if n0 % 4 == 0:
                 Path(output[0]).touch()
             else:
                 print('ERROR: Number of lines in fastq file is not multiple of four:', n0, file=sys.stderr)
+                sys.exit(1)
 
 
 # ---------------------------------------------------------------
