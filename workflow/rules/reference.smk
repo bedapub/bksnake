@@ -20,11 +20,11 @@ rule genome:
         config['SAMTOOLS_IMAGE']      
     shell:
         """
-        cp -Lpr {input.gz} {output.gz}
-        cp -Lpr {input.fai} {output.fai}
-        cp -Lpr {input.fai} {output.faiugz}
-        cp -Lpr {input.gzi} {output.gzi}
-        cp -Lpr {input.dict} {output.dict}
+        cp -L {input.gz} {output.gz}
+        cp -L {input.fai} {output.fai}
+        cp -L {input.fai} {output.faiugz}
+        cp -L {input.gzi} {output.gzi}
+        cp -L {input.dict} {output.dict}
         gunzip -c {input.gz} > {output.ugz}
         samtools faidx {output.ugz} 
         """
@@ -55,12 +55,12 @@ rule annotations:
         config['BEDOPS_IMAGE']
     shell:
         """
-        cp -Lpr {input.gtf} {output.gtf}
+        cp -L {input.gtf} {output.gtf}
         gunzip -c {input.gtf} > {output.ugtf}
         gzip -c {input.len} > {output.len}
-        cp -Lpr {input.flat} {output.flat}
+        cp -L {input.flat} {output.flat}
         grep -vw '^id' {input.annot} | awk 'BEGIN{{FS=\"\\t\"}}{{if (NF==4){{printf(\"%s\\t%s\\t%s\\n\", $1,$2,$4)}}else{{printf(\"%s\\n\",$0)}}}}' | gzip -c > {output.annot}
-        cp -Lpr {input.loci} {output.loci}
+        cp -L {input.loci} {output.loci}
         gtf2bed < {output.ugtf} | gzip -c > {output.bed}
-        cp -Lpr {input.ribo} {output.ribo}
+        cp -L {input.ribo} {output.ribo}
         """
