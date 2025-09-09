@@ -98,7 +98,14 @@ rule annotations:
             awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $4, $4, $4}}' {params.custom_bed} | gzip -c >> {output.annot}
             
             # Loci file
-            awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $1, $2, $3, $6, $4, $4, $4}}' {params.custom_bed} >> {output.loci}       
+            awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $1, $2, $3, $6, $4, $4, $4}}' {params.custom_bed} >> {output.loci}
+
+            # Ribo file (only header)
+            grep '^@SQ' {output.ribo} > {output.ribo}.tmp
+            awk 'BEGIN {{FS="\\t"; OFS="\\t"}} {{if ($1 in chr_lengths) {{if ($3 > chr_lengths[$1]) {{chr_lengths[$1] = $3}}}} \
+                else {{chr_lengths[$1] = $3}}}} END {{for (chrom in chr_lengths) print "@SQ", "SN:"chrom, "LN:"chr_lengths[chrom]}}' {params.custom_bed} >> {output.ribo}.tmp
+            grep -v '^@SQ' {output.ribo} >> {output.ribo}.tmp
+            mv -f {output.ribo}.tmp {output.ribo}
         fi
         """
 
