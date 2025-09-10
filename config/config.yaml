@@ -61,6 +61,22 @@ star_version: star_2.7.11b  # required for STAR_DIR variable
 # --runThreadN, --genomeDir, --outFileNamePrefix, --outTmpDir, --sjdbGTFfile, --outSAMtype, --readFilesCommand, --outReadsUnmapped, --outSAMattrRGline, --readFilesIn 
 star:
     params: "--outTmpKeep All --outSAMmapqUnique 60 --outSAMattributes All"
+    sjdbOverhang: 100        # Set to read length - 1
+    genomeSAindexNbases: 14  # Suggested value for human genome (~14 for large genomes)
+
+# STAR indexing parameters
+generate_star_index: False # Set to true to enable STAR index generation
+star_index_threads: 8      # Threads for STAR index generation
+star_index_mem_mb: 64000   # Memory (in MB) for STAR index generation
+
+# Custom sequences, to be appended to the default genome, parameter generate_star_index must be set true (see above)
+custom_fasta:   # Custom sequences (optional)
+custom_bed:     # Custom sequences (optional): each line is unique feature, one exon, one gene, one transcript, ie no splicing/isoforms, with 6 columns, tab-delimited
+# <SEQ_ID>  <BEG>  <END>  <NAME>          <SCORE> <STRAND>
+# chr1      11868  12227  ENSG00000290825 .       +
+
+
+
 
 
 #####################################

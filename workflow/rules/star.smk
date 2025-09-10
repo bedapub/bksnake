@@ -95,6 +95,7 @@ rule star:
         done = star_input_done_files,
         gtfs = expand(rules.annotations.output.ugtf, db=DBS),
         cutadapt = os.path.join(OD_CUTADAPT, '{sample}.report.txt'),
+        genome_dir = rules.star_index.output.genome_dir if config.get('generate_star_index', False) else STAR_DIR,
     output:
         tmp1 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARtmp'))),
         tmp2 = temp(directory(os.path.join(OD_UBAM, '{sample}__STARgenome'))),
@@ -121,7 +122,7 @@ rule star:
         """
         STAR --runThreadN {threads} \
             {params.star_params} \
-            --genomeDir {STAR_DIR} \
+            --genomeDir {input.genome_dir} \
             --outFileNamePrefix {params.prefix} \
             --outTmpDir {output.tmp1} \
             --sjdbGTFfile {GTF_FOR_STAR_MAPPING} \

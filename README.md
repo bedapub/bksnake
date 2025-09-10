@@ -18,6 +18,7 @@ Public version of `bksnake` - biokit snakemake - bulk RNASeq Snakemake workflow
 - [Output](#output)
     - [Overview](#output_overview)
     - [Explanations](#output_explanations)
+- [Release notes](#releases)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -312,6 +313,12 @@ Tab-delimited, human readable text file containing study and sample metadata in 
 ### "unmapped" folder (optional)
 
 Contains unmapped sequencing reads in [FASTQ](https://en.wikipedia.org/wiki/FASTQ_format) files. Only generated if the parameter `generate_unmapped` is `True` in the pipeline configuration.
+
+
+## Release notes ([top](#top)) <a name="releases"></a>
+
+- **`0.2.0`**    STAR index creation and custome BED files.
+- **`0.1.13`**   n/a.
 
 
 ## Contributing ([top](#top)) <a name="contributing"></a>

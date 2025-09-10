@@ -44,9 +44,12 @@ if __name__ == "__main__":
     compression = 'gzip' if args.annotation.endswith('.gz') else None
 
     # Read the annotation file with the appropriate compression setting
-    annotation = pd.read_csv(args.annotation, sep='\t', header=None,
-                             names=('Geneid', 'gene', 'description'),
-                             compression=compression)
+    annotation = pd.read_csv(
+        args.annotation, sep='\t', header=None,
+        names=('Geneid', 'gene', 'description'),
+        compression=compression,
+        dtype={'Geneid': str}  # Force 'Geneid' column to be of string type
+    )
 
     full_df = None
 
@@ -54,7 +57,11 @@ if __name__ == "__main__":
     for fn in args.countfiles:
         df = pd.read_csv(fn, sep='\t', skiprows=1)
         assert (df.columns[:6] ==
-                ['Geneid', 'Chr', 'Start', 'End', 'Strand', 'Length']).all()
+            ['Geneid', 'Chr', 'Start', 'End', 'Strand', 'Length']).all()
+
+        # Explicitly cast 'Geneid' column to str in count file DataFrame
+        df['Geneid'] = df['Geneid'].astype(str)
+
         if full_df is None:
             full_df = df
         else:
