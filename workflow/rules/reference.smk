@@ -53,6 +53,7 @@ rule annotations:
         annot = os.path.join(GENOME_DIR, '{db}/genes.tsv'),
         loci = os.path.join(GENOME_DIR, '{db}/genes.loci.txt'),
         ribo = os.path.join(GENOME_DIR, '{db}/annotation.rRNA.interval_list'),
+        dict = os.path.join(OD_ANNO, 'genome.fa.dict'),
     output:
         gtf = os.path.join(OD_ANNO, '{db}.gtf.gz'),
         ugtf = temp(os.path.join(OD_ANNO, '{db}.gtf')),
@@ -78,34 +79,37 @@ rule annotations:
         gzip -c {input.len} > {output.len}
         gunzip -c {input.gtf} > {output.ugtf}
         gtf2bed < {output.ugtf} | gzip -c > {output.bed}
-        grep -vw '^id' {input.annot} | awk 'BEGIN{{FS="\\t"; OFS="\\t"}} {{if (NF==4){{print $1, $2, $4}} else {{print $0}}}}' | gzip -c > {output.annot}
+        grep -vw '^id' {input.annot} | awk 'BEGIN{{FS="\\t"; OFS="\\t"}} {{if (NF==4){{print $1, $2, $4}} else {{print $0}}}}' \
+            | gzip -c > {output.annot}
 
         if [[ "{params.custom_bed}" != "None" ]]; then
             # BED file
             cat {params.custom_bed} | gzip -c >> {output.bed}
 
             # GTF file
-            #awk 'BEGIN {{FS="\\t"; OFS="\\t"}} {{print $1, "BED_to_GTF", "exon", $2+1, $3, ".", $6, ".", "gene_id \"gene_"NR"\"; transcript_id \"transcript_"NR"\";"}}' {params.custom_bed} >> {output.ugtf}
+            awk 'BEGIN {{FS="\\t"; OFS="\\t"}} $0 !~ /#/ \
+                {{print $1, "BED_to_GTF", "gene", $2+1, $3, ".", $6, ".", "gene_id \\""$4"\\"; transcript_id \\""$4"\\"; gene_name \\""$4"\\";"}}' \
+                {params.custom_bed} >> {output.ugtf}
             gzip -c {output.ugtf} > {output.gtf}
 
             # Gene lengths file
-            awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{l=$3-$2+1; print $4, l, l, l, l}}' {params.custom_bed} | gzip -c >> {output.len}
+            awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{l=$3-$2+1; print $4, l, l, l, l}}' {params.custom_bed} \
+                | gzip -c >> {output.len}
 
             # Flat file
-            awk 'BEGIN {{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $4, $4, $1, $6, $2, $3, $2, $3, 1, $2, $3}}' {params.custom_bed} | gzip -c >> {output.flat}
+            awk 'BEGIN {{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $4, $4, $1, $6, $2, $3, $2, $3, 1, $2, $3}}' {params.custom_bed} \
+                | gzip -c >> {output.flat}
 
             # Annot file
-            awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $4, $4, $4}}' {params.custom_bed} | gzip -c >> {output.annot}
+            awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $4, $4, $4}}' {params.custom_bed} \
+                | gzip -c >> {output.annot}
             
             # Loci file
             awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $1, $2, $3, $6, $4, $4, $4}}' {params.custom_bed} >> {output.loci}
 
-            # Ribo file (only header)
-            grep '^@SQ' {output.ribo} > {output.ribo}.tmp
-            awk 'BEGIN {{FS="\\t"; OFS="\\t"}} {{if ($1 in chr_lengths) {{if ($3 > chr_lengths[$1]) {{chr_lengths[$1] = $3}}}} \
-                else {{chr_lengths[$1] = $3}}}} END {{for (chrom in chr_lengths) print "@SQ", "SN:"chrom, "LN:"chr_lengths[chrom]}}' {params.custom_bed} >> {output.ribo}.tmp
-            grep -v '^@SQ' {output.ribo} >> {output.ribo}.tmp
-            mv -f {output.ribo}.tmp {output.ribo}
+            # Ribo file (modify only header)
+            grep '^@SQ' {input.dict} | cut -f1-3 > {output.ribo}
+            grep -v '^@SQ' {input.ribo} >> {output.ribo}
         fi
         """
 
@@ -116,8 +120,9 @@ rule star_index:
         genome_fasta = rules.genome.output.ugz,
         chrom_sizes = rules.genome.output.sizes,
     output:
-        genome_dir = directory(os.path.join(OD_ANNO, "STAR_Index")),
-        tmp_dir = temp(directory(os.path.join(OD_ANNO, "__STARtmp"))),
+        genome_dir = protected(directory(os.path.join(OD_ANNO, "STAR_Index"))),
+    params:
+        tmp_dir = os.path.join(OD_ANNO, "__STARtmp"),
     threads: config['star_index_threads']
     resources:
         mem_mb = config['star_index_mem_mb']
@@ -133,7 +138,7 @@ rule star_index:
         # Build the STAR index
         STAR --runMode genomeGenerate \
              --runThreadN {threads} \
-             --outTmpDir {output.tmp_dir} \
+             --outTmpDir {params.tmp_dir} \
              --genomeDir {output.genome_dir} \
              --genomeSAindexNbases $GENOME_SA_INDEX_NBASES \
              --genomeFastaFiles {input.genome_fasta} \

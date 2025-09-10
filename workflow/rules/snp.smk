@@ -25,16 +25,19 @@ SPECIES = config['species']
 Create the map file
 """
 rule haplotype_map:
+    input:
+        dict = os.path.join(OD_ANNO, 'genome.fa.dict'),
     output:
         map = temp(MAP),
         tmp = temp(os.path.join(OD, 'hg38_chr.map')),
     params:
         uri = 'https://raw.githubusercontent.com/naumanjaved/fingerprint_maps/master/map_files/hg38_chr.map',
         map = os.path.join('resources', f'haplotype_{SPECIES}.map'),
+        custom_bed = config.get("custom_bed", None) if config.get("custom_bed") else None,
     shell:
         """
         wget -q -N -O {output.tmp} {params.uri} \
-            && cat {GENOME_DICT} > {output.map} \
+            && cat {input.dict} > {output.map} \
             && grep -v '^@' {output.tmp} >> {output.map}
         """
 
