@@ -65,13 +65,13 @@ star:
     genomeSAindexNbases: 14  # Suggested value for human genome (~14 for large genomes)
 
 # STAR indexing parameters
-generate_star_index: True # Set to true to enable STAR index generation
+generate_star_index: False # Set to true to enable STAR index generation
 star_index_threads: 8      # Threads for STAR index generation
 star_index_mem_mb: 64000   # Memory (in MB) for STAR index generation
 
 # Custom sequences, to be appended to the default genome, parameter generate_star_index must be set true (see above)
-custom_fasta: test.fa   # Custom sequences (optional)
-custom_bed: test.bed     # Custom sequences (optional): each line is unique feature, one exon, one gene, one transcript, ie no splicing/isoforms, with 6 columns, tab-delimited
+custom_fasta:   # Custom sequences (optional)
+custom_bed:     # Custom sequences (optional): each line is unique feature, one exon, one gene, one transcript, ie no splicing/isoforms, with 6 columns, tab-delimited
 # <SEQ_ID>  <BEG>  <END>  <NAME>          <SCORE> <STRAND>
 # chr1      11868  12227  ENSG00000290825 .       +
 
