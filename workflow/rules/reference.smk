@@ -84,28 +84,36 @@ rule annotations:
 
         if [[ "{params.custom_bed}" != "None" ]]; then
             # BED file
-            cat {params.custom_bed} | gzip -c >> {output.bed}
+            grep -v '^#' {params.custom_bed} | gzip -c >> {output.bed}
 
             # GTF file
-            awk 'BEGIN {{FS="\\t"; OFS="\\t"}} $0 !~ /#/ \
-                {{print $1, "BED_to_GTF", "gene", $2+1, $3, ".", $6, ".", "gene_id \\""$4"\\"; transcript_id \\""$4"\\"; gene_name \\""$4"\\";"}}' \
-                {params.custom_bed} >> {output.ugtf}
+            grep -v '^#' {params.custom_bed} \
+                | awk 'BEGIN {{FS="\\t"; OFS="\\t"}} \
+                {{print $1, "BED_to_GTF", "exon", $2+1, $3, ".", $6, ".", "gene_id \\""$4"\\"; transcript_id \\""$4"\\"; gene_name \\""$4"\\";"}} \
+                {{print $1, "BED_to_GTF", "gene", $2+1, $3, ".", $6, ".", "gene_id \\""$4"\\"; transcript_id \\""$4"\\"; gene_name \\""$4"\\";"}} \
+                {{print $1, "BED_to_GTF", "mRNA", $2+1, $3, ".", $6, ".", "gene_id \\""$4"\\"; transcript_id \\""$4"\\"; gene_name \\""$4"\\";"}}' \
+                >> {output.ugtf}
             gzip -c {output.ugtf} > {output.gtf}
 
             # Gene lengths file
-            awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{l=$3-$2+1; print $4, l, l, l, l}}' {params.custom_bed} \
+            grep -v '^#' {params.custom_bed} \
+                | awk 'BEGIN{{FS="\\t"; OFS="\\t"}} {{l=$3-$2+1; print $4, l, l, l, l}}' \
                 | gzip -c >> {output.len}
 
             # Flat file
-            awk 'BEGIN {{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $4, $4, $1, $6, $2, $3, $2, $3, 1, $2, $3}}' {params.custom_bed} \
+	    grep -v '^#' {params.custom_bed} \
+                | awk 'BEGIN {{FS="\\t"; OFS="\\t"}} {{print $4, $4, $1, $6, $2, $3, $2, $3, 1, $2, $3}}' \
                 | gzip -c >> {output.flat}
 
             # Annot file
-            awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $4, $4, $4}}' {params.custom_bed} \
+	    grep -v '^#' {params.custom_bed} \
+                | awk 'BEGIN{{FS="\\t"; OFS="\\t"}} {{print $4, $4, $4}}' \
                 | gzip -c >> {output.annot}
             
             # Loci file
-            awk 'BEGIN{{FS="\\t"; OFS="\\t"}} $0 !~ /#/ {{print $1, $2, $3, $6, $4, $4, $4}}' {params.custom_bed} >> {output.loci}
+	    grep -v '^#' {params.custom_bed} \
+                | awk 'BEGIN{{FS="\\t"; OFS="\\t"}} {{print $1, $2, $3, $6, $4, $4, $4}}' \
+		>> {output.loci}
 
             # Ribo file (modify only header)
             grep '^@SQ' {input.dict} | cut -f1-3 > {output.ribo}
@@ -123,9 +131,9 @@ rule star_index:
         genome_dir = protected(directory(os.path.join(OD_ANNO, "STAR_Index"))),
     params:
         tmp_dir = os.path.join(OD_ANNO, "__STARtmp"),
-    threads: config['star_index_threads']
+    threads: config['star']['index_threads']
     resources:
-        mem_mb = config['star_index_mem_mb']
+        mem_mb = config['star']['index_mem_mb']
     singularity:
         config['STAR_IMAGE']
     log:
