@@ -88,6 +88,7 @@ def star_input_fastq_files(wildcards):
     return files
 
 
+
 # ------------------------------------------------------------------------------
 rule star:
     input:
@@ -114,14 +115,36 @@ rule star:
         mem_mb = get_mem_mb
     params:
         star_params = config['star']['params'],
+        star_threshold = 500,
         prefix = join(OD_UBAM, '{sample}_'),
         rg = '{sample}'
     singularity:
         config['STAR_IMAGE']
     shell:
         """
-        STAR --runThreadN {threads} \
+        # Threshold for deciding short vs. long reads
+        THRESHOLD={params.star_threshold}
+
+        # Parse the first 100 reads and calculate the average read length
+        FASTQ_FILE=$(echo '{input.fq}' | awk '{{print $1}}')
+        AVG_LENGTH=$(./workflow/scripts/average_read_length.sh $FASTQ_FILE)
+        AVG_LENGTH=$(echo $AVG_LENGTH | cut -f1 -d.)
+        echo "Average read length: $AVG_LENGTH"
+
+        # Decide which STAR version to use
+        if [[ "$AVG_LENGTH" -le "$THRESHOLD" ]]; then
+            echo 'Using STAR (short read aligner)'
+            STAR_APP=STAR
+            STAR_LONG_PARAMS=""
+        else
+            echo 'Using STARlong (long read aligner)'
+            STAR_APP=STARlong
+            STAR_LONG_PARAMS="--alignIntronMax 200000 --outFilterMismatchNoverLmax 0.5 --seedPerReadNmax 10000 --seedPerWindowNmax 50"
+        fi
+
+        $STAR_APP --runThreadN {threads} \
             {params.star_params} \
+            $STAR_LONG_PARAMS \
             --genomeDir {input.genome_dir} \
             --outFileNamePrefix {params.prefix} \
             --outTmpDir {output.tmp1} \
@@ -134,6 +157,7 @@ rule star:
         mv --force {params.prefix}Log.out {log.f1}
         mv --force {params.prefix}Log.final.out {output.out}
         """
+
 
 # ------------------------------------------------------------------------------
 if config['generate_unmapped'] == True:
