@@ -40,7 +40,8 @@ crosscheck_fingerprints: False  # whether to perform Picard's 'CrosscheckFingerp
 # Normally, trimming is not required (see https://academic.oup.com/nargab/article/2/3/lqaa068/5901066 )
 cutadapt:
     run: False  # switch to perform or not cutadapt trimming, default: 'False'
-    parameters: '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT --minimum-length 10'
+    parameters_paired: '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA -A AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT --minimum-length 10'
+    parameters_single: '-a AGATCGGAAGAGCACACGTCTGAACTCCAGTCA --minimum-length 10'
 
 
 ####################################

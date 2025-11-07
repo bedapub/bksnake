@@ -88,7 +88,7 @@ in the past this was given in the input config file
 here, we overwrite the value in the config if present
 by the value obtained from the metadata (via Fastq files)
 """
-config = funcs.update_library_type(config, meta)
+#config = funcs.update_library_type(config, meta)
 
 
 """
@@ -119,6 +119,32 @@ sample_ids = meta['#ID']
 sample_groups = meta['GROUP']
 fastq_names = list(locators['name'])
 fastq_names_noext = locators['name'].str.replace('.fastq.gz', '', regex=True)
+
+# Partition sample IDs for use in 'rule all' and 'wildcard_constraints'
+SAMPLES_SE = meta[meta['LIBRARY_LAYOUT'] == 'SINGLE']['#ID'].tolist()
+SAMPLES_PE = meta[meta['LIBRARY_LAYOUT'] == 'PAIRED']['#ID'].tolist()
+
+
+# For debugging
+DEBUG = 0
+if DEBUG == 1:
+    print('----------------', file=sys.stderr)
+    print('locators:', file=sys.stderr)
+    print(locators, file=sys.stderr)
+    print('----------------', file=sys.stderr)
+    print('fastq_names:', file=sys.stderr)
+    print(fastq_names, file=sys.stderr)
+    print('----------------', file=sys.stderr)
+    print('fastq_names_noext:', file=sys.stderr)
+    print(fastq_names_noext, file=sys.stderr)
+    print('----------------', file=sys.stderr)
+    print('SAMPLES_SE:', file=sys.stderr)
+    print(SAMPLES_SE, file=sys.stderr)
+    print('----------------', file=sys.stderr)
+    print('SAMPLES_PE:', file=sys.stderr)
+    print(SAMPLES_PE, file=sys.stderr)
+    print('----------------', file=sys.stderr)
+    #raise ValueError("*** STOP PROGRAM FOR DEBUGGING ***")
 
 
 # ------------------------------------------------------------------------------
@@ -156,7 +182,7 @@ print(f"'{DBS[0]}' annotations are used for read mapping with STAR.", file=sys.s
 
 # ------------------------------------------------------------------------------
 # rules
-# THE ORDER OF INCLUDES DO MATTER...
+# THE ORDER OF INCLUDES DOES MATTER...
 include: 'rules/reference.smk'
 include: 'rules/star.smk'       # depends on reference.smk
 include: 'rules/bam.smk'        # depends on star.smk
@@ -178,6 +204,8 @@ localrules: all, \
             mapping_stats, \
             metadata, \
             no_cutadapt, \
+            no_cutadapt_single, \
+            no_cutadapt_paired, \
             processing_done, \
             star_stats      
             
@@ -185,8 +213,7 @@ localrules: all, \
 # ------------------------------------------------------------------------------
 rule all:
     input:
-        options.get_all_output_files(config, sample_ids, DBS)
-
+        options.get_all_output_files(config, sample_ids, DBS, meta)
 
 
 # ----------------------------------------------------------------------------

@@ -77,124 +77,84 @@ rule validate_gzip:
         gzip -t {input} && touch {output}
         """
 
+# ---------------------------------------------------------------
+rule validate_fastq_paired:
+    input:
+        os.path.join(OD_FASTQ, '{name}_1.fastq.gz'),
+        os.path.join(OD_FASTQ, '{name}_2.fastq.gz'),
+        os.path.join(OD_FASTQ, '{name}_1.fastq.gz.validated'),
+        os.path.join(OD_FASTQ, '{name}_2.fastq.gz.validated'),
+    output:
+        temp(os.path.join(OD_FASTQ, '{name}_1.fastq.gz.done')),
+        temp(os.path.join(OD_FASTQ, '{name}_2.fastq.gz.done')),
+    wildcard_constraints:
+        name = "|".join(SAMPLES_PE) if SAMPLES_PE else "DUMMY_NEVER_MATCH"
+    threads: 1
+    resources:
+        mem_mb=1000
+    shell:
+        """
+        python3 workflow/scripts/validate_fastq.py paired {input[0]} {input[1]} {output[0]} {output[1]}
+        """
 
 # ---------------------------------------------------------------
-if config['library']['type'] == 'paired-end':
-    rule validate_fastq:
+rule validate_fastq_single:
+    input:
+        os.path.join(OD_FASTQ, '{name}.fastq.gz'),
+        os.path.join(OD_FASTQ, '{name}.fastq.gz.validated'),
+    output:
+        temp(os.path.join(OD_FASTQ, '{name}.fastq.gz.done')),
+    wildcard_constraints:
+        name = "|".join(SAMPLES_SE) if SAMPLES_SE else "DUMMY_NEVER_MATCH"
+    threads: 1
+    resources:
+        mem_mb=1000
+    shell:
+        """
+        python3 workflow/scripts/validate_fastq.py single {input[0]} {output[0]}
+        """
+
+# ---------------------------------------------------------------
+if config['cutadapt']['run'] == True:
+    rule cutadapt_paired:
         input:
             os.path.join(OD_FASTQ, '{name}_1.fastq.gz'),
             os.path.join(OD_FASTQ, '{name}_2.fastq.gz'),
-            os.path.join(OD_FASTQ, '{name}_1.fastq.gz.validated'),
-            os.path.join(OD_FASTQ, '{name}_2.fastq.gz.validated')
-        output:
-            temp(os.path.join(OD_FASTQ, '{name}_1.fastq.gz.done')),
-            temp(os.path.join(OD_FASTQ, '{name}_2.fastq.gz.done'))
-        threads: 1
-        resources:
-            mem_mb=1000
-        run:
-            # check if first from both mate files have same name
-            import gzip
-            import re
-            from pathlib import Path
-            import sys
-
-            def normalize_read_name(read_name):
-                """Normalize read name by removing '/1' or '/2' suffixes."""
-                return re.sub(r'(/[12])$', '', read_name)
-
-            with gzip.open(input[0], 'rt') as fin1, gzip.open(input[1], 'rt') as fin2:
-                # Read the first lines from both files
-                first_line1 = fin1.readline().strip()
-                first_line2 = fin2.readline().strip()
-
-                # Extract the read names and normalize them
-                r1 = normalize_read_name(re.split(' ', first_line1)[0])
-                r2 = normalize_read_name(re.split(' ', first_line2)[0])
-
-                # Compare normalized read names
-                if r1 != r2:
-                    print('ERROR: First read names are different!', file=sys.stderr)
-                    print('       read 1: ' + r1, file=sys.stderr)
-                    print('       read 2: ' + r2, file=sys.stderr)
-                    sys.exit(1)  # Exit with error
-
-            # Count lines in both files
-            n0 = count_gzip_lines(input[0])
-            n1 = count_gzip_lines(input[1])
-
-            # Validate line counts
-            if n0 == n1:
-                if n0 % 4 == 0:
-                    Path(output[0]).touch()
-                    Path(output[1]).touch()
-                else:
-                    print('ERROR: Number of lines in fastq file is not multiple of four: ', n0, file=sys.stderr)
-                    sys.exit(1)
-            else:
-                print('ERROR: Number of reads in mate files are different:', file=sys.stderr)
-                print('File ' + input[0] + ' contains ' + str(n0) + ' lines', file=sys.stderr)
-                print('File ' + input[1] + ' contains ' + str(n1) + ' lines', file=sys.stderr)
-                sys.exit(1)
-else:
-    rule validate_fastq:
-        input:
-            os.path.join(OD_FASTQ, '{name}.fastq.gz'), 
-            os.path.join(OD_FASTQ, '{name}.fastq.gz.validated')
-        output:
-            temp(os.path.join(OD_FASTQ, '{name}.fastq.gz.done'))
-        threads: 1
-        resources:
-            mem_mb=1000
-        run:
-            from pathlib import Path
-            import sys
-
-            n0 = count_gzip_lines(input[0])
-            if n0 % 4 == 0:
-                Path(output[0]).touch()
-            else:
-                print('ERROR: Number of lines in fastq file is not multiple of four:', n0, file=sys.stderr)
-                sys.exit(1)
-
-
-# ---------------------------------------------------------------
-if config['cutadapt']['run'] == True and config['library']['type'] == 'paired-end':
-    rule cutadapt:
-        input:
-            os.path.join(OD_FASTQ, '{name}_1.fastq.gz'),
-            os.path.join(OD_FASTQ, '{name}_2.fastq.gz')
         output:
             fq1 = temp(os.path.join(OD_CUTADAPT, '{name}_1.fastq.gz')),
             fq2 = temp(os.path.join(OD_CUTADAPT, '{name}_2.fastq.gz')),
             report = temp(os.path.join(OD_CUTADAPT, '{name}.report.txt')),
+        wildcard_constraints:
+            name = "|".join(SAMPLES_PE) if SAMPLES_PE else "DUMMY_NEVER_MATCH"
         log:
-            os.path.join(OD_LOG, '{name}.cutadapt.log')
+            os.path.join(OD_LOG, '{name}.cutadapt_paired.log')
         threads: 12
         resources:
             mem_mb=10000
         params:
-            config['cutadapt']['parameters']
+            config['cutadapt']['parameters_paired']
         singularity:
             config['CUTADAPT_IMAGE']
         shell:
             """
             cutadapt --cores {threads} {params} -o {output[0]} -p {output[1]} {input[0]} {input[1]} > {output.report}
             """
-elif config['cutadapt']['run'] == True and config['library']['type'] == 'single-end':
-    rule cutadapt:
+
+    rule cutadapt_single:
         input:
             fq = os.path.join(OD_FASTQ, '{name}.fastq.gz'),
         output:
             fq = temp(os.path.join(OD_CUTADAPT, '{name}.fastq.gz')),
             report = temp(os.path.join(OD_CUTADAPT, '{name}.report.txt')),
+        wildcard_constraints:
+            name = "|".join(SAMPLES_SE) if SAMPLES_SE else "DUMMY_NEVER_MATCH"
         log:
-            os.path.join(OD_LOG, '{name}.cutadapt.log')
+            os.path.join(OD_LOG, '{name}.cutadapt_single.log')
         threads: 12
         resources:
             mem_mb=10000
         params:
-            config['cutadapt']['parameters']
+            config['cutadapt']['parameters_single']
         singularity:
             config['CUTADAPT_IMAGE']
         shell:
@@ -202,27 +162,29 @@ elif config['cutadapt']['run'] == True and config['library']['type'] == 'single-
             cutadapt --cores {threads} {params} -o {output.fq} {input.fq} > {output.report}
             """
 else:
-    if config['library']['type'] == 'paired-end':
-        rule no_cutadapt:
-            input:
-                os.path.join(OD_FASTQ, '{name}_1.fastq.gz'),
-                os.path.join(OD_FASTQ, '{name}_2.fastq.gz')
-            output:
-                report = temp(os.path.join(OD_CUTADAPT, '{name}.report.txt'))
-            shell:
-                """
-                touch {output}
-                """
-    else:
-        rule no_cutadapt:
-            input:
-                os.path.join(OD_FASTQ, '{name}.fastq.gz')
-            output:
-                report = temp(os.path.join(OD_CUTADAPT, '{name}.report.txt'))
-            shell:
-                """
-                touch {output}
-                """
+    rule no_cutadapt_paired:
+        input:
+            os.path.join(OD_FASTQ, '{name}_1.fastq.gz'),
+            os.path.join(OD_FASTQ, '{name}_2.fastq.gz')
+        output:
+            report = temp(os.path.join(OD_CUTADAPT, '{name}.report.txt'))
+        wildcard_constraints:
+            name = "|".join(SAMPLES_PE) if SAMPLES_PE else "DUMMY_NEVER_MATCH"
+        shell:
+            """
+            touch {output}
+            """
+    rule no_cutadapt_single:
+        input:
+            os.path.join(OD_FASTQ, '{name}.fastq.gz')
+        output:
+            report = temp(os.path.join(OD_CUTADAPT, '{name}.report.txt'))
+        wildcard_constraints:
+            name = "|".join(SAMPLES_SE) if SAMPLES_SE else "DUMMY_NEVER_MATCH"
+        shell:
+            """
+            touch {output}
+            """
 
 # ---------------------------------------------------------------
 rule fastqc:

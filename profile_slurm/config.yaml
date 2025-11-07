@@ -51,6 +51,14 @@ set-resources:
     slurm_extra: "'--qos=3h'"
     mem_mb: 10000
 
+  cutadapt_single:
+    slurm_extra: "'--qos=3h'"
+    mem_mb: 10000
+
+  cutadapt_paired:
+    slurm_extra: "'--qos=3h'"
+    mem_mb: 10000
+
   fastqc:
     slurm_extra: "'--qos=3h'"
     mem_mb: 10000
@@ -112,6 +120,10 @@ set-resources:
     mem_mb: 10000
 
   junction_saturation:
+    slurm_extra: "'--qos=3h'"
+    mem_mb: 10000
+
+  md5sum:
     slurm_extra: "'--qos=3h'"
     mem_mb: 10000
 

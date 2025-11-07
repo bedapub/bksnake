@@ -15,7 +15,7 @@ here, we list all files necessary for the pipeline to have generated
 prior to archive the data.
 this also deletes all "empty" files, ie of size 0, in the "log" folder
 """
-def get_all_output_files(config, sample_ids, dbs):
+def get_all_output_files(config, sample_ids, dbs, meta):
 
     OD = config['results']
     OD_QC = os.path.join(OD, 'qc')
@@ -35,7 +35,7 @@ def get_all_output_files(config, sample_ids, dbs):
            
         # Other optional output files (unmapped, bw, etc)
         #all_output_files += expand(os.path.join(OD_CUTADAPT, '{sample}.report.txt'), sample=sample_ids)
-        all_output_files += get_optional_output_files(sample_ids, config, dbs)
+        all_output_files += get_optional_output_files(sample_ids, config, dbs, meta)
         
     elif config ['pipeline'] == 'vcsnake':
         # QC reports
@@ -49,13 +49,19 @@ def get_all_output_files(config, sample_ids, dbs):
     else:
         sys.exit('Variable \'pipeline\' not defined in input config yaml file.')
 
+    # For debugging
+    #print('----------------', file=sys.stderr)
+    #print('all_output_files:', file=sys.stderr)
+    #print(all_output_files, file=sys.stderr)
+    #print('----------------', file=sys.stderr)
+    
     return all_output_files
         
 
 # ------------------------------------------------------------------------------
 # Declare all required output files in a list object. This will be given to the rule 'all'
 # For bksnake / bulk rnaseq pipeline
-def get_optional_output_files(sample_ids, config, dbs):
+def get_optional_output_files(sample_ids, config, dbs, meta):
 
     OD = config['results']
     OD_BW = os.path.join(OD, 'bw')
@@ -67,12 +73,19 @@ def get_optional_output_files(sample_ids, config, dbs):
     optional_output_files = []
     
     if config['keep_fastq_files'] == True:
-        if config['library']['type'] == 'paired-end':
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_1.fastq.gz'), sample=sample_ids)
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_2.fastq.gz'), sample=sample_ids)
-        else:
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}.fastq.gz'), sample=sample_ids)
 
+        for _, row in meta.iterrows():
+            sample = row['#ID']
+            library_layout = row['LIBRARY_LAYOUT']
+            
+            if library_layout == 'PAIRED':
+                optional_output_files.append(os.path.join(OD_FASTQ, f'{sample}_1.fastq.gz'))
+                optional_output_files.append(os.path.join(OD_FASTQ, f'{sample}_2.fastq.gz'))
+            elif library_layout == 'SINGLE':
+                optional_output_files.append(os.path.join(OD_FASTQ, f'{sample}.fastq.gz'))
+            else:
+                raise ValueError(f"Invalid LIBRARY_LAYOUT value for sample {sample}: {library_layout}")
+        
     if config['keep_bam_files'] == True:
         optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam'), sample=sample_ids)
         optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam.bai'), sample=sample_ids)
@@ -85,11 +98,18 @@ def get_optional_output_files(sample_ids, config, dbs):
         optional_output_files += expand(os.path.join(OD_BW, '{sample}.bw'), sample=sample_ids)
 
     if config['generate_unmapped'] == True:
-        if config['library']['type'] == 'paired-end':
-            optional_output_files += expand(os.path.join(OD, 'unmapped', '{sample}_1.fastq.gz'), sample=sample_ids)
-            optional_output_files += expand(os.path.join(OD, 'unmapped', '{sample}_2.fastq.gz'), sample=sample_ids)
-        else:
-            optional_output_files += expand(os.path.join(OD, 'unmapped', '{sample}_1.fastq.gz'), sample=sample_ids)
+
+        for _, row in meta.iterrows():
+            sample = row['#ID']
+            library_layout = row['LIBRARY_LAYOUT']
+           
+            if library_layout == 'PAIRED':
+                optional_output_files.append(os.path.join(OD, 'unmapped', f'{sample}_1.fastq.gz'))
+                optional_output_files.append(os.path.join(OD, 'unmapped', f'{sample}_2.fastq.gz'))               
+            elif library_layout == 'SINGLE':
+                optional_output_files.append(os.path.join(OD, 'unmapped', f'{sample}_1.fastq.gz'))
+            else:
+                raise ValueError(f"Invalid LIBRARY_LAYOUT value for sample {sample}: {library_layout}")
 
     if config['junction_annotation'] == True:
         optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junction_annotation.log'), sample=sample_ids, db=dbs)
@@ -102,11 +122,17 @@ def get_optional_output_files(sample_ids, config, dbs):
         optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junctionSaturation_plot.pdf'), sample=sample_ids, db=dbs)
         optional_output_files += expand(os.path.join(OD_METRICS, '{sample}.{db}.junctionSaturation_plot.r'), sample=sample_ids, db=dbs)
 
-# Currently, fingerprinting works only for the hg38/GRCh38p14 genome
+    # Currently, fingerprinting works only for the hg38/GRCh38p14 genome
     # In order to use the T2T_CHM13v2_0 genome, a new haplotype.map file needs to be created.
     if config['organism'] == 'Homo sapiens' and (config['species'] == 'GRCh38p14' or config['species'] == 'hg38') and 'crosscheck_fingerprints' in config:
         if config['crosscheck_fingerprints'] == True:
             optional_output_files += [os.path.join(OD_METRICS, 'crosscheck_metrics')]
+    
+    # For debugging
+    #print('----------------', file=sys.stderr)
+    #print('optional_output_files:', file=sys.stderr)
+    #print(optional_output_files, file=sys.stderr)
+    #print('----------------', file=sys.stderr)
 
     return optional_output_files
 
@@ -124,11 +150,18 @@ def get_optional_output_files_vc(sample_ids, config):
     optional_output_files = []
     
     if config['keep_fastq_files'] == True:
-        if config['library']['type'] == 'paired-end':
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_1.fastq.gz'), sample=sample_ids)
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}_2.fastq.gz'), sample=sample_ids)
-        else:
-            optional_output_files += expand(os.path.join(OD_FASTQ, '{sample}.fastq.gz'), sample=sample_ids)
+
+        for _, row in meta.iterrows():
+            sample = row['#ID']
+            library_layout = row['LIBRARY_LAYOUT']
+            
+            if library_layout == 'PAIRED':
+                optional_output_files.append(os.path.join(OD_FASTQ, f'{sample}_1.fastq.gz'))
+                optional_output_files.append(os.path.join(OD_FASTQ, f'{sample}_2.fastq.gz'))
+            elif library_layout == 'SINGLE':
+                optional_output_files.append(os.path.join(OD_FASTQ, f'{sample}.fastq.gz'))
+            else:
+                raise ValueError(f"Invalid LIBRARY_LAYOUT value for sample {sample}: {library_layout}")
 
     if config['keep_bam_files'] == True:
         optional_output_files += expand(os.path.join(OD_BAM, '{sample}.bam'), sample=sample_ids)

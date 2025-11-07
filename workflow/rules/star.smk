@@ -62,29 +62,39 @@ def get_mem_mb(wildcards, threads):
 
 
 def star_input_done_files(wildcards):
+    library_layout = meta[meta['#ID'] == wildcards.sample]['LIBRARY_LAYOUT'].item()
     files = []
-    if config['library']['type'] == 'paired-end':
-        files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}_1.fastq.gz.done"))
-        files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}_2.fastq.gz.done"))
+
+    if library_layout == 'PAIRED':
+        files.append(os.path.join(OD_FASTQ, f'{wildcards.sample}_1.fastq.gz.done'))
+        files.append(os.path.join(OD_FASTQ, f'{wildcards.sample}_2.fastq.gz.done'))
+    elif library_layout == 'SINGLE':
+        files.append(os.path.join(OD_FASTQ, f'{wildcards.sample}.fastq.gz.done'))
     else:
-        files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}.fastq.gz.done"))
+        raise ValueError(f"Invalid LIBRARY_LAYOUT value for sample {wildcards.sample}: {library_layout}")
+
     return files
 
 
 def star_input_fastq_files(wildcards):
+    library_layout = meta[meta['#ID'] == wildcards.sample]['LIBRARY_LAYOUT'].item()
     files = []
-    if config['library']['type'] == 'paired-end':
+
+    if library_layout == 'PAIRED':
         if config['cutadapt']['run']:
-            files.append(os.path.join(OD_CUTADAPT, f"{wildcards.sample}_1.fastq.gz"))
-            files.append(os.path.join(OD_CUTADAPT, f"{wildcards.sample}_2.fastq.gz"))
+            files.append(os.path.join(OD_CUTADAPT, f'{wildcards.sample}_1.fastq.gz'))
+            files.append(os.path.join(OD_CUTADAPT, f'{wildcards.sample}_2.fastq.gz'))
         else:
-            files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}_1.fastq.gz"))
-            files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}_2.fastq.gz"))
+            files.append(os.path.join(OD_FASTQ, f'{wildcards.sample}_1.fastq.gz'))
+            files.append(os.path.join(OD_FASTQ, f'{wildcards.sample}_2.fastq.gz'))
+    elif library_layout == 'SINGLE':
+        if config['cutadapt']['run']:
+            files.append(os.path.join(OD_CUTADAPT, f'{wildcards.sample}.fastq.gz'))
+        else:
+            files.append(os.path.join(OD_FASTQ, f'{wildcards.sample}.fastq.gz'))
     else:
-        if config['cutadapt']['run']:
-            files.append(os.path.join(OD_CUTADAPT, f"{wildcards.sample}.fastq.gz"))
-        else:
-            files.append(os.path.join(OD_FASTQ, f"{wildcards.sample}.fastq.gz"))
+        raise ValueError(f"Invalid LIBRARY_LAYOUT value for sample {wildcards.sample}: {library_layout}")
+
     return files
 
 
@@ -104,7 +114,7 @@ rule star:
         log = temp(os.path.join(OD_UBAM, '{sample}_Log.progress.out')),
         tab = temp(os.path.join(OD_UBAM, '{sample}_SJ.out.tab')),
         mate1 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate1')),
-        mate2 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate2')) if config['library']['type'] == 'paired-end' else [],            
+        mate2 = temp(os.path.join(OD_UBAM, '{sample}_Unmapped.out.mate2')),            
     log:
         f0 = os.path.join(OD_LOG, '{sample}.star.log'),
         f1 = os.path.join(OD_LOG, '{sample}_Log.out')
@@ -120,6 +130,8 @@ rule star:
         config['STAR_IMAGE']
     shell:
         """
+        touch {output.mate2}
+
         STAR --runThreadN {threads} \
             {params.star_params} \
             --genomeDir {input.genome_dir} \
@@ -149,12 +161,14 @@ if config['generate_unmapped'] == True:
             """
 
 # ------------------------------------------------------------------------------
-if config['generate_unmapped'] == True and config['library']['type'] == 'paired-end':
+if config['generate_unmapped'] == True:
     rule gzip_unmapped_mate2:
         input:
             rules.star.output.mate2,
         output:
             os.path.join(OD, 'unmapped', '{sample}_2.fastq.gz')
+        wildcard_constraints:
+            name = "|".join(SAMPLES_PE) if SAMPLES_PE else "DUMMY_NEVER_MATCH"
         threads: 1
         shell:
             """
