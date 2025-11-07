@@ -236,41 +236,57 @@ Check for paths of FASTQ1/2 files
 def check_fastq_paths(df):
     """Check if the paths in FIRST_READ_PROPERTY and SECOND_READ_PROPERTY columns exist."""
     for index, row in df.iterrows():
+        # Construct the full path for the first read file
         fastq1_combination = os.path.join(row[FASTQ_FOLDER_PROPERTY], row[FIRST_READ_PROPERTY])
         if not os.path.exists(fastq1_combination):
             raise ValueError(f"{FIRST_READ_PROPERTY} path does not exist: {fastq1_combination}")
-
-        if SECOND_READ_PROPERTY in df.columns:
+        
+        # Check paths based on LIBRARY_LAYOUT
+        if row["LIBRARY_LAYOUT"] == "PAIRED":
+            # Construct the full path for the second read file
             fastq2_combination = os.path.join(row[FASTQ_FOLDER_PROPERTY], row[SECOND_READ_PROPERTY])
             if not os.path.exists(fastq2_combination):
-                raise ValueError(f"{SECOND_READ_PROPERTY} path does not exist: {fastq2_combination}")                
-
+                raise ValueError(f"{SECOND_READ_PROPERTY} path does not exist: {fastq2_combination}")
+        elif row["LIBRARY_LAYOUT"] == "SINGLE":
+            # Ensure SECOND_READ_PROPERTY is empty or NA for SINGLE layout
+            if row[SECOND_READ_PROPERTY] not in ["", "NA", None, np.nan]:
+                raise ValueError(f"For SINGLE layout, {SECOND_READ_PROPERTY} must be empty or NA.")
                 
 """--------------------------------------------------------------------
-Check for duplicates in the FASTQ1/2 columns
+Check for duplicates in the FASTQ1/FASTQ2 columns, considering LIBRARY_LAYOUT.
 """
 def check_fastq_columns(df):
-    required_columns = [FIRST_READ_PROPERTY, FASTQ_FOLDER_PROPERTY]
+    """Check for duplicates in the FASTQ1/FASTQ2 columns, considering LIBRARY_LAYOUT."""
+    required_columns = [FIRST_READ_PROPERTY, FASTQ_FOLDER_PROPERTY, "LIBRARY_LAYOUT"]
     if not all(column in df.columns for column in required_columns):
         raise ValueError(f"Missing required columns: {required_columns}")
 
-    has_fastq2 = SECOND_READ_PROPERTY in df.columns
     combinations = set()
 
     for index, row in df.iterrows():
+        # Construct the full path for the first FASTQ file
         fastq1_combination = os.path.join(row[FASTQ_FOLDER_PROPERTY], row[FIRST_READ_PROPERTY])
-        if has_fastq2:
+        
+        if row["LIBRARY_LAYOUT"] == "SINGLE":
+            # For SINGLE layouts, check just the FASTQ1 column
+            if fastq1_combination in combinations:
+                raise ValueError(f"Duplicate combination found in SINGLE layout: {fastq1_combination}")
+            combinations.add(fastq1_combination)
+        
+        elif row["LIBRARY_LAYOUT"] == "PAIRED":
+            # For PAIRED layouts, check both FASTQ1 and FASTQ2 columns
             fastq2_combination = os.path.join(row[FASTQ_FOLDER_PROPERTY], row[SECOND_READ_PROPERTY])
             if fastq1_combination == fastq2_combination:
-                raise ValueError(f"Identical combinations found: {fastq1_combination}")
-
-        if fastq1_combination in combinations:
-            raise ValueError(f"Duplicate combination found: {fastq1_combination}")
-
-        combinations.add(fastq1_combination)
-        if has_fastq2:
-            combinations.add(fastq2_combination)            
+                raise ValueError(f"Identical FASTQ1 and FASTQ2 combinations found in PAIRED layout: {fastq1_combination}")
             
+            if fastq1_combination in combinations:
+                raise ValueError(f"Duplicate FASTQ1 combination found in PAIRED layout: {fastq1_combination}")
+            if fastq2_combination in combinations:
+                raise ValueError(f"Duplicate FASTQ2 combination found in PAIRED layout: {fastq2_combination}")
+            
+            combinations.add(fastq1_combination)
+            combinations.add(fastq2_combination)            
+
 
 """--------------------------------------------------------------------
 """
@@ -283,7 +299,26 @@ def check_raw_directories(df):
     if missing_dirs:
         raise ValueError(f"Directories do not exist: {', '.join(missing_dirs)}")            
 
+
+"""--------------------------------------------------------------------
+"""
+def library_layout(df):
+    """ Check if the SECOND_READ_PROPERTY column exists."""
+    if SECOND_READ_PROPERTY not in df.columns:
+        # If the column doesn't exist, add it and set all row values to an empty string
+        df[SECOND_READ_PROPERTY] = ""
     
+    # Create a new column "LIBRARY_LAYOUT"
+    def determine_library_layout(row):
+        if row[SECOND_READ_PROPERTY] in ["", None, "NA", np.nan]: # Check if the column is empty, None, or NA
+            return "SINGLE"
+        else:
+            return "PAIRED"
+    
+    df["LIBRARY_LAYOUT"] = df.apply(determine_library_layout, axis=1)
+    return df
+    
+
 """--------------------------------------------------------------------
 """
 def get_metadata_from_file(metadata_file, group):
@@ -306,15 +341,22 @@ def get_metadata_from_file(metadata_file, group):
 
     df = pd.read_csv(metadata_file, sep='\t')
 
+    # Determine library layout (single or paired) for each sample NEW
+    library_layout(df)
+
     # Check Raw column
     check_raw_directories(df)
-
+ 
     # Check if the paths in FASTQ1 and SECOND_READ_PROPERTY columns exist
     check_fastq_paths(df)
 
     # Perform the FASTQ and Source Folder checks
     check_fastq_columns(df)
-
+    # For debugging
+    #print("DATAFRAME WITH LIBRARY LAYOUT IS:", file=sys.stderr)
+    #print(df, file=sys.stderr)
+    #raise ValueError('*** STOP PROGRAM FOR DEBUGGING ***')
+    
     # Check for duplicated columns
     if df.columns.duplicated().any():
         print('Warning: Got duplicated columns:', df.columns[df.columns.duplicated()].unique(), file=sys.stderr)
@@ -384,115 +426,78 @@ def get_metadata_from_file(metadata_file, group):
     return df
     
 
-
-
-"""------------------------------------------------------------------------------
-Determine sequnecing library type: single-end or paired-end
-"""
-def library_type(meta):
-    """Determine sequnecing library type: single-end or paired-end.
-    
-    Parameters
-    ----------
-        meta : DataFrame
-            Input DataFrame containing sample metadata.
-    
-    Returns
-    -------
-        library_type : str
-            'paired-end' or 'single-end' derived from input metadata.
-    """
-    if FIRST_READ_PROPERTY in meta.columns and SECOND_READ_PROPERTY in meta.columns:
-        return 'paired-end'
-    elif FIRST_READ_PROPERTY in meta.columns:
-        return 'single-end'
-    else:
-        raise Exception('\"'+FIRST_READ_PROPERTY+'\" property not present in metadata, \
-                         thus cannot determine whether paired- or single-end sequencing library.')
-
-       
-
 """------------------------------------------------------------------------------
 Determine fastq file locators from metadata
-This depends whether paired- or single-end reads
 """
 def fastq_locators(meta, config):
-    """Determine fastq file locators from metadata.
+    """Determine fastq file locators from metadata using the LIBRARY_LAYOUT column.
 
     Parameters
     ----------
         meta : DataFrame
-            Input DataFrame containing sample metadata.
-        config : Dict
-            Snakemake workflow configuration dictionary.
+            Input DataFrame containing sample metadata, including the LIBRARY_LAYOUT column.
 
     Returns
     -------
         locators : DataFrame
             Fastq file locators derived from input metadata.    
     """
-    if FASTQ_FOLDER_PROPERTY not in meta:
-        raise ValueError(f'{FASTQ_FOLDER_PROPERTY} column is missing in metadata.')
+    # Check if required columns are present
+    required_columns = [FASTQ_FOLDER_PROPERTY, FIRST_READ_PROPERTY, 'LIBRARY_LAYOUT']
+    for col in required_columns:
+        if col not in meta:
+            raise ValueError(f'{col} column is missing in metadata.')
 
+    # Ensure LIBRARY_LAYOUT column contains valid values
+    if not meta['LIBRARY_LAYOUT'].isin(['SINGLE', 'PAIRED']).all():
+        raise ValueError("LIBRARY_LAYOUT column must contain only 'SINGLE' or 'PAIRED' values.")
+
+    # Split the FASTQ_FOLDER_PROPERTY column to extract the last component (uuid)
     raw = meta[FASTQ_FOLDER_PROPERTY].str.strip('/').str.split('/', expand=True)
-    nraw = raw.shape[1] - 1
+    nraw = raw.shape[1] - 1  # Index of the last component of the split path
 
-    if library_type(meta) == 'paired-end':
-        data1 = {
-            'file': meta[FIRST_READ_PROPERTY],
-            'uuid': raw[nraw],
-            'path': meta[FASTQ_FOLDER_PROPERTY],
-            'name': meta['#ID'] + '_1.fastq.gz'
-        }
-        data2 = {
-            'file': meta[SECOND_READ_PROPERTY],
-            'uuid': raw[nraw],
-            'path': meta[FASTQ_FOLDER_PROPERTY],
-            'name': meta['#ID'] + '_2.fastq.gz'
-        }
-        df1 = pd.DataFrame(data1)
-        df2 = pd.DataFrame(data2)
-        locators = pd.concat([df1, df2])
-    else:
-        data = {
-            'file': meta[FIRST_READ_PROPERTY],
-            'uuid': raw[nraw],
-            'path': meta[FASTQ_FOLDER_PROPERTY],
-            'name': meta['#ID'] + '.fastq.gz'
-        }
-        locators = pd.DataFrame(data)
+    # Initialize an empty list to store rows for the locators DataFrame
+    rows = []
 
-    locators['locator_uuid'] = locators['uuid'] + '/' + locators['file']
-    locators['locator'] = locators['path'] + '/' + locators['file']
+    # Iterate over each row in the metadata DataFrame
+    for _, row in meta.iterrows():
+        if row['LIBRARY_LAYOUT'] == 'PAIRED':
+            # If the library is paired-end, create a row for each read (FASTQ1 and FASTQ2)
+            rows.append({
+                'file': row[FIRST_READ_PROPERTY],
+                'uuid': raw.loc[_, nraw],
+                'path': row[FASTQ_FOLDER_PROPERTY],
+                'name': row['#ID'] + '_1.fastq.gz',
+                'locator_uuid': f"{raw.loc[_, nraw]}/{row[FIRST_READ_PROPERTY]}",
+                'locator': f"{row[FASTQ_FOLDER_PROPERTY]}/{row[FIRST_READ_PROPERTY]}"
+            })
+            rows.append({
+                'file': row[SECOND_READ_PROPERTY],
+                'uuid': raw.loc[_, nraw],
+                'path': row[FASTQ_FOLDER_PROPERTY],
+                'name': row['#ID'] + '_2.fastq.gz',
+                'locator_uuid': f"{raw.loc[_, nraw]}/{row[SECOND_READ_PROPERTY]}",
+                'locator': f"{row[FASTQ_FOLDER_PROPERTY]}/{row[SECOND_READ_PROPERTY]}"
+            })
+        elif row['LIBRARY_LAYOUT'] == 'SINGLE':
+            # If the library is single-end, create a row only for the first read (FASTQ1)
+            rows.append({
+                'file': row[FIRST_READ_PROPERTY],
+                'uuid': raw.loc[_, nraw],
+                'path': row[FASTQ_FOLDER_PROPERTY],
+                'name': row['#ID'] + '.fastq.gz',
+                'locator_uuid': f"{raw.loc[_, nraw]}/{row[FIRST_READ_PROPERTY]}",
+                'locator': f"{row[FASTQ_FOLDER_PROPERTY]}/{row[FIRST_READ_PROPERTY]}"
+            })
+
+    # Create the locators DataFrame from the list of rows
+    locators = pd.DataFrame(rows)
+
+    # Set the 'name' column as the index
     locators['name_as_index'] = locators['name']
     locators.set_index('name_as_index', inplace=True)
 
     return locators
-
-
-"""------------------------------------------------------------------------------
-"""
-def update_library_type(config, meta):
-    """Determine/update library type: paired-end or single-end in the past
-    this was given in the input config file. Here, we overwrite the value 
-    in the config if present by the value obtained from the metadata 
-    (via Fastq files).
-
-    Parameters
-    ----------
-        meta : DataFrame
-            Input DataFrame containing sample metadata.
-        config : Dict
-            Snakemake workflow configuration dictionary.
-
-    Returns
-    -------
-        config : Dict
-            Updated Snakemake workflow configuration dictionary.
-    """
-    library_type_value = library_type(meta)
-    config.setdefault('library', {}).setdefault('type', library_type_value)
-    return config
 
 
 """------------------------------------------------------------------------------
