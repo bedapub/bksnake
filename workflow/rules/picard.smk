@@ -14,7 +14,7 @@ rule picard:
     log:
         os.path.join(OD_LOG, '{sample}.{db}.picard.log')
     params:
-        records = 10000000, # default is 500000
+        records = 10000000, # default is 500000, only used by Picard when writing BAM files, no effect on runtime or memory here
     threads: config.get('picard_threads', 8)
     resources:
         mem_mb = 30000
