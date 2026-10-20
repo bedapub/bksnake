@@ -15,7 +15,7 @@ rule picard:
         os.path.join(OD_LOG, '{sample}.{db}.picard.log')
     params:
         records = 10000000, # default is 500000
-    threads: 1
+    threads: config.get('picard_threads', 8)
     resources:
         mem_mb = 30000
     singularity:
@@ -25,7 +25,7 @@ rule picard:
         str="$(grep 'picard=' {input.str} | sort | uniq | cut -d= -f2)"
         
         export _JAVA_OPTIONS="-Xmx25g" && \
-        /usr/local/bin/picard CollectRnaSeqMetrics \
+        workflow/scripts/picard_rnaseq_metrics.sh {threads} \
             --REF_FLAT {input.ref} \
             --RIBOSOMAL_INTERVALS {input.ribo} \
             --STRAND_SPECIFICITY ${{str}} \
