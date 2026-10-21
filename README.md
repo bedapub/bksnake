@@ -334,6 +334,7 @@ Contains unmapped sequencing reads in [FASTQ](https://en.wikipedia.org/wiki/FAST
 
 ## Release notes ([top](#top)) <a name="releases"></a>
 
+- **`0.2.2`**    Multi-threaded Picard CollectRnaSeqMetrics (`picard_threads`, default: 8) with identical output, reduced Picard memory (8 GB heap, 10 GB job).
 - **`0.2.1`**    Enable processing of single- and paired-end libraries simultaenoulsy.
 - **`0.2.0`**    STAR index creation and custom BED files.
 - **`0.1.13`**   n/a.
