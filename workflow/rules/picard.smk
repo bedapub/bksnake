@@ -17,14 +17,14 @@ rule picard:
         records = 10000000, # default is 500000, only used by Picard when writing BAM files, no effect on runtime or memory here
     threads: config.get('picard_threads', 8)
     resources:
-        mem_mb = 30000
+        mem_mb = 10000
     singularity:
         config['PICARD_IMAGE']
     shell:
         """
         str="$(grep 'picard=' {input.str} | sort | uniq | cut -d= -f2)"
         
-        export _JAVA_OPTIONS="-Xmx25g" && \
+        export _JAVA_OPTIONS="-Xmx8g" && \
         workflow/scripts/picard_rnaseq_metrics.sh {threads} \
             --REF_FLAT {input.ref} \
             --RIBOSOMAL_INTERVALS {input.ribo} \

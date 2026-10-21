@@ -128,7 +128,7 @@ multiqc:
 
 picard:
   - "-q long"
-  - "-R rusage[mem=20GB/host]"
+  - "-R rusage[mem=10GB/host]"
 
 qc:
   - "-q short"
