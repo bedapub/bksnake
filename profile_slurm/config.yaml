@@ -140,8 +140,8 @@ set-resources:
     mem_mb: 10000
 
   picard:
-    slurm_extra: "'--qos=3d'"
-    mem_mb: 20000
+    slurm_extra: "'--qos=3h'"
+    mem_mb: 10000
 
   qc:
     slurm_extra: "'--qos=3h'"

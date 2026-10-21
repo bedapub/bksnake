@@ -55,6 +55,11 @@ featurecounts:
 # infer_experiments strandness parameter, see: https://rseqc.sourceforge.net/#infer-experiment-py
 strandness_mode: auto # auto, fr or ff
 
+# Picard CollectRnaSeqMetrics: number of threads. With picard_threads > 1, the BAM file is split
+# into chunks that are processed in parallel and merged into the same output, default: 8
+# (benchmark, hg38, 10M read pairs: 1 thread 178 s, 4 threads 55 s, 8 threads 33 s, 16 threads 25 s; recommended: 8)
+picard_threads: 8
+
 # STAR read mapping parameters
 star_threads: 12
 star_version: star_2.7.11b  # required for STAR_DIR variable

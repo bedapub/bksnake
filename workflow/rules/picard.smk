@@ -14,18 +14,18 @@ rule picard:
     log:
         os.path.join(OD_LOG, '{sample}.{db}.picard.log')
     params:
-        records = 10000000, # default is 500000
-    threads: 1
+        records = 10000000, # default is 500000, only used by Picard when writing BAM files, no effect on runtime or memory here
+    threads: config.get('picard_threads', 8)
     resources:
-        mem_mb = 30000
+        mem_mb = 10000
     singularity:
         config['PICARD_IMAGE']
     shell:
         """
         str="$(grep 'picard=' {input.str} | sort | uniq | cut -d= -f2)"
         
-        export _JAVA_OPTIONS="-Xmx25g" && \
-        /usr/local/bin/picard CollectRnaSeqMetrics \
+        export _JAVA_OPTIONS="-Xmx8g" && \
+        workflow/scripts/picard_rnaseq_metrics.sh {threads} \
             --REF_FLAT {input.ref} \
             --RIBOSOMAL_INTERVALS {input.ribo} \
             --STRAND_SPECIFICITY ${{str}} \
